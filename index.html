@@ -1892,7 +1892,7 @@ body.contract-doc-contrato .contract-annex-fields{
 body.contract-doc-anexo .contract-only-label{
   display:none!important;
 }
-.anexo-sueldo,.anexo-cargo,.anexo-jornada,.anexo-plazo,.anexo-horas-extra,.anexo-horas-descanso{
+.anexo-sueldo,.anexo-cargo,.anexo-jornada,.anexo-plazo,.anexo-horas-extra,.anexo-horas-descanso,.anexo-he-compensatorio{
   display:none;
 }
 body.anexo-tipo-sueldo .anexo-sueldo,
@@ -1900,7 +1900,8 @@ body.anexo-tipo-cargo .anexo-cargo,
 body.anexo-tipo-jornada .anexo-jornada,
 body.anexo-tipo-plazo .anexo-plazo,
 body.anexo-tipo-horas_extra .anexo-horas-extra,
-body.anexo-tipo-horas_descanso .anexo-horas-descanso{
+body.anexo-tipo-horas_descanso .anexo-horas-descanso,
+body.anexo-tipo_he_compensatorio .anexo-he-compensatorio{
   display:block;
 }
 .annex-warning{
@@ -2990,6 +2991,7 @@ body.auth-locked .password-modal{
                 <option value="cargo">Cambio de cargo / funciones</option>
                 <option value="jornada">Cambio de jornada u horario</option>
                 <option value="horas_extra">Pacto de horas extraordinarias</option>
+                <option value="he_compensatorio">Acuerdo horas extras por días compensatorios</option>
                 <option value="horas_descanso">Horas extra por tiempo de descanso</option>
                 <option value="plazo">Prórroga o modificación de plazo fijo</option>
                 <option value="otro">Otro acuerdo</option>
@@ -3008,6 +3010,12 @@ body.auth-locked .password-modal{
             <div class="anexo-horas-descanso"><label>Período de aplicación</label><input id="contract_anexo_descanso_periodo" oninput="renderContractDoc()" placeholder="Ej: Servicios en terreno, viajes o turnos previamente autorizados"></div>
             <div class="anexo-horas-descanso"><label>Forma de compensación</label><input id="contract_anexo_descanso_forma" oninput="renderContractDoc()" value="Tiempo de descanso compensatorio acordado por las partes"></div>
             <div class="full anexo-horas-descanso"><label>Descripción hora extra por descanso</label><textarea id="contract_anexo_descanso_desc" oninput="renderContractDoc()" placeholder="Ej: Cuando proceda compensar tiempo extraordinario con descanso, este deberá quedar autorizado, registrado y coordinado con la jefatura."></textarea></div>
+
+            <div class="anexo-he-compensatorio"><label>Vigencia acuerdo hasta</label><input id="contract_anexo_hec_hasta" type="date" onchange="renderContractDoc()"></div>
+            <div class="anexo-he-compensatorio"><label>Máximo anual</label><input id="contract_anexo_hec_max" type="number" min="0" step="0.5" value="5" oninput="renderContractDoc()"></div>
+            <div class="anexo-he-compensatorio"><label>Plazo de uso</label><input id="contract_anexo_hec_plazo" oninput="renderContractDoc()" value="dentro de los 6 meses siguientes al ciclo en que se originaron"></div>
+            <div class="anexo-he-compensatorio"><label>Aviso previo</label><input id="contract_anexo_hec_aviso" oninput="renderContractDoc()" value="48 horas de anticipación"></div>
+            <div class="full anexo-he-compensatorio"><label>Descripción acuerdo horas extra compensadas</label><textarea id="contract_anexo_hec_desc" oninput="renderContractDoc()" placeholder="Ej: Las horas extraordinarias autorizadas podrán compensarse por días hábiles adicionales de descanso, dejando registro de horas, período, autorización y día compensatorio usado."></textarea></div>
 
             <div class="anexo-plazo"><label>Nueva fecha de término</label><input id="contract_anexo_fecha_termino" type="date" onchange="renderContractDoc()"></div>
             <div class="full"><label>Detalle / cláusula general del anexo</label><textarea id="contract_anexo_detalle" oninput="renderContractDoc()" placeholder="Escribe aquí cualquier detalle adicional que deba quedar en el anexo."></textarea></div>
@@ -3145,6 +3153,8 @@ body.auth-locked .password-modal{
             <div><label>Días legales calculados</label><input id="perm_balance_legal" class="auto-readonly" readonly></div>
             <div><label>Ajuste / arrastre manual</label><input id="perm_balance_ajuste" type="number" step="0.5" value="0" oninput="updatePermBalancePreview()"></div>
             <div><label>Vacaciones ya usadas</label><input id="perm_balance_usadas_previas" type="number" min="0" step="0.5" value="0" oninput="updatePermBalancePreview()"></div>
+            <div><label>Compensatorios usados previos</label><input id="perm_balance_comp_previos" type="number" min="0" step="0.5" value="0" oninput="updatePermBalancePreview()"></div>
+            <div><label>Saldo compensatorio anual</label><input id="perm_balance_comp_saldo" class="auto-readonly" type="number" step="0.5" value="5" readonly></div>
             <div><label>Total disponible</label><input id="perm_balance_total" class="auto-readonly" type="number" min="0" step="0.5" value="0" readonly></div>
             <div class="full"><div class="helper" id="perm_balance_help">El cálculo considera fecha de inicio, tipo de contrato y año seleccionado. Puedes usar ajuste/arrastre para sumar o restar días pendientes de períodos anteriores.</div></div>
           </div>
@@ -3164,6 +3174,7 @@ body.auth-locked .password-modal{
               <option value="permiso_goce">Permiso con goce</option>
               <option value="permiso_sin_goce">Permiso sin goce</option>
               <option value="permiso_administrativo">Permiso administrativo</option>
+              <option value="compensatorio_he">Día compensatorio por horas extras</option>
               <option value="otro">Otro permiso</option>
             </select></div>
             <div><label>Estado</label><select id="perm_estado">
@@ -3176,6 +3187,7 @@ body.auth-locked .password-modal{
             <div><label>Desde</label><input id="perm_desde" type="date" onchange="updatePermDaysPreview()"></div>
             <div><label>Hasta</label><input id="perm_hasta" type="date" onchange="updatePermDaysPreview()"></div>
             <div><label>Días calculados</label><input id="perm_dias" class="auto-readonly" readonly></div>
+            <div><label>Feriados no contados</label><input id="perm_feriados_info" class="auto-readonly" readonly></div>
             <div><label>Medio día</label><select id="perm_medio_dia" onchange="updatePermDaysPreview()">
               <option value="no">No</option>
               <option value="si">Sí, medio día</option>
@@ -3204,6 +3216,7 @@ body.auth-locked .password-modal{
             <option value="permiso_goce">Permiso con goce</option>
             <option value="permiso_sin_goce">Permiso sin goce</option>
             <option value="permiso_administrativo">Permiso administrativo</option>
+            <option value="compensatorio_he">Día compensatorio por horas extras</option>
             <option value="otro">Otro permiso</option>
           </select></div>
         </div>
@@ -3798,28 +3811,65 @@ function permBalances(){return getJSON(KEY_PERM_BAL,{})}
 function setPermBalances(v){setJSON(KEY_PERM_BAL,v)}
 function permBalanceKey(workerKey,year){return `${workerKey||''}_${year||new Date().getFullYear()}`}
 function permTipoLabel(t){
-  return {vacaciones:'Vacaciones',permiso_goce:'Permiso con goce',permiso_sin_goce:'Permiso sin goce',permiso_administrativo:'Permiso administrativo',otro:'Otro permiso'}[t]||t||'';
+  return {vacaciones:'Vacaciones',permiso_goce:'Permiso con goce',permiso_sin_goce:'Permiso sin goce',permiso_administrativo:'Permiso administrativo',compensatorio_he:'Día compensatorio por horas extras',otro:'Otro permiso'}[t]||t||'';
 }
 function permStatusClass(s){
   if(s==='Aprobado')return 'ok';
   if(s==='Rechazado'||s==='Anulado')return 'bad';
   return 'warn';
 }
-function dateRangeBusinessDays(a,b){
-  if(!a||!b)return 0;
+function isoDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function addDaysToDate(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function easterSundayDate(year){
+  const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;
+  return new Date(year,month-1,day);
+}
+function chileanHolidayDates(year){
+  const set=new Set();
+  const add=(m,d)=>set.add(`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+  [[1,1],[5,1],[5,21],[6,20],[7,16],[8,15],[9,18],[9,19],[11,1],[12,8],[12,25]].forEach(x=>add(x[0],x[1]));
+  const easter=easterSundayDate(year);
+  set.add(isoDate(addDaysToDate(easter,-2))); // Viernes Santo
+  set.add(isoDate(addDaysToDate(easter,-1))); // Sábado Santo, por respaldo aunque el sábado no se cuenta
+  // Feriados trasladables según Ley 19.668: 29 de junio y 12 de octubre.
+  [[6,29],[10,12]].forEach(([m,d])=>{
+    const base=new Date(year,m-1,d), day=base.getDay();
+    if(day>=2&&day<=4)set.add(isoDate(addDaysToDate(base,-(day-1)))); // lunes de la misma semana
+    else if(day===5)set.add(isoDate(addDaysToDate(base,3))); // lunes siguiente
+    else set.add(isoDate(base));
+  });
+  // Día Nacional de las Iglesias Evangélicas y Protestantes: 31 de octubre;
+  // si cae martes se traslada al viernes anterior, si cae miércoles al viernes posterior.
+  const ev=new Date(year,9,31), evDay=ev.getDay();
+  if(evDay===2)set.add(isoDate(addDaysToDate(ev,-4)));
+  else if(evDay===3)set.add(isoDate(addDaysToDate(ev,2)));
+  else set.add(isoDate(ev));
+  return set;
+}
+function dateRangeBusinessDaysDetail(a,b){
+  if(!a||!b)return {days:0,holidays:[]};
   let start=new Date(a+'T00:00:00'), end=new Date(b+'T00:00:00');
   if(start>end){const tmp=start;start=end;end=tmp;}
-  let count=0;
+  const holidayCache={};
+  let count=0, holidays=[];
   for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
     const day=d.getDay();
-    if(day!==0&&day!==6)count++;
+    if(day===0||day===6)continue;
+    const y=d.getFullYear();
+    holidayCache[y]=holidayCache[y]||chileanHolidayDates(y);
+    const iso=isoDate(d);
+    if(holidayCache[y].has(iso)){holidays.push(iso);continue;}
+    count++;
   }
-  return count;
+  return {days:count,holidays};
 }
+function dateRangeBusinessDays(a,b){return dateRangeBusinessDaysDetail(a,b).days;}
 function updatePermDaysPreview(){
-  let days=dateRangeBusinessDays(val('perm_desde'),val('perm_hasta'));
+  const detail=dateRangeBusinessDaysDetail(val('perm_desde'),val('perm_hasta'));
+  let days=detail.days;
   if(val('perm_medio_dia')==='si')days=0.5;
   if(byId('perm_dias'))byId('perm_dias').value=Number(days||0).toFixed(1);
+  if(byId('perm_feriados_info'))byId('perm_feriados_info').value=detail.holidays.length?detail.holidays.map(fmtDate).join(', '):'No aplica';
 }
 function refreshPermSelects(){
   const w=workers();
@@ -3877,7 +3927,9 @@ function currentPermBalancePreview(){
   if(stored.ajuste===undefined && stored.total!==undefined){
     ajuste=(Number(stored.total)||0)-calc.legal;
   }
-  const usadas_previas=Number(stored.usadas_previas??0)||0;return {...calc,ajuste,usadas_previas,total:Math.max(calc.legal+ajuste,0),worker_key:k,year:y};
+  const usadas_previas=Number(stored.usadas_previas??0)||0;
+  const comp_previos=Number(stored.comp_previos??0)||0;
+  return {...calc,ajuste,usadas_previas,comp_previos,total:Math.max(calc.legal+ajuste,0),worker_key:k,year:y};
 }
 function updatePermBalancePreview(){
   const k=val('perm_balance_worker'), y=val('perm_balance_year');
@@ -3885,12 +3937,16 @@ function updatePermBalancePreview(){
   const calc=calcLegalVacationDays(w,y);
   const ajuste=num('perm_balance_ajuste');
   const usadasPrevias=num('perm_balance_usadas_previas');
+  const compPrevios=Math.min(Math.max(num('perm_balance_comp_previos'),0),5);
   const total=Math.max(calc.legal+ajuste,0);
   if(byId('perm_balance_tipo_contrato'))byId('perm_balance_tipo_contrato').value=calc.tipo||'';
   if(byId('perm_balance_fecha_ingreso'))byId('perm_balance_fecha_ingreso').value=fmtDate(calc.fecha)||'';
   if(byId('perm_balance_legal'))byId('perm_balance_legal').value=calc.legal.toFixed(1);
   if(byId('perm_balance_total'))byId('perm_balance_total').value=total.toFixed(1);
-  if(byId('perm_balance_help'))byId('perm_balance_help').textContent=calc.detalle+` Total disponible: ${total.toFixed(1)} días. Vacaciones ya usadas antes del sistema: ${usadasPrevias.toFixed(1)} días. El saldo final se descuenta automáticamente en el resumen.`;
+  const compSaldo=Math.max(5-compPrevios,0);
+  if(byId('perm_balance_comp_previos'))byId('perm_balance_comp_previos').value=compPrevios.toFixed(1);
+  if(byId('perm_balance_comp_saldo'))byId('perm_balance_comp_saldo').value=compSaldo.toFixed(1);
+  if(byId('perm_balance_help'))byId('perm_balance_help').textContent=calc.detalle+` Total disponible: ${total.toFixed(1)} días. Vacaciones ya usadas antes del sistema: ${usadasPrevias.toFixed(1)} días. Compensatorios usados previos: ${compPrevios.toFixed(1)} de máximo 5 días hábiles anuales.`;
 }
 function loadPermBalance(){
   const k=val('perm_balance_worker'), y=val('perm_balance_year');
@@ -3905,6 +3961,7 @@ function loadPermBalance(){
   }
   if(byId('perm_balance_ajuste'))byId('perm_balance_ajuste').value=(Math.round(ajuste*10)/10).toFixed(1);
   if(byId('perm_balance_usadas_previas'))byId('perm_balance_usadas_previas').value=(Math.round(Number(stored.usadas_previas||0)*10)/10).toFixed(1);
+  if(byId('perm_balance_comp_previos'))byId('perm_balance_comp_previos').value=(Math.round(Number(stored.comp_previos||0)*10)/10).toFixed(1);
   updatePermBalancePreview();
 }
 function savePermBalance(){
@@ -3912,7 +3969,7 @@ function savePermBalance(){
   if(!k){showMsg('msg-perm','Selecciona un trabajador para guardar el saldo.','err');return}
   updatePermBalancePreview();
   const all=permBalances();
-  all[permBalanceKey(k,y)]={worker_key:k,year:y,legal:num('perm_balance_legal'),ajuste:num('perm_balance_ajuste'),usadas_previas:num('perm_balance_usadas_previas'),total:num('perm_balance_total'),tipo_contrato:val('perm_balance_tipo_contrato'),fecha_ingreso:val('perm_balance_fecha_ingreso'),updated:new Date().toISOString()};
+  all[permBalanceKey(k,y)]={worker_key:k,year:y,legal:num('perm_balance_legal'),ajuste:num('perm_balance_ajuste'),usadas_previas:num('perm_balance_usadas_previas'),comp_previos:Math.min(Math.max(num('perm_balance_comp_previos'),0),5),total:num('perm_balance_total'),tipo_contrato:val('perm_balance_tipo_contrato'),fecha_ingreso:val('perm_balance_fecha_ingreso'),updated:new Date().toISOString()};
   setPermBalances(all);
   renderPermisos();
   showMsg('msg-perm','Saldo guardado.');
@@ -3939,7 +3996,7 @@ function lockedPermisoMessage(){
 }
 function clearPermForm(){
   setPermFormLocked(false);
-  ['perm_id','perm_obs'].forEach(id=>{if(byId(id))byId(id).value=''});
+  ['perm_id','perm_obs','perm_feriados_info'].forEach(id=>{if(byId(id))byId(id).value=''});
   if(byId('perm_worker'))byId('perm_worker').value='';
   if(byId('perm_tipo'))byId('perm_tipo').value='vacaciones';
   if(byId('perm_estado'))byId('perm_estado').value='Solicitado';
@@ -3963,9 +4020,24 @@ function collectPermForm(){
     hasta:val('perm_hasta'),
     medio_dia:val('perm_medio_dia'),
     dias:num('perm_dias'),
+    feriados_no_contados:byId('perm_feriados_info')?val('perm_feriados_info'):'',
     obs:val('perm_obs'),
     updated:new Date().toISOString()
   };
+}
+function compensatoryUsedForWorker(k,year,excludeId){
+  const b=permBalances()[permBalanceKey(k,year)]||{};
+  const prev=Math.min(Math.max(Number(b.comp_previos||0)||0,0),5);
+  const approved=permisos().filter(x=>x.worker_key===k&&x.tipo==='compensatorio_he'&&x.estado==='Aprobado'&&x.id!==excludeId&&String(new Date((x.desde||'')+'T00:00:00').getFullYear())===String(year)).reduce((sum,x)=>sum+(Number(x.dias)||0),0);
+  return prev+approved;
+}
+function validateCompensatoryLimit(p){
+  if(!p||p.tipo!=='compensatorio_he'||p.estado!=='Aprobado')return true;
+  const year=p.desde?new Date(p.desde+'T00:00:00').getFullYear():new Date().getFullYear();
+  const used=compensatoryUsedForWorker(p.worker_key,year,p.id);
+  const total=used+(Number(p.dias)||0);
+  if(total>5){showMsg('msg-perm',`No se puede aprobar: excede el máximo de 5 días compensatorios por horas extras en el año ${year}. Ya usados/registrados: ${used.toFixed(1)} días.`, 'err');return false;}
+  return true;
 }
 function savePermiso(){
   const existing=permisos().find(x=>x.id===val('perm_id'));
@@ -3973,6 +4045,7 @@ function savePermiso(){
   const p=collectPermForm();
   if(!p.worker_key||!p.desde||!p.hasta){showMsg('msg-perm','Selecciona trabajador y fechas del permiso/vacaciones.','err');return}
   if(p.dias<=0){showMsg('msg-perm','Los días calculados deben ser mayores a 0.','err');return}
+  if(!validateCompensatoryLimit(p))return;
   savePermisoObject(p);
   byId('perm_id').value=p.id;
   setPermFormLocked(false);
@@ -3990,6 +4063,7 @@ function editPermiso(id){
   if(byId('perm_hasta'))byId('perm_hasta').value=p.hasta||'';
   if(byId('perm_medio_dia'))byId('perm_medio_dia').value=p.medio_dia||'no';
   if(byId('perm_dias'))byId('perm_dias').value=Number(p.dias||0).toFixed(1);
+  if(byId('perm_feriados_info'))byId('perm_feriados_info').value=p.feriados_no_contados||dateRangeBusinessDaysDetail(p.desde,p.hasta).holidays.map(fmtDate).join(', ')||'No aplica';
   if(byId('perm_obs'))byId('perm_obs').value=p.obs||'';
   const locked=permisoIsLocked(p);
   setPermFormLocked(locked);
@@ -4016,11 +4090,14 @@ function permSummaryForWorker(k,year){
   if(b.ajuste===undefined && b.total!==undefined)ajuste=(Number(b.total)||0)-calc.legal;
   const total=Math.max(calc.legal+ajuste,0);
   const usadas_previas=Number(b.usadas_previas||0)||0;
+  const comp_previos=Math.min(Math.max(Number(b.comp_previos||0)||0,0),5);
   const arr=permisos().filter(x=>x.worker_key===k&&String(new Date((x.desde||'')+'T00:00:00').getFullYear())===String(year)&&x.estado==='Aprobado');
   const vac=arr.filter(x=>x.tipo==='vacaciones').reduce((s,x)=>s+(Number(x.dias)||0),0);
-  const perm=arr.filter(x=>x.tipo!=='vacaciones').reduce((s,x)=>s+(Number(x.dias)||0),0);
+  const comp=arr.filter(x=>x.tipo==='compensatorio_he').reduce((s,x)=>s+(Number(x.dias)||0),0);
+  const perm=arr.filter(x=>x.tipo!=='vacaciones'&&x.tipo!=='compensatorio_he').reduce((s,x)=>s+(Number(x.dias)||0),0);
   const vacTotal=vac+usadas_previas;
-  return {total,legal:calc.legal,ajuste,usadas_previas,vac,perm,vac_total:vacTotal,saldo:Math.max(total-vacTotal,0),tipo:calc.tipo,fecha_ingreso:calc.fecha,detalle:calc.detalle};
+  const compTotal=comp+comp_previos;
+  return {total,legal:calc.legal,ajuste,usadas_previas,comp_previos,vac,perm,comp,comp_total:compTotal,comp_saldo:Math.max(5-compTotal,0),vac_total:vacTotal,saldo:Math.max(total-vacTotal,0),tipo:calc.tipo,fecha_ingreso:calc.fecha,detalle:calc.detalle};
 }
 function filteredPermisos(){
   const fw=val('perm_filter_worker'), fy=val('perm_filter_year'), ft=val('perm_filter_tipo');
@@ -4035,16 +4112,16 @@ function renderPermisos(){
   const year=val('perm_filter_year')||new Date().getFullYear();
   const w=workers();
   const keys=Object.keys(w).sort((a,b)=>(w[a].nombre||'').localeCompare(w[b].nombre||''));
-  let totalDisp=0,totalVac=0,totalPerm=0;
-  let brow='<tr><th>Trabajador</th><th>RUT</th><th>Contrato</th><th>Ingreso</th><th>Período</th><th>Días legales</th><th>Ajuste</th><th>Total disponible</th><th>Vacaciones anteriores</th><th>Vacaciones registradas</th><th>Permisos usados</th><th>Saldo vacaciones</th></tr>';
+  let totalDisp=0,totalVac=0,totalPerm=0,totalComp=0;
+  let brow='<tr><th>Trabajador</th><th>RUT</th><th>Contrato</th><th>Ingreso</th><th>Período</th><th>Días legales</th><th>Ajuste</th><th>Total disponible</th><th>Vacaciones anteriores</th><th>Vacaciones registradas</th><th>Permisos usados</th><th>Compensatorios usados</th><th>Saldo compensatorios</th><th>Saldo vacaciones</th></tr>';
   const filterWorker=val('perm_filter_worker');
   keys.filter(k=>!filterWorker||k===filterWorker).forEach(k=>{
     const s=permSummaryForWorker(k,year);
-    totalDisp+=s.total;totalVac+=s.vac_total;totalPerm+=s.perm;
-    brow+=`<tr><td>${esc(w[k].nombre||'')}</td><td>${esc(w[k].rut||'')}</td><td>${esc(s.tipo||'')}</td><td>${fmtDate(s.fecha_ingreso)}</td><td>${esc(year)}</td><td>${s.legal.toFixed(1)}</td><td>${s.ajuste.toFixed(1)}</td><td>${s.total.toFixed(1)}</td><td>${s.usadas_previas.toFixed(1)}</td><td>${s.vac.toFixed(1)}</td><td>${s.perm.toFixed(1)}</td><td><strong>${s.saldo.toFixed(1)}</strong></td></tr>`;
+    totalDisp+=s.total;totalVac+=s.vac_total;totalPerm+=s.perm;totalComp+=s.comp_total;
+    brow+=`<tr><td>${esc(w[k].nombre||'')}</td><td>${esc(w[k].rut||'')}</td><td>${esc(s.tipo||'')}</td><td>${fmtDate(s.fecha_ingreso)}</td><td>${esc(year)}</td><td>${s.legal.toFixed(1)}</td><td>${s.ajuste.toFixed(1)}</td><td>${s.total.toFixed(1)}</td><td>${s.usadas_previas.toFixed(1)}</td><td>${s.vac.toFixed(1)}</td><td>${s.perm.toFixed(1)}</td><td>${s.comp_total.toFixed(1)}</td><td>${s.comp_saldo.toFixed(1)}</td><td><strong>${s.saldo.toFixed(1)}</strong></td></tr>`;
   });
   if(byId('perm_balance_table'))byId('perm_balance_table').innerHTML=brow;
-  if(byId('perm_summary'))byId('perm_summary').innerHTML=`<div class="metric"><span>Días disponibles</span><strong>${totalDisp.toFixed(1)}</strong></div><div class="metric"><span>Vacaciones usadas total</span><strong>${totalVac.toFixed(1)}</strong></div><div class="metric"><span>Permisos usados</span><strong>${totalPerm.toFixed(1)}</strong></div><div class="metric"><span>Saldo vacaciones</span><strong>${Math.max(totalDisp-totalVac,0).toFixed(1)}</strong></div>`;
+  if(byId('perm_summary'))byId('perm_summary').innerHTML=`<div class="metric"><span>Días disponibles</span><strong>${totalDisp.toFixed(1)}</strong></div><div class="metric"><span>Vacaciones usadas total</span><strong>${totalVac.toFixed(1)}</strong></div><div class="metric"><span>Permisos usados</span><strong>${totalPerm.toFixed(1)}</strong></div><div class="metric"><span>Compensatorios usados</span><strong>${totalComp.toFixed(1)}</strong></div><div class="metric"><span>Saldo vacaciones</span><strong>${Math.max(totalDisp-totalVac,0).toFixed(1)}</strong></div>`;
   let rows='<tr><th>Fecha solicitud</th><th>Trabajador</th><th>Tipo</th><th>Estado</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Observación</th><th class="no-print">Acciones</th></tr>';
   const arr=filteredPermisos().sort((a,b)=>String(b.desde||'').localeCompare(String(a.desde||'')));
   if(!arr.length)rows='<tr><th>No hay solicitudes registradas para el filtro seleccionado.</th></tr>';
@@ -4067,6 +4144,8 @@ function setPermisoDecision(id,status,printDoc=false){
   const i=arr.findIndex(x=>x.id===id);
   if(i<0){showMsg('msg-perm','No se encontró la solicitud.','err');return}
   if(permisoIsLocked(arr[i])){lockedPermisoMessage();return}
+  const test={...arr[i],estado:status};
+  if(!validateCompensatoryLimit(test))return;
   arr[i].estado=status;
   arr[i].fecha_resolucion=new Date().toISOString().slice(0,10);
   arr[i].updated=new Date().toISOString();
@@ -4147,6 +4226,13 @@ function buildPermisoDecisionHTML(id){
       <p><strong>Tipo de contrato:</strong> ${esc(s.tipo||'')} · <strong>Fecha ingreso:</strong> ${fmtDate(s.fecha_ingreso)}</p>
       <p><strong>Días legales calculados:</strong> ${s.legal.toFixed(1)} · <strong>Ajuste/arrastre:</strong> ${s.ajuste.toFixed(1)} · <strong>Total disponible:</strong> ${s.total.toFixed(1)}</p>
       <p><strong>Vacaciones aprobadas/usadas:</strong> ${s.vac.toFixed(1)} · <strong>Saldo estimado:</strong> ${s.saldo.toFixed(1)}</p>
+      <p><strong>Feriados no contados:</strong> ${esc(x.feriados_no_contados||'No aplica')}</p>
+    </div>`:''}
+
+    ${x.tipo==='compensatorio_he'?`<div class="perm-decision-box">
+      <h2>Control días compensatorios por horas extras ${esc(year)}</h2>
+      <p><strong>Máximo anual:</strong> 5 días hábiles · <strong>Usados/registrados:</strong> ${s.comp_total.toFixed(1)} · <strong>Saldo estimado:</strong> ${s.comp_saldo.toFixed(1)}</p>
+      <p><strong>Feriados no contados:</strong> ${esc(x.feriados_no_contados||'No aplica')}</p>
     </div>`:''}
 
     ${x.obs?`<div class="perm-decision-box"><h2>Observación</h2><p>${esc(x.obs)}</p></div>`:''}
@@ -4182,8 +4268,8 @@ function printPermisoDecisionDoc(id){
   popup.onload=function(){popup.focus();setTimeout(()=>popup.print(),300)};
 }
 function exportPermisosCSV(){
-  const headers=['fecha_solicitud','fecha_resolucion','trabajador','rut','tipo','estado','desde','hasta','dias','observacion'];
-  const rows=filteredPermisos().map(x=>[x.fecha_solicitud,x.fecha_resolucion||'',x.nombre,x.rut,permTipoLabel(x.tipo),x.estado,x.desde,x.hasta,x.dias,x.obs]);
+  const headers=['fecha_solicitud','fecha_resolucion','trabajador','rut','tipo','estado','desde','hasta','dias','feriados_no_contados','observacion'];
+  const rows=filteredPermisos().map(x=>[x.fecha_solicitud,x.fecha_resolucion||'',x.nombre,x.rut,permTipoLabel(x.tipo),x.estado,x.desde,x.hasta,x.dias,x.feriados_no_contados||'',x.obs]);
   downloadText('permisos_vacaciones_ecoluz.csv','\ufeff'+line(headers)+'\n'+rows.map(line).join('\n'));
 }
 function buildPermisosPrintHTML(){
@@ -4895,7 +4981,7 @@ function renderLiquidacion(d){
   const doc=(label)=>`<div class="liq-doc liq-classic">
     <div class="header-liq">
       <div>
-        <img class="liq-logo-img" src="logo.png" alt="Logo ECOLUZ" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"><div class="logo-badge liq-logo-fallback" style="display:none">ECOLUZ</div>
+        <img class="liq-logo-img" src="data:image/png;base64,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" alt="Logo ECOLUZ" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"><div class="logo-badge liq-logo-fallback" style="display:none">ECOLUZ</div>
         <p class="m0 mt4"><strong>${empresa.nombre}</strong></p>
         <p class="m0">RUT: ${empresa.rut}</p>
         <p class="m0">Dirección: ${empresa.direccion}</p>
@@ -5531,6 +5617,7 @@ function setContractDefaultDates(){
   if(byId('contract_fecha_ingreso')&&!contractVal('contract_fecha_ingreso'))byId('contract_fecha_ingreso').value=`${yyyy}-${mm}-${dd}`;
   if(byId('contract_fecha_anexo')&&!contractVal('contract_fecha_anexo'))byId('contract_fecha_anexo').value=`${yyyy}-${mm}-${dd}`;
   if(byId('contract_anexo_vigencia')&&!contractVal('contract_anexo_vigencia'))byId('contract_anexo_vigencia').value=`${yyyy}-${mm}-${dd}`;
+  if(byId('contract_anexo_hec_hasta')&&!contractVal('contract_anexo_hec_hasta'))byId('contract_anexo_hec_hasta').value=`${yyyy}-12-31`;
 }
 function applyContractModelDefaults(){
   const model=contractVal('contract_model');
@@ -5577,7 +5664,7 @@ function loadWorkerToContract(){
   renderContractDoc(true);
 }
 function clearContractForm(){
-  ['contract_worker','contract_nombre','contract_rut','contract_cargo','contract_fecha_nacimiento','contract_domicilio_trabajador','contract_correo_trabajador','contract_telefono','contract_rut_representante','contract_fecha_termino','contract_anexo_sueldo','contract_anexo_sueldo_desc','contract_anexo_cargo','contract_anexo_jornada','contract_anexo_he_hasta','contract_anexo_he_desc','contract_anexo_descanso_periodo','contract_anexo_descanso_desc','contract_anexo_fecha_termino','contract_anexo_detalle'].forEach(id=>{if(byId(id))byId(id).value=''});
+  ['contract_worker','contract_nombre','contract_rut','contract_cargo','contract_fecha_nacimiento','contract_domicilio_trabajador','contract_correo_trabajador','contract_telefono','contract_rut_representante','contract_fecha_termino','contract_anexo_sueldo','contract_anexo_sueldo_desc','contract_anexo_cargo','contract_anexo_jornada','contract_anexo_he_hasta','contract_anexo_he_desc','contract_anexo_descanso_periodo','contract_anexo_descanso_desc','contract_anexo_hec_hasta','contract_anexo_hec_desc','contract_anexo_fecha_termino','contract_anexo_detalle'].forEach(id=>{if(byId(id))byId(id).value=''});
   if(byId('contract_doc_tipo'))byId('contract_doc_tipo').value='contrato';
   if(byId('contract_model'))byId('contract_model').value='tecnico';
   if(byId('contract_tipo'))byId('contract_tipo').value='INDEFINIDO';
@@ -5588,6 +5675,9 @@ function clearContractForm(){
   if(byId('contract_anexo_tipo'))byId('contract_anexo_tipo').value='sueldo';
   if(byId('contract_anexo_he_pago'))byId('contract_anexo_he_pago').value='Se pagarán con el recargo legal correspondiente';
   if(byId('contract_anexo_descanso_forma'))byId('contract_anexo_descanso_forma').value='Tiempo de descanso compensatorio acordado por las partes';
+  if(byId('contract_anexo_hec_max'))byId('contract_anexo_hec_max').value='5';
+  if(byId('contract_anexo_hec_plazo'))byId('contract_anexo_hec_plazo').value='dentro de los 6 meses siguientes al ciclo en que se originaron';
+  if(byId('contract_anexo_hec_aviso'))byId('contract_anexo_hec_aviso').value='48 horas de anticipación';
   setContractDefaultDates();applyContractModelDefaults();renderContractDoc(true);
 }
 function getContractTemplateText(){return contractVal('contract_model')==='administrativo'?CONTRACT_TEMPLATE_ADMIN:CONTRACT_TEMPLATE_TECNICO}
@@ -5730,7 +5820,7 @@ function buildContractBodyHTML(){
   return body.join('');
 }
 function anexoTipoLabel(){
-  const map={sueldo:'Modificación de sueldo base',cargo:'Cambio de cargo / funciones',jornada:'Cambio de jornada u horario',horas_extra:'Pacto de horas extraordinarias',horas_descanso:'Horas extra compensadas con tiempo de descanso',plazo:'Prórroga o modificación de plazo fijo',otro:'Otro acuerdo'};
+  const map={sueldo:'Modificación de sueldo base',cargo:'Cambio de cargo / funciones',jornada:'Cambio de jornada u horario',horas_extra:'Pacto de horas extraordinarias',he_compensatorio:'Acuerdo horas extras por días compensatorios',horas_descanso:'Horas extra compensadas con tiempo de descanso',plazo:'Prórroga o modificación de plazo fijo',otro:'Otro acuerdo'};
   return map[contractVal('contract_anexo_tipo')||'sueldo']||'Anexo de contrato';
 }
 function buildAnexoAcuerdoHTML(){
@@ -5748,6 +5838,11 @@ function buildAnexoAcuerdoHTML(){
   const descansoPeriodo=contractVal('contract_anexo_descanso_periodo')||'servicios previamente autorizados por el Empleador';
   const descansoForma=contractVal('contract_anexo_descanso_forma')||'tiempo de descanso compensatorio acordado por las partes';
   const descansoDesc=contractVal('contract_anexo_descanso_desc');
+  const hecHasta=contractDate('contract_anexo_hec_hasta');
+  const hecMax=contractVal('contract_anexo_hec_max')||'5';
+  const hecPlazo=contractVal('contract_anexo_hec_plazo')||'dentro de los 6 meses siguientes al ciclo en que se originaron';
+  const hecAviso=contractVal('contract_anexo_hec_aviso')||'48 horas de anticipación';
+  const hecDesc=contractVal('contract_anexo_hec_desc');
 
   let main='';
   let specific='';
@@ -5761,6 +5856,9 @@ function buildAnexoAcuerdoHTML(){
   }else if(tipo==='horas_extra'){
     main=`A contar del día ${vig}, las partes acuerdan establecer un pacto de horas extraordinarias para atender necesidades o situaciones temporales del Empleador. Las horas extraordinarias deberán ser autorizadas previamente por el Empleador, jefatura directa o supervisor correspondiente, y deberán quedar registradas en el sistema de asistencia, planilla, aplicación, libro o medio de control dispuesto por la empresa.`;
     specific=`<p>La vigencia del presente pacto se extenderá hasta el día ${heHasta}, salvo que las partes acuerden por escrito una nueva vigencia o modificación.</p><p><strong>Forma de pago:</strong> ${esc(hePago)}.</p>${heDesc?`<p><strong>Descripción adicional:</strong> ${esc(heDesc)}</p>`:''}`;
+  }else if(tipo==='he_compensatorio'){
+    main=`A contar del día ${vig}, las partes acuerdan que las horas extraordinarias autorizadas y registradas podrán compensarse con días hábiles adicionales de descanso, en lugar de pagarse en dinero, cuando exista acuerdo escrito de las partes y se cumplan los límites legales aplicables.`;
+    specific=`<p>El presente acuerdo tendrá vigencia hasta el día ${hecHasta}. La compensación no podrá exceder de ${esc(hecMax)} días hábiles adicionales de descanso por año calendario, y dichos días deberán utilizarse ${esc(hecPlazo)}. El trabajador deberá solicitar o avisar el uso del descanso compensatorio con ${esc(hecAviso)}, salvo acuerdo distinto permitido por la normativa aplicable.</p><p>La empresa deberá mantener registro de las horas extraordinarias que originan el descanso compensatorio, el período correspondiente, la autorización de jefatura y el día compensatorio usado por el trabajador.</p>${hecDesc?`<p><strong>Descripción adicional:</strong> ${esc(hecDesc)}</p>`:''}`;
   }else if(tipo==='horas_descanso'){
     main=`A contar del día ${vig}, las partes acuerdan regular la compensación de horas extraordinarias o tiempos adicionales previamente autorizados mediante ${esc(descansoForma)}, respecto de ${esc(descansoPeriodo)}.`;
     specific=`<p>Para que proceda esta compensación, las horas o tiempos deberán estar autorizados por la jefatura, registrados de forma clara y coordinados previamente con el Trabajador, dejando constancia del período, cantidad de horas y oportunidad del descanso compensatorio.</p>${descansoDesc?`<p><strong>Descripción adicional:</strong> ${esc(descansoDesc)}</p>`:''}`;
