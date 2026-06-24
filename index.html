@@ -1553,6 +1553,10 @@ details.form-section summary{
   text-align-last:auto!important;
   margin:0 0 9px!important;
 }
+.contract-money-table{width:100%;border-collapse:collapse;margin:10px 0 12px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px}
+.contract-money-table th,.contract-money-table td{border:1px solid #cbd5e1;padding:7px;text-align:left}
+.contract-money-table th{background:#edf7e8;color:#1f5c24;font-weight:900}
+.contract-money-table td:last-child,.contract-money-table th:last-child{text-align:right}
 .contract-clause{
   font-family:'Segoe UI',Arial,sans-serif!important;
   font-size:13px!important;
@@ -1885,9 +1889,14 @@ body.sidebar-collapsed .compact-top-controls{
 }
 
 
-/* --- Contratos / Anexos --- */
-body.contract-doc-contrato .contract-annex-fields{
-  display:none!important;
+/* --- Contratos / Anexos / Finiquitos / Amonestaciones --- */
+.contract-annex-fields,.contract-amonestacion-fields,.contract-finiquito-fields{
+  display:none;
+}
+body.contract-doc-anexo .contract-annex-fields,
+body.contract-doc-amonestacion .contract-amonestacion-fields,
+body.contract-doc-finiquito .contract-finiquito-fields{
+  display:block;
 }
 body.contract-doc-anexo .contract-only-label{
   display:none!important;
@@ -1901,7 +1910,7 @@ body.anexo-tipo-jornada .anexo-jornada,
 body.anexo-tipo-plazo .anexo-plazo,
 body.anexo-tipo-horas_extra .anexo-horas-extra,
 body.anexo-tipo-horas_descanso .anexo-horas-descanso,
-body.anexo-tipo_he_compensatorio .anexo-he-compensatorio{
+body.anexo-tipo-he_compensatorio .anexo-he-compensatorio{
   display:block;
 }
 .annex-warning{
@@ -2145,6 +2154,12 @@ body.anexo-tipo_he_compensatorio .anexo-he-compensatorio{
 .signed-doc-pill.perm{background:#fef3f2;border-color:#fecdca;color:#b42318}
 .signed-doc-pill.vac{background:#ecfdf3;border-color:#abefc6;color:#067647}
 .signed-doc-pill.comp{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+.signed-doc-pill.cont{background:#f0f9ff;border-color:#bae6fd;color:#075985}
+.signed-doc-pill.anexo{background:#f5f3ff;border-color:#ddd6fe;color:#5b21b6}
+.signed-doc-pill.fin{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+.signed-doc-pill.amo{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+.signed-doc-pill.quin{background:#fffbeb;border-color:#fde68a;color:#92400e}
+.signed-doc-pill.remu{background:#ecfeff;border-color:#a5f3fc;color:#155e75}
 .perm-copy-stamp{
   text-align:right;
   font-size:11px;
@@ -3025,13 +3040,13 @@ body.auth-locked .password-modal{
   <section id="view-contratos" class="view">
     <div class="layout contract-layout">
       <aside class="panel no-print contract-panel">
-        <div class="note"><strong>Contratos / Anexos:</strong> selecciona si necesitas generar un contrato o un anexo. Los datos del trabajador se cargan desde la ficha y el documento cambia automáticamente.</div>
+        <div class="note"><strong>Contratos / Anexos / Finiquitos / Amonestaciones:</strong> selecciona el documento que necesitas generar. Los datos del trabajador se cargan desde la ficha y la vista previa cambia automáticamente.</div>
         <div id="msg-contract" class="status"></div>
 
         <div class="form-section">
           <h3>Modelo y trabajador</h3>
           <div class="grid">
-            <div class="full"><label>Tipo de documento</label><select id="contract_doc_tipo" onchange="toggleContractAnexoFields();renderContractDoc()"><option value="contrato">Contrato individual de trabajo</option><option value="anexo">Anexo de contrato</option></select></div>
+            <div class="full"><label>Tipo de documento</label><select id="contract_doc_tipo" onchange="toggleContractAnexoFields();renderContractDoc()"><option value="contrato">Contrato individual de trabajo</option><option value="anexo">Anexo de contrato</option><option value="amonestacion">Carta de amonestación</option><option value="finiquito">Finiquito</option></select></div>
             <div class="full"><label>Trabajador guardado</label><select id="contract_worker" onchange="loadWorkerToContract()"><option value="">-- Seleccionar --</option></select></div>
             <div class="full"><label>Modelo de contrato</label><select id="contract_model" onchange="applyContractModelDefaults();renderContractDoc()"><option value="tecnico">Técnicos / Ayudantes</option><option value="administrativo">Administración</option></select></div>
             <div><label>Fecha de firma</label><input id="contract_fecha_firma" type="date" onchange="renderContractDoc()"></div>
@@ -3112,8 +3127,38 @@ body.auth-locked .password-modal{
           </div>
         </div>
 
+        <div class="form-section contract-amonestacion-fields">
+          <h3>Carta de amonestación</h3>
+          <div class="grid">
+            <div><label>Fecha carta</label><input id="contract_am_fecha" type="date" onchange="renderContractDoc()"></div>
+            <div><label>Tipo de amonestación</label><select id="contract_am_tipo" onchange="renderContractDoc()"><option value="Amonestación escrita">Amonestación escrita</option><option value="Amonestación con copia a la Inspección del Trabajo">Amonestación con copia a la Inspección del Trabajo</option></select></div>
+            <div class="full"><label>Motivo principal</label><input id="contract_am_motivo" oninput="renderContractDoc()" placeholder="Ej.: atrasos reiterados, incumplimiento de instrucciones, ausencia injustificada"></div>
+            <div class="full"><label>Hechos observados</label><textarea id="contract_am_hechos" oninput="renderContractDoc()" placeholder="Describe de forma objetiva fecha, situación, lugar y antecedentes."></textarea></div>
+            <div class="full"><label>Norma / obligación incumplida</label><textarea id="contract_am_norma" oninput="renderContractDoc()" placeholder="Ej.: obligación de registrar asistencia, cumplir horario, usar EPP, respetar instrucciones de jefatura."></textarea></div>
+            <div class="full"><label>Medida solicitada / advertencia</label><textarea id="contract_am_medida" oninput="renderContractDoc()" placeholder="Ej.: se solicita corregir la conducta y evitar nuevos incumplimientos."></textarea></div>
+            <div class="full"><label>Observación adicional</label><textarea id="contract_am_observacion" oninput="renderContractDoc()" placeholder="Opcional."></textarea></div>
+          </div>
+        </div>
+
+        <div class="form-section contract-finiquito-fields">
+          <h3>Finiquito</h3>
+          <div class="grid">
+            <div><label>Fecha finiquito</label><input id="contract_fin_fecha" type="date" onchange="renderContractDoc()"></div>
+            <div><label>Fecha término relación laboral</label><input id="contract_fin_fecha_termino" type="date" onchange="renderContractDoc()"></div>
+            <div class="full"><label>Causal de término</label><input id="contract_fin_causal" oninput="renderContractDoc()" value="Artículo 159 N° 4 del Código del Trabajo, vencimiento del plazo convenido" placeholder="Ej.: Art. 159 N° 4, vencimiento plazo; Art. 160; mutuo acuerdo, etc."></div>
+            <div><label>Fecha de pago</label><input id="contract_fin_fecha_pago" type="date" onchange="renderContractDoc()"></div>
+            <div><label>Remuneración pendiente</label><input id="contract_fin_rem_pendiente" type="number" min="0" value="0" oninput="renderContractDoc()"></div>
+            <div><label>Feriado proporcional</label><input id="contract_fin_feriado" type="number" min="0" value="0" oninput="renderContractDoc()"></div>
+            <div><label>Indemnización</label><input id="contract_fin_indemnizacion" type="number" min="0" value="0" oninput="renderContractDoc()"></div>
+            <div><label>Otros haberes</label><input id="contract_fin_otros" type="number" min="0" value="0" oninput="renderContractDoc()"></div>
+            <div><label>Descuentos / anticipos</label><input id="contract_fin_descuentos" type="number" min="0" value="0" oninput="renderContractDoc()"></div>
+            <div><label>Total a pagar</label><input id="contract_fin_total" type="number" min="0" placeholder="Automático si queda vacío" oninput="renderContractDoc()"></div>
+            <div class="full"><label>Detalle adicional del finiquito</label><textarea id="contract_fin_detalle" oninput="renderContractDoc()" placeholder="Ej.: forma de pago, transferencia, comprobante, conceptos incluidos o reserva de derechos si corresponde."></textarea></div>
+          </div>
+        </div>
+
 <div class="actions">
-          <button class="btn primary" type="button" onclick="renderContractDoc(true)">Actualizar contrato</button>
+          <button class="btn primary" type="button" onclick="renderContractDoc(true)">Actualizar documento</button>
           <button class="btn blue" type="button" onclick="printContractDoc()">Imprimir / Guardar PDF</button>
           <button class="btn soft" type="button" onclick="clearContractForm()">Limpiar</button>
         </div>
@@ -3331,25 +3376,30 @@ body.auth-locked .password-modal{
     <div class="card">
       <div class="signed-hero">
         <h2>📎 Documentos firmados</h2>
-        <p>Sube y consulta aquí los PDF firmados por trabajador: liquidaciones, vacaciones, permisos y días compensatorios. Queda más visible y separado del respaldo técnico de Supabase.</p>
+        <p>Sube y consulta aquí los PDF firmados: contratos, anexos, permisos, liquidaciones, finiquitos, cartas de amonestación y planillas mensuales de quincenas o remuneraciones.</p>
       </div>
       <div class="signed-backup-box">
         <h3>Respaldos firmados en PDF</h3>
         <div id="signed_msg" class="status"></div>
         <div class="warn"><strong>Importante:</strong> los PDF firmados se guardan en Supabase Storage, no dentro de la planilla principal. Así el sistema ahorra más datos en Supabase. Debes tener creado el bucket <strong>rrhh-firmados</strong> y sus políticas.</div>
         <div class="grid-4">
-          <div><label>Tipo documento</label><select id="signed_tipo" onchange="renderSignedDocs()">
+          <div><label>Tipo documento</label><select id="signed_tipo" onchange="toggleSignedDocWorker();renderSignedDocs()">
+            <option value="contrato">Contrato firmado</option>
+            <option value="anexo">Anexo firmado</option>
+            <option value="permiso">Permiso / vacaciones firmado</option>
             <option value="liquidacion">Liquidación firmada</option>
-            <option value="vacaciones">Vacaciones firmadas</option>
-            <option value="permiso">Permiso firmado</option>
+            <option value="finiquito">Finiquito firmado</option>
+            <option value="amonestacion">Carta de amonestación firmada</option>
+            <option value="quincena_planilla">Planilla mensual de quincenas</option>
+            <option value="remuneraciones_planilla">Planilla pago de remuneraciones</option>
             <option value="compensatorio">Día compensatorio firmado</option>
           </select></div>
-          <div><label>Trabajador</label><select id="signed_worker"><option value="">-- Seleccionar --</option></select></div>
+          <div><label id="signed_worker_label">Trabajador</label><select id="signed_worker"><option value="">-- Seleccionar --</option></select><div id="signed_worker_hint" class="small">Obligatorio para documentos individuales.</div></div>
           <div><label>Mes</label><select id="signed_mes"><option value="">No aplica</option><option>ENERO</option><option>FEBRERO</option><option>MARZO</option><option>ABRIL</option><option>MAYO</option><option>JUNIO</option><option>JULIO</option><option>AGOSTO</option><option>SEPTIEMBRE</option><option>OCTUBRE</option><option>NOVIEMBRE</option><option>DICIEMBRE</option></select></div>
           <div><label>Año</label><input id="signed_anio" type="number" min="2020" value="2026"></div>
           <div><label>Fecha documento</label><input id="signed_fecha" type="date"></div>
           <div><label>Bucket Supabase</label><input id="signed_bucket" value="rrhh-firmados"></div>
-          <div class="full"><label>Detalle / referencia</label><input id="signed_detalle" placeholder="Ej.: Liquidación junio 2026 firmada / Solicitud vacaciones aprobada"></div>
+          <div class="full"><label>Detalle / referencia</label><input id="signed_detalle" placeholder="Ej.: Contrato firmado / Finiquito firmado / Planilla quincenas junio 2026 / Pago remuneraciones junio 2026"></div>
           <div class="full"><label>PDF firmado</label><input id="signed_pdf" type="file" accept="application/pdf,.pdf"></div>
         </div>
         <div class="actions">
@@ -3362,9 +3412,15 @@ body.auth-locked .password-modal{
         <div class="grid-3">
           <div><label>Filtrar tipo</label><select id="signed_filter_tipo" onchange="renderSignedDocs()">
             <option value="">Todos</option>
+            <option value="contrato">Contratos</option>
+            <option value="anexo">Anexos</option>
+            <option value="permiso">Permisos / vacaciones</option>
+            <option value="vacaciones">Vacaciones guardadas anteriormente</option>
             <option value="liquidacion">Liquidaciones</option>
-            <option value="vacaciones">Vacaciones</option>
-            <option value="permiso">Permisos</option>
+            <option value="finiquito">Finiquitos</option>
+            <option value="amonestacion">Cartas de amonestación</option>
+            <option value="quincena_planilla">Planillas de quincenas</option>
+            <option value="remuneraciones_planilla">Planillas pago remuneraciones</option>
             <option value="compensatorio">Compensatorios</option>
           </select></div>
           <div><label>Filtrar trabajador</label><select id="signed_filter_worker" onchange="renderSignedDocs()"><option value="">Todos</option></select></div>
@@ -4523,15 +4579,45 @@ function printPermisosPDF(){
 const KEY_SIGNED_DOCS='ecoluz_rrhh_docs_firmados_v1';
 function signedDocs(){return getJSON(KEY_SIGNED_DOCS,[])}
 function setSignedDocs(v){setJSON(KEY_SIGNED_DOCS,v)}
-function signedDocTipoLabel(t){return {liquidacion:'Liquidación firmada',vacaciones:'Vacaciones firmadas',permiso:'Permiso firmado',compensatorio:'Día compensatorio firmado'}[t]||t||''}
-function signedDocClass(t){return {liquidacion:'liq',vacaciones:'vac',permiso:'perm',compensatorio:'comp'}[t]||''}
+function signedDocTipoLabel(t){
+  return {
+    contrato:'Contrato firmado',
+    anexo:'Anexo firmado',
+    permiso:'Permiso / vacaciones firmado',
+    vacaciones:'Vacaciones firmadas',
+    liquidacion:'Liquidación firmada',
+    finiquito:'Finiquito firmado',
+    amonestacion:'Carta de amonestación firmada',
+    quincena_planilla:'Planilla mensual de quincenas',
+    remuneraciones_planilla:'Planilla pago de remuneraciones',
+    compensatorio:'Día compensatorio firmado'
+  }[t]||t||'';
+}
+function signedDocClass(t){return {contrato:'cont',anexo:'anexo',permiso:'perm',vacaciones:'vac',liquidacion:'liq',finiquito:'fin',amonestacion:'amo',quincena_planilla:'quin',remuneraciones_planilla:'remu',compensatorio:'comp'}[t]||''}
+function signedDocIsMonthlyPlan(t){return ['quincena_planilla','remuneraciones_planilla'].includes(String(t||''));}
 function sanitizePathPart(s){return String(s||'archivo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'_').replace(/^_+|_+$/g,'')||'archivo'}
+function toggleSignedDocWorker(){
+  const tipo=val('signed_tipo')||'contrato';
+  const isPlan=signedDocIsMonthlyPlan(tipo);
+  const worker=byId('signed_worker');
+  const label=byId('signed_worker_label');
+  const hint=byId('signed_worker_hint');
+  if(worker){worker.disabled=isPlan;if(isPlan)worker.value='';}
+  if(label)label.textContent=isPlan?'Trabajador':'Trabajador';
+  if(hint)hint.textContent=isPlan?'No aplica: este respaldo corresponde a la planilla mensual de todos los trabajadores.':'Obligatorio para documentos individuales.';
+  const mes=byId('signed_mes');
+  if(mes && isPlan && !mes.value){
+    const months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+    mes.value=months[new Date().getMonth()]||'';
+  }
+}
 function clearSignedDocForm(){
   ['signed_detalle'].forEach(id=>{if(byId(id))byId(id).value=''});
   if(byId('signed_pdf'))byId('signed_pdf').value='';
   const today=new Date();
   if(byId('signed_fecha'))byId('signed_fecha').value=today.toISOString().slice(0,10);
   if(byId('signed_anio'))byId('signed_anio').value=today.getFullYear();
+  toggleSignedDocWorker();
 }
 async function saveSignedDocPDF(){
   if(!SUPA_READY||!SUPA_SESSION){showMsg('signed_msg','Debes iniciar sesión con Supabase para subir PDF firmados.','err');return}
@@ -4540,24 +4626,30 @@ async function saveSignedDocPDF(){
   if(file.type && file.type!=='application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){showMsg('signed_msg','El archivo debe ser PDF.','err');return}
   const max=8*1024*1024;
   if(file.size>max){showMsg('signed_msg','El PDF pesa más de 8 MB. Comprime o escanea en menor calidad para ahorrar Supabase.','err');return}
-  const k=val('signed_worker');
-  if(!k){showMsg('signed_msg','Selecciona el trabajador asociado al PDF.','err');return}
-  const w=workers()[k]||{};
-  const tipo=val('signed_tipo')||'liquidacion';
+  const tipo=val('signed_tipo')||'contrato';
+  const isPlan=signedDocIsMonthlyPlan(tipo);
+  const k=isPlan?'PLANILLA_GENERAL':val('signed_worker');
+  if(!isPlan&&!k){showMsg('signed_msg','Selecciona el trabajador asociado al PDF.','err');return}
+  const mes=val('signed_mes')||'';
+  if(isPlan&&!mes){showMsg('signed_msg','Selecciona el mes de la planilla.','err');return}
+  const w=isPlan?{nombre:'Todos los trabajadores',rut:'Planilla mensual'}:(workers()[k]||{});
   const bucket=val('signed_bucket')||'rrhh-firmados';
   const anio=val('signed_anio')||new Date().getFullYear();
-  const mes=val('signed_mes')||'';
   const fecha=val('signed_fecha')||new Date().toISOString().slice(0,10);
   const id=String(Date.now());
   const safeName=sanitizePathPart(file.name);
-  const path=`${sanitizePathPart(k)}/${anio}/${tipo}/${id}_${safeName}`;
+  const periodPart=sanitizePathPart(mes||'sin_mes');
+  const basePath=isPlan
+    ? `planillas/${anio}/${tipo}/${periodPart}`
+    : `${sanitizePathPart(k)}/${anio}/${tipo}`;
+  const path=`${basePath}/${id}_${safeName}`;
   try{
     const {error}=await SUPA_CLIENT.storage.from(bucket).upload(path,file,{contentType:'application/pdf',upsert:false});
     if(error)throw error;
-    const rec={id,tipo,worker_key:k,nombre:w.nombre||'',rut:w.rut||'',fecha,mes,anio,detalle:val('signed_detalle'),filename:file.name,size:file.size,bucket,path,created_at:new Date().toISOString(),updated:new Date().toISOString()};
+    const rec={id,tipo,worker_key:k,nombre:w.nombre||'',rut:w.rut||'',alcance:isPlan?'planilla_mensual':'trabajador',fecha,mes,anio,detalle:val('signed_detalle'),filename:file.name,size:file.size,bucket,path,created_at:new Date().toISOString(),updated:new Date().toISOString()};
     const arr=signedDocs();arr.push(rec);setSignedDocs(arr);
     clearSignedDocForm();renderSignedDocs();
-    showMsg('signed_msg','PDF firmado subido y registrado.');
+    showMsg('signed_msg',isPlan?'Planilla firmada subida y registrada.':'PDF firmado subido y registrado.');
   }catch(e){
     showMsg('signed_msg','No se pudo subir el PDF. Revisa que exista el bucket rrhh-firmados y sus políticas: '+(e.message||e),'err');
   }
@@ -4588,17 +4680,20 @@ async function deleteSignedDoc(id){
 }
 function renderSignedDocs(){
   refreshAllWorkerSelects();
+  toggleSignedDocWorker();
   const today=new Date();
   if(byId('signed_fecha')&&!val('signed_fecha'))byId('signed_fecha').value=today.toISOString().slice(0,10);
   if(byId('signed_anio')&&!val('signed_anio'))byId('signed_anio').value=today.getFullYear();
   const ft=val('signed_filter_tipo'), fw=val('signed_filter_worker'), fy=val('signed_filter_anio');
   let arr=signedDocs().filter(x=>(!ft||x.tipo===ft)&&(!fw||x.worker_key===fw)&&(!fy||String(x.anio)===String(fy)));
   arr=arr.sort((a,b)=>String(b.fecha||b.created_at||'').localeCompare(String(a.fecha||a.created_at||'')));
-  let rows='<tr><th>Fecha</th><th>Tipo</th><th>Trabajador</th><th>Período</th><th>Archivo</th><th>Detalle</th><th class="no-print">Acciones</th></tr>';
+  let rows='<tr><th>Fecha</th><th>Tipo</th><th>Trabajador / alcance</th><th>Período</th><th>Archivo</th><th>Detalle</th><th class="no-print">Acciones</th></tr>';
   if(!arr.length)rows='<tr><th>No hay PDF firmados guardados para el filtro seleccionado.</th></tr>';
   arr.forEach(x=>{
     const kb=Math.round((Number(x.size)||0)/1024);
-    rows+=`<tr><td>${fmtDate(x.fecha)}</td><td><span class="signed-doc-pill ${signedDocClass(x.tipo)}">${esc(signedDocTipoLabel(x.tipo))}</span></td><td>${esc(x.nombre||'')}<br><span class="small">${esc(x.rut||'')}</span></td><td>${esc([x.mes,x.anio].filter(Boolean).join(' ')||'No aplica')}</td><td>${esc(x.filename||'PDF')}<br><span class="small">${kb} KB</span></td><td>${esc(x.detalle||'')}</td><td class="no-print"><span class="perm-action-stack"><button class="btn small blue" type="button" onclick="openSignedDoc('${x.id}',false)">Abrir</button><button class="btn small soft" type="button" onclick="openSignedDoc('${x.id}',true)">Descargar</button><button class="btn small danger" type="button" onclick="deleteSignedDoc('${x.id}')">Eliminar</button></span></td></tr>`;
+    const isPlan=String(x.alcance||'')==='planilla_mensual'||signedDocIsMonthlyPlan(x.tipo);
+    const alcance=isPlan?'Planilla mensual · todos los trabajadores':`${esc(x.nombre||'')}<br><span class="small">${esc(x.rut||'')}</span>`;
+    rows+=`<tr><td>${fmtDate(x.fecha)}</td><td><span class="signed-doc-pill ${signedDocClass(x.tipo)}">${esc(signedDocTipoLabel(x.tipo))}</span></td><td>${alcance}</td><td>${esc([x.mes,x.anio].filter(Boolean).join(' ')||'No aplica')}</td><td>${esc(x.filename||'PDF')}<br><span class="small">${kb} KB</span></td><td>${esc(x.detalle||'')}</td><td class="no-print"><span class="perm-action-stack"><button class="btn small blue" type="button" onclick="openSignedDoc('${x.id}',false)">Abrir</button><button class="btn small soft" type="button" onclick="openSignedDoc('${x.id}',true)">Descargar</button><button class="btn small danger" type="button" onclick="deleteSignedDoc('${x.id}')">Eliminar</button></span></td></tr>`;
   });
   if(byId('signed_docs_table'))byId('signed_docs_table').innerHTML=rows;
 }
@@ -5927,43 +6022,54 @@ const CONTRACT_TEMPLATE_TECNICO = "CONTRATO INDIVIDUAL DE TRABAJO\nEn Iquique, a
 function contractVal(id){return val(id)||''}
 function contractDate(id){return fmtDate(contractVal(id))}
 function contractMoney(id){return Math.round(num(id)||0).toLocaleString('es-CL')}
+function contractDocTipoLabel(){
+  const t=contractVal('contract_doc_tipo')||'contrato';
+  const model=contractVal('contract_model');
+  return {
+    contrato:model==='administrativo'?'Contrato administración':'Contrato técnicos / ayudantes',
+    anexo:'Anexo de contrato',
+    amonestacion:'Carta de amonestación',
+    finiquito:'Finiquito'
+  }[t]||'Documento RR.HH';
+}
 function setContractDefaultDates(){
   const today=new Date();const yyyy=today.getFullYear();const mm=String(today.getMonth()+1).padStart(2,'0');const dd=String(today.getDate()).padStart(2,'0');
-  if(byId('contract_fecha_firma')&&!contractVal('contract_fecha_firma'))byId('contract_fecha_firma').value=`${yyyy}-${mm}-${dd}`;
-  if(byId('contract_fecha_ingreso')&&!contractVal('contract_fecha_ingreso'))byId('contract_fecha_ingreso').value=`${yyyy}-${mm}-${dd}`;
-  if(byId('contract_fecha_anexo')&&!contractVal('contract_fecha_anexo'))byId('contract_fecha_anexo').value=`${yyyy}-${mm}-${dd}`;
-  if(byId('contract_anexo_vigencia')&&!contractVal('contract_anexo_vigencia'))byId('contract_anexo_vigencia').value=`${yyyy}-${mm}-${dd}`;
+  const iso=`${yyyy}-${mm}-${dd}`;
+  if(byId('contract_fecha_firma')&&!contractVal('contract_fecha_firma'))byId('contract_fecha_firma').value=iso;
+  if(byId('contract_fecha_ingreso')&&!contractVal('contract_fecha_ingreso'))byId('contract_fecha_ingreso').value=iso;
+  if(byId('contract_fecha_anexo')&&!contractVal('contract_fecha_anexo'))byId('contract_fecha_anexo').value=iso;
+  if(byId('contract_anexo_vigencia')&&!contractVal('contract_anexo_vigencia'))byId('contract_anexo_vigencia').value=iso;
   if(byId('contract_anexo_hec_hasta')&&!contractVal('contract_anexo_hec_hasta'))byId('contract_anexo_hec_hasta').value=`${yyyy}-12-31`;
+  if(byId('contract_am_fecha')&&!contractVal('contract_am_fecha'))byId('contract_am_fecha').value=iso;
+  if(byId('contract_fin_fecha')&&!contractVal('contract_fin_fecha'))byId('contract_fin_fecha').value=iso;
+  if(byId('contract_fin_fecha_pago')&&!contractVal('contract_fin_fecha_pago'))byId('contract_fin_fecha_pago').value=iso;
+  if(byId('contract_fin_fecha_termino')&&!contractVal('contract_fin_fecha_termino'))byId('contract_fin_fecha_termino').value=contractVal('contract_fecha_termino')||iso;
 }
 function applyContractModelDefaults(){
   const model=contractVal('contract_model');
-  const isAnexo=contractVal('contract_doc_tipo')==='anexo';
   const title=byId('contract_current_model');
-  if(title)title.textContent=isAnexo?'Documento: Anexo de contrato':(model==='administrativo'?'Documento: Contrato administración':'Documento: Contrato técnicos / ayudantes');
+  if(title)title.textContent='Documento: '+contractDocTipoLabel();
   const cargo=byId('contract_cargo');
   if(cargo&&!cargo.value) cargo.value=model==='administrativo'?'Asistente Administrativo/a':'Técnico en Climatización';
   toggleContractEndDate();
   toggleContractAnexoFields();
 }
 function toggleContractAnexoFields(){
-  const isAnexo=contractVal('contract_doc_tipo')==='anexo';
-  document.body.classList.toggle('contract-doc-anexo',isAnexo);
-  document.body.classList.toggle('contract-doc-contrato',!isAnexo);
+  const doc=contractVal('contract_doc_tipo')||'contrato';
+  ['contrato','anexo','amonestacion','finiquito'].forEach(x=>document.body.classList.toggle('contract-doc-'+x,doc===x));
   toggleAnexoTipoFields();
   const title=byId('contract_current_model');
-  if(title){
-    const model=contractVal('contract_model');
-    title.textContent=isAnexo?'Documento: Anexo de contrato':(model==='administrativo'?'Documento: Contrato administración':'Documento: Contrato técnicos / ayudantes');
-  }
+  if(title) title.textContent='Documento: '+contractDocTipoLabel();
 }
 function toggleAnexoTipoFields(){
   const t=contractVal('contract_anexo_tipo')||'sueldo';
-  ['sueldo','cargo','jornada','horas_extra','horas_descanso','plazo','otro'].forEach(x=>document.body.classList.toggle('anexo-tipo-'+x,t===x));
+  ['sueldo','cargo','jornada','horas_extra','horas_descanso','he_compensatorio','plazo','otro'].forEach(x=>document.body.classList.toggle('anexo-tipo-'+x,t===x));
 }
 function toggleContractEndDate(){
   const isFixed=contractVal('contract_tipo')==='PLAZO FIJO';
   const el=byId('contract_fecha_termino');
   if(el){el.disabled=!isFixed;if(!isFixed)el.value='';}
+  if(byId('contract_fin_fecha_termino')&&!contractVal('contract_fin_fecha_termino'))byId('contract_fin_fecha_termino').value=contractVal('contract_fecha_termino')||'';
 }
 function loadWorkerToContract(){
   const k=contractVal('contract_worker'); if(!k)return;
@@ -5980,7 +6086,7 @@ function loadWorkerToContract(){
   renderContractDoc(true);
 }
 function clearContractForm(){
-  ['contract_worker','contract_nombre','contract_rut','contract_cargo','contract_fecha_nacimiento','contract_domicilio_trabajador','contract_correo_trabajador','contract_telefono','contract_rut_representante','contract_fecha_termino','contract_anexo_sueldo','contract_anexo_sueldo_desc','contract_anexo_cargo','contract_anexo_jornada','contract_anexo_he_hasta','contract_anexo_he_desc','contract_anexo_descanso_periodo','contract_anexo_descanso_desc','contract_anexo_hec_hasta','contract_anexo_hec_desc','contract_anexo_fecha_termino','contract_anexo_detalle'].forEach(id=>{if(byId(id))byId(id).value=''});
+  ['contract_worker','contract_nombre','contract_rut','contract_cargo','contract_fecha_nacimiento','contract_domicilio_trabajador','contract_correo_trabajador','contract_telefono','contract_rut_representante','contract_fecha_termino','contract_anexo_sueldo','contract_anexo_sueldo_desc','contract_anexo_cargo','contract_anexo_jornada','contract_anexo_he_hasta','contract_anexo_he_desc','contract_anexo_descanso_periodo','contract_anexo_descanso_desc','contract_anexo_hec_hasta','contract_anexo_hec_desc','contract_anexo_fecha_termino','contract_anexo_detalle','contract_am_motivo','contract_am_hechos','contract_am_norma','contract_am_medida','contract_am_observacion','contract_fin_causal','contract_fin_rem_pendiente','contract_fin_feriado','contract_fin_indemnizacion','contract_fin_otros','contract_fin_descuentos','contract_fin_total','contract_fin_detalle'].forEach(id=>{if(byId(id))byId(id).value=''});
   if(byId('contract_doc_tipo'))byId('contract_doc_tipo').value='contrato';
   if(byId('contract_model'))byId('contract_model').value='tecnico';
   if(byId('contract_tipo'))byId('contract_tipo').value='INDEFINIDO';
@@ -5994,6 +6100,8 @@ function clearContractForm(){
   if(byId('contract_anexo_hec_max'))byId('contract_anexo_hec_max').value='5';
   if(byId('contract_anexo_hec_plazo'))byId('contract_anexo_hec_plazo').value='dentro de los 6 meses siguientes al ciclo en que se originaron';
   if(byId('contract_anexo_hec_aviso'))byId('contract_anexo_hec_aviso').value='48 horas de anticipación';
+  if(byId('contract_am_tipo'))byId('contract_am_tipo').value='Amonestación escrita';
+  if(byId('contract_fin_causal'))byId('contract_fin_causal').value='Artículo 159 N° 4 del Código del Trabajo, vencimiento del plazo convenido';
   setContractDefaultDates();applyContractModelDefaults();renderContractDoc(true);
 }
 function getContractTemplateText(){return contractVal('contract_model')==='administrativo'?CONTRACT_TEMPLATE_ADMIN:CONTRACT_TEMPLATE_TECNICO}
@@ -6220,8 +6328,86 @@ function buildAnexoCopyHTML(label){
     </main>
   </article>`;
 }
+function contractNumberValue(id){return Math.max(0,Math.round(Number(contractVal(id)||0)||0))}
+function contractCLPValue(n){return '$'+Math.round(Number(n||0)).toLocaleString('es-CL')}
+function buildAmonestacionCopyHTML(label){
+  const fecha=contractDate('contract_am_fecha')||contractDate('contract_fecha_firma');
+  const nombre=contractVal('contract_nombre')||'________________';
+  const rut=contractVal('contract_rut')||'________________';
+  const cargo=contractVal('contract_cargo')||'________________';
+  const tipo=contractVal('contract_am_tipo')||'Amonestación escrita';
+  const motivo=contractVal('contract_am_motivo')||'________________';
+  const hechos=contractVal('contract_am_hechos')||'Se deja constancia de los hechos indicados por la jefatura, los cuales deben ser revisados y corregidos por el Trabajador.';
+  const norma=contractVal('contract_am_norma')||'El incumplimiento se relaciona con las obligaciones de asistencia, puntualidad, cumplimiento de instrucciones, cuidado de bienes de la empresa, seguridad, orden, respeto o demás obligaciones contenidas en el contrato de trabajo, anexos, reglamento interno, políticas internas o instrucciones de jefatura, según corresponda.';
+  const medida=contractVal('contract_am_medida')||'Se solicita al Trabajador corregir la conducta descrita, cumplir estrictamente sus obligaciones laborales y evitar la repetición de hechos similares.';
+  const obs=contractVal('contract_am_observacion');
+  return `<article class="contract-copy-page">
+    <div class="contract-copy-label">${esc(label)}</div>
+    <header class="contract-header-print">
+      <div class="contract-company">${esc(empresa.nombre)}</div>
+      <h1>CARTA DE AMONESTACIÓN</h1>
+    </header>
+    <main class="contract-text">
+      <p>En Iquique, a ${fecha}, ${esc(empresa.nombre)}, RUT N° ${esc(empresa.rut)}, comunica a don/doña ${esc(nombre)}, cédula de identidad N° ${esc(rut)}, cargo ${esc(cargo)}, la presente ${esc(tipo)}.</p>
+      <h2 class="contract-clause">PRIMERA: Motivo</h2>
+      <p>La presente amonestación se emite por el siguiente motivo: <strong>${esc(motivo)}</strong>.</p>
+      <h2 class="contract-clause">SEGUNDA: Hechos observados</h2>
+      <p>${esc(hechos)}</p>
+      <h2 class="contract-clause">TERCERA: Obligación o norma relacionada</h2>
+      <p>${esc(norma)}</p>
+      <h2 class="contract-clause">CUARTA: Medida solicitada</h2>
+      <p>${esc(medida)}</p>
+      ${obs?`<h2 class="contract-clause">QUINTA: Observación adicional</h2><p>${esc(obs)}</p>`:''}
+      <p>Se deja constancia de que el Trabajador recibe copia de esta comunicación para su conocimiento. La firma del Trabajador acredita recepción del documento, sin perjuicio de las observaciones o descargos que pueda formular por los medios que correspondan.</p>
+      <section class="contract-sign-section"><div class="contract-sign-heading">FIRMAS</div><div class="contract-sign-grid">${employerSignatureHTML({})}${workerSignatureHTML({nombre:nombre,rut:rut})}</div></section>
+    </main>
+  </article>`;
+}
+function buildFiniquitoCopyHTML(label){
+  const fecha=contractDate('contract_fin_fecha')||contractDate('contract_fecha_firma');
+  const nombre=contractVal('contract_nombre')||'________________';
+  const rut=contractVal('contract_rut')||'________________';
+  const cargo=contractVal('contract_cargo')||'________________';
+  const ingreso=contractDate('contract_fecha_ingreso');
+  const termino=contractDate('contract_fin_fecha_termino')||contractDate('contract_fecha_termino')||'________________';
+  const causal=contractVal('contract_fin_causal')||'________________';
+  const fechaPago=contractDate('contract_fin_fecha_pago')||fecha;
+  const rem=contractNumberValue('contract_fin_rem_pendiente');
+  const fer=contractNumberValue('contract_fin_feriado');
+  const ind=contractNumberValue('contract_fin_indemnizacion');
+  const otros=contractNumberValue('contract_fin_otros');
+  const desc=contractNumberValue('contract_fin_descuentos');
+  const manualTotal=contractVal('contract_fin_total');
+  const total=manualTotal!==''?contractNumberValue('contract_fin_total'):Math.max(0,rem+fer+ind+otros-desc);
+  const detalle=contractVal('contract_fin_detalle');
+  return `<article class="contract-copy-page">
+    <div class="contract-copy-label">${esc(label)}</div>
+    <header class="contract-header-print">
+      <div class="contract-company">${esc(empresa.nombre)}</div>
+      <h1>FINIQUITO DE CONTRATO DE TRABAJO</h1>
+    </header>
+    <main class="contract-text">
+      <p>En Iquique, a ${fecha}, entre ${esc(empresa.nombre)}, RUT N° ${esc(empresa.rut)}, en adelante “el Empleador”; y don/doña ${esc(nombre)}, cédula de identidad N° ${esc(rut)}, cargo ${esc(cargo)}, en adelante “el Trabajador”, se suscribe el presente finiquito de contrato de trabajo.</p>
+      <h2 class="contract-clause">PRIMERA: Antecedentes de la relación laboral</h2>
+      <p>El Trabajador ingresó a prestar servicios con fecha ${ingreso}, desempeñando el cargo señalado precedentemente. Las partes dejan constancia que la relación laboral terminó con fecha ${termino}.</p>
+      <h2 class="contract-clause">SEGUNDA: Causal de término</h2>
+      <p>La relación laboral terminó por la causal: <strong>${esc(causal)}</strong>.</p>
+      <h2 class="contract-clause">TERCERA: Haberes y descuentos del finiquito</h2>
+      <table class="contract-money-table"><tr><th>Concepto</th><th>Monto</th></tr><tr><td>Remuneración pendiente</td><td>${contractCLPValue(rem)}</td></tr><tr><td>Feriado proporcional</td><td>${contractCLPValue(fer)}</td></tr><tr><td>Indemnización</td><td>${contractCLPValue(ind)}</td></tr><tr><td>Otros haberes</td><td>${contractCLPValue(otros)}</td></tr><tr><td>Descuentos / anticipos</td><td>${contractCLPValue(desc)}</td></tr><tr><th>Total a pagar</th><th>${contractCLPValue(total)}</th></tr></table>
+      <p>El pago se efectuará con fecha ${fechaPago}, por el medio acordado o informado por el Empleador, dejando respaldo del comprobante correspondiente.</p>
+      ${detalle?`<h2 class="contract-clause">CUARTA: Detalle adicional</h2><p>${esc(detalle)}</p>`:''}
+      <h2 class="contract-clause">${detalle?'QUINTA':'CUARTA'}: Declaración final</h2>
+      <p>Las partes firman el presente documento en señal de conocimiento y recepción. Este formato debe ser revisado y completado con los antecedentes reales de término, pagos, descuentos y formalidades que correspondan antes de su firma o ratificación.</p>
+      <section class="contract-sign-section"><div class="contract-sign-heading">FIRMAS</div><div class="contract-sign-grid">${employerSignatureHTML({})}${workerSignatureHTML({nombre:nombre,rut:rut})}</div></section>
+    </main>
+  </article>`;
+}
 function buildDocumentCopyHTML(label){
-  return contractVal('contract_doc_tipo')==='anexo'?buildAnexoCopyHTML(label):buildContractCopyHTML(label);
+  const doc=contractVal('contract_doc_tipo')||'contrato';
+  if(doc==='anexo')return buildAnexoCopyHTML(label);
+  if(doc==='amonestacion')return buildAmonestacionCopyHTML(label);
+  if(doc==='finiquito')return buildFiniquitoCopyHTML(label);
+  return buildContractCopyHTML(label);
 }
 function buildContractCopyHTML(label){
   const modelName=contractVal('contract_model')==='administrativo'?'Administración':'Técnicos / Ayudantes';
@@ -6238,7 +6424,7 @@ function renderContractDoc(show=false){
   const host=byId('contract_preview');
   if(!host)return;
   host.innerHTML=buildDocumentCopyHTML('ORIGINAL EMPRESA')+buildDocumentCopyHTML('COPIA TRABAJADOR');
-  if(show)showMsg('msg-contract',(contractVal('contract_doc_tipo')==='anexo'?'Anexo actualizado.':'Contrato actualizado.'));
+  if(show)showMsg('msg-contract',contractDocTipoLabel()+' actualizado.');
 }
 function printContractDoc(){
   renderContractDoc(false);
@@ -6258,6 +6444,7 @@ function printContractDoc(){
     h1{font-family:Arial,Helvetica,sans-serif;font-size:18px;letter-spacing:.04em;margin:0}
     h1:after{content:'';display:block;width:80px;height:3px;background:#85af28;border-radius:999px;margin:9px auto 0}
     .contract-text p{font-size:12px;line-height:1.58;text-align:justify;text-justify:inter-word;hyphens:auto;margin:0 0 8px}
+    .contract-money-table{width:100%;border-collapse:collapse;margin:10px 0 12px;font-family:Arial,Helvetica,sans-serif;font-size:11px}.contract-money-table th,.contract-money-table td{border:1px solid #cbd5e1;padding:6px;text-align:left}.contract-money-table th{background:#edf7e8;color:#1f5c24;font-weight:900}.contract-money-table td:last-child,.contract-money-table th:last-child{text-align:right}
     .contract-clause{font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:900;text-transform:uppercase;margin:11px 0 5px;color:#111827;page-break-after:avoid}
     .contract-bullet{display:grid;grid-template-columns:22px 1fr;gap:6px;margin-left:10px}
     .contract-bullet span{font-weight:800}.contract-bullet em{font-style:normal}
@@ -6270,7 +6457,7 @@ function printContractDoc(){
     .contract-sign-data{font-size:11.2px;line-height:1.35;text-align:center}
   </style>`;
   popup.document.open();
-  popup.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Contrato individual de trabajo</title>${styles}</head><body>${content}</body></html>`);
+  popup.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Documento RR.HH</title>${styles}</head><body>${content}</body></html>`);
   popup.document.close();
   popup.onload=function(){popup.focus();setTimeout(()=>popup.print(),300)};
   showMsg('msg-contract','Se abrió el documento con original y copia para imprimir o guardar como PDF.');
