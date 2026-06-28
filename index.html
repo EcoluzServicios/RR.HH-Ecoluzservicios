@@ -2762,7 +2762,7 @@ body.auth-locked .password-modal{
         </div>
         <div class="no-print" style="margin-top:18px;border-top:1px solid #e5e7eb;padding-top:14px">
           <h3 style="margin:0 0 6px;color:var(--brand-dark)">Cuadro general de pagos</h3>
-          <p class="small" style="margin-top:0">Muestra todos los pagos guardados del período seleccionado, sin depender del trabajador cargado arriba: liquidaciones de trabajadores con contrato y pagos a honorarios, con fecha, monto, método, respaldo y espacio de firma.</p>
+          <p class="small" style="margin-top:0">Muestra todas las liquidaciones y pagos a honorarios guardados del mes seleccionado, sin depender del trabajador cargado arriba, con fecha, monto, método, respaldo y espacio de firma.</p>
           <div class="actions" style="margin-top:8px"><button class="btn primary" type="button" onclick="printLiquidacionesPagosPDF()">Imprimir cuadro / PDF</button></div>
           <div class="quin-sign-card" id="liq_payment_card"><div id="liq_payment_preview"></div></div>
         </div>
@@ -5124,6 +5124,7 @@ function loadWorkerToPayroll(k){
     showMsg('msg-worker','Este registro es Honorarios / Prestador de servicios. Queda guardado para control interno, pero no corresponde generar liquidación de sueldo.','err');
     return;
   }
+  clearLiquidacionFolioForNewWorker();
   fillPayroll(workerToPayrollData(x));
   byId('worker_select').value=k;
   document.querySelector('[data-view="liquidaciones"]').click();
@@ -5136,6 +5137,7 @@ function loadWorkerToPayrollFromForm(){
     showMsg('msg-worker','Honorarios / Prestador de servicios queda registrado en la ficha, pero no se carga a liquidación de sueldo.','err');
     return;
   }
+  clearLiquidacionFolioForNewWorker();
   fillPayroll(workerToPayrollData(d));
   document.querySelector('[data-view="liquidaciones"]').click();
 }
@@ -5144,6 +5146,23 @@ function saveWorkerFromPayroll(){if(!val('nombre')||!val('rut')){showMsg('msg-li
 function applyContractRules(){const tipo=val('tipo_contrato');const afc=byId('afc_pct'), help=byId('afc_help');if(!afc)return;if(tipo==='Indefinido'){afc.disabled=false;if(!afc.value || Number(afc.value)===0)afc.value='0.60';if(help)help.textContent='Indefinido: normalmente 0,6% trabajador.'}else{afc.value='0';afc.disabled=true;if(help)help.textContent='Plazo fijo / obra o faena: normalmente no se descuenta AFC al trabajador.'}}
 function payrollIds(){return Array.from(document.querySelectorAll('#view-liquidaciones input,#view-liquidaciones select,#view-liquidaciones textarea')).map(e=>e.id).filter(Boolean)} function collectPayroll(){const d={};payrollIds().forEach(id=>d[id]=val(id));return d} function saveDraft(){try{setJSON(KEY_DRAFT,collectPayroll())}catch(e){}} function restoreDraft(){fillPayroll(getJSON(KEY_DRAFT,{}))}
 function getFolio(){if(val('folio'))return val('folio');let c=parseInt(localStorage.getItem(KEY_COUNTER)||'0',10)+1;localStorage.setItem(KEY_COUNTER,String(c));const y=val('anio_liquidacion')||new Date().getFullYear();const f=`LS-${y}-${String(c).padStart(4,'0')}`;byId('folio').value=f;return f}
+function generarNuevoFolioLiquidacion(){
+  let c=parseInt(localStorage.getItem(KEY_COUNTER)||'0',10)+1;
+  const y=val('anio_liquidacion')||new Date().getFullYear();
+  let f='';
+  const usados=new Set(book().map(x=>String(x.folio||'')));
+  do{
+    f=`LS-${y}-${String(c).padStart(4,'0')}`;
+    c++;
+  }while(usados.has(f));
+  localStorage.setItem(KEY_COUNTER,String(c-1));
+  if(byId('folio'))byId('folio').value=f;
+  return f;
+}
+function clearLiquidacionFolioForNewWorker(){
+  if(byId('folio'))byId('folio').value='';
+  if(byId('print_host'))byId('print_host').innerHTML='';
+}
 function parsePreviredMoneyLimit(s){
   const matches=String(s||'').match(/\d{1,3}(?:\.\d{3})+|\d+/g)||[];
   const nums=matches.map(x=>Number(String(x).replace(/\./g,''))).filter(n=>Number.isFinite(n));
@@ -5547,12 +5566,33 @@ function saveLiquidacionToBook(){
   d.worker_key=getSelectedPayrollWorkerKey();
   d.form_data=collectPayroll();
   const b=book();
-  const idx=b.findIndex(x=>x.folio===d.folio || (d.worker_key&&x.worker_key===d.worker_key&&x.mes===d.mes&&String(x.anio)===String(d.anio)));
-  if(idx>=0)b[idx]=d;else b.push(d);
+  const rutActual=rutNoDots(d.rut||'');
+  const mismoPeriodoTrabajador=(x)=>{
+    const xwk=x.worker_key||savedLiquidacionWorkerKey(x);
+    const xrut=rutNoDots(x.rut||x.form_data?.rut||'');
+    const mismoTrabajador=(d.worker_key&&xwk===d.worker_key)||(!d.worker_key&&rutActual&&xrut===rutActual);
+    return mismoTrabajador && String(x.mes||x.form_data?.mes_liquidacion||'').toUpperCase()===String(d.mes||'').toUpperCase() && String(x.anio||x.form_data?.anio_liquidacion||'')===String(d.anio||'');
+  };
+  const mismoFolioMismoTrabajador=(x)=>String(x.folio||'')===String(d.folio||'') && rutNoDots(x.rut||x.form_data?.rut||'')===rutActual;
+  const folioUsadoPorOtro=b.some(x=>String(x.folio||'')===String(d.folio||'') && rutNoDots(x.rut||x.form_data?.rut||'')!==rutActual);
+  if(folioUsadoPorOtro){
+    d.folio=generarNuevoFolioLiquidacion();
+    if(d.form_data)d.form_data.folio=d.folio;
+    renderLiquidacion(d);
+  }
+  const idx=b.findIndex(x=>mismoPeriodoTrabajador(x)||mismoFolioMismoTrabajador(x));
+  if(idx>=0){
+    d.id=b[idx].id||d.id;
+    b[idx]=d;
+  }else{
+    if(b.some(x=>String(x.id)===String(d.id)))d.id=Date.now()+Math.floor(Math.random()*1000);
+    b.push(d);
+  }
   setBook(b);
-  showMsg('msg-liq','Liquidación guardada para este trabajador.');
+  showMsg('msg-liq','Liquidación guardada. El cuadro general mostrará todas las liquidaciones del mes seleccionado.');
   renderBook();
   renderSavedLiquidacionesForWorker();
+  if(typeof renderLiquidacionesPaymentPreview==='function')renderLiquidacionesPaymentPreview(pagosGeneralesFiltrados());
 }
 
 function honorariosPagos(){return getJSON(KEY_HON_PAGOS,[])}
@@ -5782,8 +5822,10 @@ function filteredLiquidacionesPagos(){
   const mes=val('mes_liquidacion')||'';
   const anio=val('anio_liquidacion')||'';
   return book().filter(x=>{
-    const sameMes=!mes||String(x.mes||'').toUpperCase()===String(mes).toUpperCase();
-    const sameAnio=!anio||String(x.anio||'')===String(anio);
+    const xMes=String(x.mes||x.form_data?.mes_liquidacion||'').toUpperCase();
+    const xAnio=String(x.anio||x.form_data?.anio_liquidacion||'');
+    const sameMes=!mes||xMes===String(mes).toUpperCase();
+    const sameAnio=!anio||xAnio===String(anio);
     return sameMes&&sameAnio;
   }).sort((a,b)=>String(a.nombre||'').localeCompare(String(b.nombre||''))||String(a.fecha_pago||a.fecha_emision||'').localeCompare(String(b.fecha_pago||b.fecha_emision||'')));
 }
