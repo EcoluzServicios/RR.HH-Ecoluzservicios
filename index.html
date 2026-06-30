@@ -108,6 +108,30 @@ body.sidebar-collapsed .shell{grid-template-columns:86px 1fr}body.sidebar-collap
 @media (max-width:1100px){.att-month-head{flex-direction:column;align-items:flex-start}.attendance-matrix .sticky-col{min-width:180px;max-width:180px}}
 
 
+
+/* Imagen mensual del libro de asistencia: se guarda localmente para ahorrar egress */
+.att-snapshot-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 10px}
+.att-snapshot-status{font-size:12px;color:#475467;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;margin:8px 0}
+.att-snapshot-status strong{color:#486315}
+.att-capture-box{background:#fff;padding:0;margin:0;display:inline-block}
+.att-capture-box .attendance-matrix{border-collapse:collapse;width:auto;min-width:max-content;font-size:12px;font-family:Arial,Helvetica,sans-serif;color:#111827;background:#fff}
+.att-capture-box .attendance-matrix th,.att-capture-box .attendance-matrix td{border:1px solid #98a2b3;padding:6px 8px;text-align:center;white-space:nowrap;box-sizing:border-box}
+.att-capture-box .attendance-matrix thead th{background:#6d9427;color:#fff;font-weight:800}
+.att-capture-box .attendance-matrix thead .day-num{background:#a9c58f;color:#fff;font-weight:700}
+.att-capture-box .attendance-matrix thead .weekend{background:#ef6b3f;color:#fff}
+.att-capture-box .attendance-matrix .sticky-col{position:static!important;background:#f7faf2!important;text-align:left;min-width:220px;max-width:none;color:#1f2937}
+.att-capture-box .attendance-matrix thead .sticky-col{background:#adc99b!important;color:#1f2937!important}
+.att-capture-box .attendance-matrix .worker-name{font-weight:700;color:#1f2937}
+.att-capture-box .attendance-matrix .worker-rut{display:block;font-size:11px;color:#6b7280;font-weight:400;margin-top:2px}
+.att-capture-box .attendance-matrix .code-a{background:#dcfce7;color:#166534;font-weight:900}
+.att-capture-box .attendance-matrix .code-n{background:#fee2e2;color:#991b1b;font-weight:900}
+.att-capture-box .attendance-matrix .code-p{background:#fef3c7;color:#92400e;font-weight:900}
+.att-capture-box .attendance-matrix .code-l{background:#e0f2fe;color:#075985;font-weight:900}
+.att-capture-box .attendance-matrix .code-f{background:#ede9fe;color:#5b21b6;font-weight:900}
+.att-capture-box .attendance-matrix .code-li{background:#f1f5f9;color:#475467;font-weight:900}
+.att-capture-box .attendance-matrix .weekend-lite{background:#fff7ed;color:#9a3412}
+.att-capture-box .attendance-matrix .total-cell{background:#f8fafc;font-weight:900;color:#111827}
+
 /* Asistencia reflejada en liquidación */
 #liq_asistencia_resumen{min-height:120px;background:#f8fafc}
 #liq_dias_trabajados_efectivos,#liq_dias_remunerados{background:#f1f5f9;font-weight:800;color:#486315}
@@ -2683,7 +2707,7 @@ body.auth-locked .password-modal{
 
         <div class="form-section">
           <h3>Asistencia del mes para liquidación</h3>
-          <div class="note"><strong>Automático:</strong> toma la asistencia registrada del trabajador en el mes de la liquidación. Las inasistencias se calculan por jornada real: lunes a jueves 8,5 horas, viernes 8 horas; medio día descuenta la mitad de la jornada del día.</div>
+          <div class="note"><strong>Automático:</strong> toma la asistencia registrada del trabajador en el mes de la liquidación. Las inasistencias completas se descuentan por valor día (sueldo mensual / 30). Los medios días u horas específicas se descuentan por valor hora, considerando jornada real: lunes a jueves 8,5 horas y viernes 8 horas.</div>
           <div class="grid">
             <div><label>Hora contractual de llegada</label><input id="liq_hora_entrada_ref" type="time" value="09:00"></div>
             <div><label>Minutos de tolerancia</label><input id="liq_tolerancia_min" type="number" value="15" min="0"></div>
@@ -2708,8 +2732,10 @@ body.auth-locked .password-modal{
             <div><label>Movilización</label><input id="movilizacion" type="number" value="0" min="0"></div>
             <div><label>Viáticos</label><input id="viaticos" type="number" value="0" min="0"></div>
             <div><label>Otros no imponibles</label><input id="otros_noimp" type="number" value="0" min="0"></div>
-            <div><label>Días faltados equivalentes</label><input id="dias_falta" type="number" value="0" min="0" step="0.5"><div class="helper">Permite 0,5 si falta medio día.</div></div>
-            <div><label>Horas faltadas</label><input id="horas_falta" type="number" value="0" min="0" step="0.25"><div class="helper">Se calcula desde asistencia: lunes a jueves 8,5; viernes 8; medio día mitad.</div></div>
+            <div><label>Días completos sin goce</label><input id="dias_falta_completos" type="number" value="0" min="0" step="1" oninput="syncDiasFaltaEquivalentesManual();generateLiquidacion(false)"><div class="helper">Se descuentan por valor día: sueldo base / 30.</div></div>
+            <div><label>Horas parciales sin goce</label><input id="horas_falta_parcial" type="number" value="0" min="0" step="0.25" oninput="syncDiasFaltaEquivalentesManual();generateLiquidacion(false)"><div class="helper">Solo medios días u horas específicas; se descuentan por valor hora.</div></div>
+            <div><label>Días faltados equivalentes</label><input id="dias_falta" class="auto-readonly" type="number" value="0" min="0" step="0.01" readonly><div class="helper">Dato informativo para días pagados.</div></div>
+            <div><label>Horas faltadas informativas</label><input id="horas_falta" class="auto-readonly" type="number" value="0" min="0" step="0.25" readonly><div class="helper">Incluye horas de jornadas completas y parciales según asistencia.</div></div>
             <div><label>Atrasos horas</label><input id="atraso_hrs" type="number" value="0" min="0"></div>
             <div><label>Atrasos minutos</label><input id="atraso_min" type="number" value="0" min="0" max="59"></div>
             <div><label>Horas semanales pactadas</label><input id="horas_semana" type="number" value="42" min="1" step="0.5"><div class="helper">Para valor hora de descuentos.</div></div>
@@ -2843,6 +2869,14 @@ body.auth-locked .password-modal{
               <button class="btn soft small" type="button" onclick="shiftAttendanceMonth(1)">▶</button>
             </div>
           </div>
+          <div class="att-snapshot-actions no-print">
+            <button class="btn primary" type="button" onclick="saveAttendanceMonthImage()">Guardar imagen del cuadro</button>
+            <button class="btn soft" type="button" onclick="viewAttendanceMonthImage()">Ver imagen guardada</button>
+            <button class="btn blue" type="button" onclick="downloadAttendanceMonthPDF()">Descargar PDF</button>
+            <button class="btn danger" type="button" onclick="deleteAttendanceMonthImage()">Eliminar imagen</button>
+          </div>
+          <div id="att_month_snapshot_status" class="att-snapshot-status no-print">Imagen mensual: no consultada.</div>
+          <div class="note no-print"><strong>Ahorro de egress:</strong> esta imagen mensual se guarda en este navegador mediante IndexedDB y no se sube a Supabase. La descarga en PDF se genera desde esa imagen local, sin aumentar el consumo de datos de la nube.</div>
           <div class="table-wrap att-matrix-wrap"><table id="attendance_month_table" class="attendance-matrix"></table></div>
         </div>
 
@@ -3624,7 +3658,7 @@ const SUPA_PENDING_KEYS=new Set();
    - Descarga solo registros nuevos o modificados.
    - Evita subir datos iguales otra vez.
 */
-const SUPA_PUSH_DELAY_MS=6000;
+const SUPA_PUSH_DELAY_MS=15000;
 const SUPA_META_KEY='ecoluz_rrhh_supabase_meta_v1';
 
 function showMsg(id,text,type='ok'){const el=byId(id); if(!el)return; el.textContent=text; el.className='status '+(type==='err'?'err':'ok'); setTimeout(()=>{el.className='status'},5000)}
@@ -3643,6 +3677,7 @@ function shouldSupabaseSyncKey(k){
   if(!k.startsWith('ecoluz_rrhh_'))return false;
   if(k===SUPA_CFG_KEY||k===SUPA_META_KEY)return false;
   if(k.includes('supabase_'))return false;
+  if(k.includes('attendance_snapshot')||k.includes('attendance_image'))return false;
   if(k.includes('auto_panels')||k.includes('second_panel'))return false;
   return true;
 }
@@ -5220,20 +5255,37 @@ function updateFamilyAllowancePreview(){
 function calculate(){
 setPayrollPreviredFields(false);
 const diasMes=Math.max(num('liq_dias_base_mes')||30,1), base=num('sueldo_base');
-const diasFalta=Math.max(num('dias_falta'),0), atrasoH=num('atraso_hrs')+(num('atraso_min')/60);
+let diasFalta=Math.max(num('dias_falta'),0), atrasoH=num('atraso_hrs')+(num('atraso_min')/60);
 const horasSemana=Math.max(num('horas_semana')||42,1);
 let horasFalta=Math.max(num('horas_falta'),0);
-if(!horasFalta && diasFalta>0){
-  horasFalta=diasFalta*8.4;
-  if(byId('horas_falta'))byId('horas_falta').value=horasFalta.toFixed(2);
+let diasFaltaCompletos=Math.max(num('dias_falta_completos'),0);
+let horasFaltaParcial=Math.max(num('horas_falta_parcial'),0);
+if(!diasFaltaCompletos && !horasFaltaParcial && (diasFalta>0 || horasFalta>0)){
+  diasFaltaCompletos=Math.floor(diasFalta);
+  const horasEstimadasDiasCompletos=diasFaltaCompletos*8.5;
+  horasFaltaParcial=Math.max(horasFalta-horasEstimadasDiasCompletos,0);
+  if(!horasFaltaParcial && diasFalta>diasFaltaCompletos)horasFaltaParcial=(diasFalta-diasFaltaCompletos)*8.5;
+  if(byId('dias_falta_completos'))byId('dias_falta_completos').value=String(diasFaltaCompletos);
+  if(byId('horas_falta_parcial'))byId('horas_falta_parcial').value=String(Number(horasFaltaParcial.toFixed(2)));
+}
+if(!diasFalta && (diasFaltaCompletos || horasFaltaParcial)){
+  diasFalta=diasFaltaCompletos+(horasFaltaParcial/8.5);
+  if(byId('dias_falta'))byId('dias_falta').value=String(Number(diasFalta.toFixed(2)));
+}
+if(!horasFalta && (diasFaltaCompletos || horasFaltaParcial)){
+  horasFalta=horasFaltaParcial;
+  if(byId('horas_falta'))byId('horas_falta').value=String(Number(horasFalta.toFixed(2)));
 }
 const diasRemunerados=Math.max(diasMes-diasFalta,0);
 let diasTrabajadosEfectivos=num('liq_dias_trabajados_efectivos');
 if(!diasTrabajadosEfectivos) diasTrabajadosEfectivos=diasRemunerados;
-if(byId('liq_dias_remunerados'))byId('liq_dias_remunerados').value=String(diasRemunerados);
+if(byId('liq_dias_remunerados'))byId('liq_dias_remunerados').value=String(Number(diasRemunerados.toFixed(2)));
 if(byId('liq_dias_trabajados_efectivos')&&!num('liq_dias_trabajados_efectivos'))byId('liq_dias_trabajados_efectivos').value=String(diasTrabajadosEfectivos);
+const valorDia=base/30;
 const valorHora=((base/30)*28)/(horasSemana*4);
-const descFaltas=valorHora*horasFalta, descAtrasos=valorHora*atrasoH;
+const descFaltasDias=valorDia*diasFaltaCompletos;
+const descFaltasHoras=valorHora*horasFaltaParcial;
+const descFaltas=descFaltasDias+descFaltasHoras, descAtrasos=valorHora*atrasoH;
 const basePagado=Math.max(base-descFaltas-descAtrasos,0);
 const aplicaGrat=val('aplica_grat')==='si';
 const grat=aplicaGrat?Math.min(basePagado*0.25,num('grat_tope')):0;
@@ -5257,7 +5309,7 @@ const anticipo=num('anticipo'), otrosDesc=num('otros_desc');
 const totalHab=totalImp+totalNo;
 const totalDesc=afp+salud+afc+anticipo+otrosDesc;
 const liq=totalHab-totalDesc;
-return attachPreviredPDFToLiquidacionData({id:Date.now(),folio:val('folio')||'',fecha_emision:val('fecha_emision'),nombre:val('nombre'),rut:val('rut'),cargo:val('cargo'),tipo_contrato:val('tipo_contrato'),fecha_ingreso:val('fecha_ingreso'),mes:val('mes_liquidacion'),anio:val('anio_liquidacion'),periodo_desde:val('periodo_desde'),periodo_hasta:val('periodo_hasta'),region_code:val('region_code'),comuna_code:val('comuna_code'),jornada_code:val('jornada_code'),caja_comp:val('caja_comp'),afp_code:val('afp_select'),afp_name:AFP_LABELS[val('afp_select')]||val('afp_select'),afp_pct:num('afp_pct'),salud_name:val('salud_select'),salud_valor:num('salud_valor'),salud_modalidad:val('salud_modalidad'),afc_pct:num('afc_pct'),base_pactado:base,base_pagado:basePagado,descuento_faltas:descFaltas,descuento_atrasos:descAtrasos,dias_base_mes:diasMes,dias_trabajados_efectivos:diasTrabajadosEfectivos,dias_remunerados:diasRemunerados,dias_falta:diasFalta,horas_falta:horasFalta,horas_semana:horasSemana,valor_hora_descuento:valorHora,atraso_horas:atrasoH,gratificacion:grat,bonos,otros_imp:otrosImp,retro_base:retroBase,retro_grat:retroGrat,retro_concepto:val('retro_concepto'),colacion:col,movilizacion:mov,viaticos:via,otros_noimp:otrosNo,asig_familiar:asig,cargas:num('cargas'),asig_tramo:familyAuto.tramo,asig_monto_carga:familyAuto.montoPorCarga,asig_base_calculo:familyAuto.baseRenta,asig_detalle:familyAuto.detalle,afp,salud,afc,anticipo,otros_desc:otrosDesc,total_imponible:totalImp,total_noimp:totalNo,total_haberes:totalHab,total_descuentos:totalDesc,liquido:liq,banco_pago:val('banco_pago'),tipo_cuenta_pago:val('tipo_cuenta_pago'),numero_cuenta_pago:val('numero_cuenta_pago'),titular_cuenta_pago:val('titular_cuenta_pago'),fecha_pago:val('liq_fecha_pago')||val('fecha_emision'),metodo_pago:val('liq_metodo_pago')||'Transferencia',observaciones:val('observaciones')})}
+return attachPreviredPDFToLiquidacionData({id:Date.now(),folio:val('folio')||'',fecha_emision:val('fecha_emision'),nombre:val('nombre'),rut:val('rut'),cargo:val('cargo'),tipo_contrato:val('tipo_contrato'),fecha_ingreso:val('fecha_ingreso'),mes:val('mes_liquidacion'),anio:val('anio_liquidacion'),periodo_desde:val('periodo_desde'),periodo_hasta:val('periodo_hasta'),region_code:val('region_code'),comuna_code:val('comuna_code'),jornada_code:val('jornada_code'),caja_comp:val('caja_comp'),afp_code:val('afp_select'),afp_name:AFP_LABELS[val('afp_select')]||val('afp_select'),afp_pct:num('afp_pct'),salud_name:val('salud_select'),salud_valor:num('salud_valor'),salud_modalidad:val('salud_modalidad'),afc_pct:num('afc_pct'),base_pactado:base,base_pagado:basePagado,valor_dia_descuento:valorDia,descuento_faltas:descFaltas,descuento_faltas_dias:descFaltasDias,descuento_faltas_horas:descFaltasHoras,descuento_atrasos:descAtrasos,dias_base_mes:diasMes,dias_trabajados_efectivos:diasTrabajadosEfectivos,dias_remunerados:diasRemunerados,dias_falta:diasFalta,dias_falta_completos:diasFaltaCompletos,horas_falta:horasFalta,horas_falta_parcial:horasFaltaParcial,horas_semana:horasSemana,valor_hora_descuento:valorHora,atraso_horas:atrasoH,gratificacion:grat,bonos,otros_imp:otrosImp,retro_base:retroBase,retro_grat:retroGrat,retro_concepto:val('retro_concepto'),colacion:col,movilizacion:mov,viaticos:via,otros_noimp:otrosNo,asig_familiar:asig,cargas:num('cargas'),asig_tramo:familyAuto.tramo,asig_monto_carga:familyAuto.montoPorCarga,asig_base_calculo:familyAuto.baseRenta,asig_detalle:familyAuto.detalle,afp,salud,afc,anticipo,otros_desc:otrosDesc,total_imponible:totalImp,total_noimp:totalNo,total_haberes:totalHab,total_descuentos:totalDesc,liquido:liq,banco_pago:val('banco_pago'),tipo_cuenta_pago:val('tipo_cuenta_pago'),numero_cuenta_pago:val('numero_cuenta_pago'),titular_cuenta_pago:val('titular_cuenta_pago'),fecha_pago:val('liq_fecha_pago')||val('fecha_emision'),metodo_pago:val('liq_metodo_pago')||'Transferencia',observaciones:val('observaciones')})}
 
 
 
@@ -5312,6 +5364,14 @@ function getSelectedPayrollWorkerKey(){
   return Object.keys(map).find(k=>rutNoDots(map[k].rut||'')===rut)||'';
 }
 
+function syncDiasFaltaEquivalentesManual(){
+  const diasCompletos=Math.max(num('dias_falta_completos'),0);
+  const horasParciales=Math.max(num('horas_falta_parcial'),0);
+  const horasReferencia=8.5;
+  const diasEq=diasCompletos+(horasParciales>0?horasParciales/horasReferencia:0);
+  if(byId('dias_falta'))byId('dias_falta').value=String(Number(diasEq.toFixed(2)));
+  if(byId('horas_falta'))byId('horas_falta').value=String(Number(horasParciales.toFixed(2)));
+}
 function horasJornadaLaboralFecha(fecha){
   if(!fecha)return 0;
   const d=new Date(fecha+'T00:00:00');
@@ -5366,7 +5426,7 @@ function isWeekendDateStr(fecha){
 function summarizeAttendanceForPayroll(workerKey,monthName,year,entryRef='09:00',tolerance=15){
   const records=attendanceForPayrollMonth(workerKey,monthName,year);
   const ref=minutesFromHHMM(entryRef);
-  let faltas=0, faltasEq=0, faltasHoras=0, atrasosMin=0, permisos=0, licencias=0, feriados=0, libres=0, asistencias=0;
+  let faltas=0, faltasEq=0, faltasHoras=0, faltasCompletas=0, faltasParcialesHoras=0, atrasosMin=0, permisos=0, licencias=0, feriados=0, libres=0, asistencias=0;
   records.forEach(r=>{
     if(isWeekendDateStr(r.fecha))return;
     const estado=String(r.estado||'');
@@ -5374,7 +5434,14 @@ function summarizeAttendanceForPayroll(workerKey,monthName,year,entryRef='09:00'
     if(!asistio || estado==='Falta'){
       const h=horasAusenciaRecord(r);
       const eq=diasAusenciaEqRecord(r);
-      if(h>0){faltas++;faltasHoras+=h;faltasEq+=eq;}
+      if(h>0){
+        faltas++;
+        faltasHoras+=h;
+        faltasEq+=eq;
+        const tipoAus=r.ausencia_tipo||'completa';
+        if(tipoAus==='completa')faltasCompletas++;
+        else faltasParcialesHoras+=h;
+      }
       return;
     }
     if(estado==='Permiso'){permisos++;return}
@@ -5390,7 +5457,7 @@ function summarizeAttendanceForPayroll(workerKey,monthName,year,entryRef='09:00'
       }
     }
   });
-  return {records,faltas,faltasEq,faltasHoras,atrasosMin,permisos,licencias,feriados,libres,asistencias};
+  return {records,faltas,faltasEq,faltasHoras,faltasCompletas,faltasParcialesHoras,atrasosMin,permisos,licencias,feriados,libres,asistencias};
 }
 function applyAttendanceToPayroll(){
   const workerKey=getSelectedPayrollWorkerKey();
@@ -5405,7 +5472,11 @@ function applyAttendanceToPayroll(){
   const diasBase=num('liq_dias_base_mes')||30;
   const diasFaltaEq=Number((s.faltasEq||0).toFixed(2));
   const horasFalta=Number((s.faltasHoras||0).toFixed(2));
+  const diasFaltaCompletos=Number(s.faltasCompletas||0);
+  const horasFaltaParcial=Number((s.faltasParcialesHoras||0).toFixed(2));
   const diasRemunerados=Math.max(diasBase-diasFaltaEq,0);
+  if(byId('dias_falta_completos'))byId('dias_falta_completos').value=String(diasFaltaCompletos);
+  if(byId('horas_falta_parcial'))byId('horas_falta_parcial').value=String(horasFaltaParcial);
   if(byId('dias_falta'))byId('dias_falta').value=String(diasFaltaEq);
   if(byId('horas_falta'))byId('horas_falta').value=String(horasFalta);
   if(byId('atraso_hrs'))byId('atraso_hrs').value=String(atrasoHrs);
@@ -5417,18 +5488,18 @@ function applyAttendanceToPayroll(){
     `Registros encontrados: ${s.records.length}`,
     `Días trabajados efectivos: ${s.asistencias}`,
     `Días remunerados sueldo base: ${diasRemunerados}`,
-    `Inasistencias/Faltas descontables: ${s.faltas} registro(s) · ${diasFaltaEq} día(s) equivalente(s) · ${horasFalta} hora(s)`,
+    `Inasistencias/Faltas descontables: ${s.faltas} registro(s) · ${diasFaltaCompletos} día(s) completo(s) · ${horasFaltaParcial} h parcial(es) · ${diasFaltaEq} día(s) equivalente(s) informativo(s)`,
     `Atrasos descontables: ${atrasoHrs} hora(s) y ${atrasoMin} minuto(s)`,
     `Permisos: ${s.permisos}`,
     `Licencias: ${s.licencias}`,
     `Feriados: ${s.feriados}`,
     `Libres: ${s.libres}`,
-    `Criterio atraso: llegada posterior a ${entradaRef} con ${tolerancia} min de tolerancia. Sábados y domingos no se consideran. Jornada para faltas: lunes a jueves 8,5 horas; viernes 8 horas; medio día descuenta la mitad.`
+    `Criterio atraso: llegada posterior a ${entradaRef} con ${tolerancia} min de tolerancia. Sábados y domingos no se consideran. Días completos se descuentan por sueldo/30; medios días u horas específicas se descuentan por valor hora.`
   ].join('\n');
   if(byId('liq_asistencia_resumen'))byId('liq_asistencia_resumen').value=resumen;
   if(byId('observaciones')){
     const actual=val('observaciones');
-    const nota=`Asistencia aplicada: ${s.asistencias} día(s) trabajados efectivos, ${diasRemunerados} día(s) remunerados para sueldo base, ${diasFaltaEq} día(s) equivalente(s) faltados (${horasFalta} hora(s)) y ${atrasoHrs} hora(s) ${atrasoMin} minuto(s) de atraso según registros de asistencia del mes.`;
+    const nota=`Asistencia aplicada: ${s.asistencias} día(s) trabajados efectivos, ${diasRemunerados} día(s) remunerados para sueldo base, ${diasFaltaCompletos} día(s) completo(s) sin goce, ${horasFaltaParcial} hora(s) parcial(es) sin goce y ${atrasoHrs} hora(s) ${atrasoMin} minuto(s) de atraso según registros de asistencia del mes.`;
     byId('observaciones').value=actual ? actual+'\n'+nota : nota;
   }
   generateLiquidacion(false);
@@ -5466,7 +5537,9 @@ function renderLiquidacion(d){
   const atrasoHoras=Math.floor(Number(d.atraso_horas||0));
   const atrasoMin=Math.round((Number(d.atraso_horas||0)-atrasoHoras)*60);
   const resumenAjuste=[];
-  if(showMoney(d.descuento_faltas))resumenAjuste.push(`Sueldo base pactado ${clp(d.base_pactado)}; ${d.dias_falta||0} día(s) equivalente(s) sin goce (${Number(d.horas_falta||0).toFixed(2)} h) generan rebaja de ${clp(d.descuento_faltas)}.`);
+  if(showMoney(d.descuento_faltas_dias))resumenAjuste.push(`Sueldo base pactado ${clp(d.base_pactado)}; ${Number(d.dias_falta_completos||0).toFixed(0)} día(s) completo(s) sin goce se descuentan por valor día ${clp(d.valor_dia_descuento||0)}: ${clp(d.descuento_faltas_dias)}.`);
+  if(showMoney(d.descuento_faltas_horas))resumenAjuste.push(`${Number(d.horas_falta_parcial||0).toFixed(2)} hora(s) parcial(es) sin goce se descuentan por valor hora ${clp(d.valor_hora_descuento||0)}: ${clp(d.descuento_faltas_horas)}.`);
+  if(showMoney(d.descuento_faltas) && !showMoney(d.descuento_faltas_dias) && !showMoney(d.descuento_faltas_horas))resumenAjuste.push(`Rebaja por inasistencias sin goce: ${clp(d.descuento_faltas)}.`);
   if(showMoney(d.descuento_atrasos))resumenAjuste.push(`Atrasos registrados: ${atrasoHoras} h ${atrasoMin} min, rebaja aplicada ${clp(d.descuento_atrasos)}.`);
   if(huboAjusteBase)resumenAjuste.push('La rebaja ya está aplicada en el sueldo base pagado y no se descuenta nuevamente en la sección descuentos.');
 
@@ -5561,7 +5634,7 @@ function renderLiquidacion(d){
 
   byId('print_host').innerHTML=`<div class="classic-print-page">${doc('ORIGINAL')}</div><div class="classic-print-page">${doc('COPIA')}</div>`;
 }
-function printLiquidacion(){if(!byId('print_host').innerHTML.trim()){if(!generateLiquidacion())return}window.print()} function clearPayrollForm(){localStorage.removeItem(KEY_DRAFT);payrollIds().forEach(id=>{const el=byId(id);if(!el)return;if(el.tagName==='SELECT')el.selectedIndex=0;else if(el.type==='number')el.value='0';else el.value=''});byId('sueldo_base').value='553553';byId('retro_sueldo_anterior').value='539000';byId('retro_sueldo_nuevo').value='553553';byId('retro_meses').value='1';byId('aplica_retro').value='si';byId('retro_grat_auto').value='auto';byId('aplica_grat').value='si';byId('grat_tope').value='219323';byId('monto_carga').value='0';if(byId('horas_falta'))byId('horas_falta').value='0';if(byId('horas_semana'))byId('horas_semana').value='42';byId('afp_pct').value='10.58';byId('salud_valor').value='7';byId('afc_pct').value='0.60';byId('retro_concepto').value='Retroactivo sueldo base MAYO 2026 por reajuste IMM';byId('mes_liquidacion').value='JUNIO';byId('anio_liquidacion').value='2026';setDefaultDates();applyContractRules();byId('print_host').innerHTML='';showMsg('msg-liq','Formulario limpio.');}
+function printLiquidacion(){if(!byId('print_host').innerHTML.trim()){if(!generateLiquidacion())return}window.print()} function clearPayrollForm(){localStorage.removeItem(KEY_DRAFT);payrollIds().forEach(id=>{const el=byId(id);if(!el)return;if(el.tagName==='SELECT')el.selectedIndex=0;else if(el.type==='number')el.value='0';else el.value=''});byId('sueldo_base').value='553553';byId('retro_sueldo_anterior').value='539000';byId('retro_sueldo_nuevo').value='553553';byId('retro_meses').value='1';byId('aplica_retro').value='si';byId('retro_grat_auto').value='auto';byId('aplica_grat').value='si';byId('grat_tope').value='219323';byId('monto_carga').value='0';if(byId('dias_falta_completos'))byId('dias_falta_completos').value='0';if(byId('horas_falta_parcial'))byId('horas_falta_parcial').value='0';if(byId('dias_falta'))byId('dias_falta').value='0';if(byId('horas_falta'))byId('horas_falta').value='0';if(byId('horas_semana'))byId('horas_semana').value='42';byId('afp_pct').value='10.58';byId('salud_valor').value='7';byId('afc_pct').value='0.60';byId('retro_concepto').value='Retroactivo sueldo base MAYO 2026 por reajuste IMM';byId('mes_liquidacion').value='JUNIO';byId('anio_liquidacion').value='2026';setDefaultDates();applyContractRules();byId('print_host').innerHTML='';showMsg('msg-liq','Formulario limpio.');}
 function book(){return getJSON(KEY_BOOK,[])}
 function setBook(b){setJSON(KEY_BOOK,b)}
 function savedLiquidacionWorkerKey(x){
@@ -5595,7 +5668,7 @@ function renderSavedLiquidacionesForWorker(){
 }
 function savedLiquidacionFallbackForm(x){
   const atraso=Number(x.atraso_horas||0);
-  return {folio:x.folio||'',fecha_emision:x.fecha_emision||'',nombre:x.nombre||'',rut:x.rut||'',cargo:x.cargo||'',tipo_contrato:x.tipo_contrato||'',fecha_ingreso:x.fecha_ingreso||'',mes_liquidacion:x.mes||'',anio_liquidacion:x.anio||'',periodo_desde:x.periodo_desde||'',periodo_hasta:x.periodo_hasta||'',region_code:x.region_code||'',comuna_code:x.comuna_code||'',jornada_code:x.jornada_code||'',caja_comp:x.caja_comp||'',afp_select:x.afp_code||'',afp_pct:x.afp_pct||'',salud_select:x.salud_name||'',salud_valor:x.salud_valor||'',salud_modalidad:x.salud_modalidad||'porcentaje',afc_pct:x.afc_pct||'',sueldo_base:x.base_pactado||'',liq_dias_base_mes:x.dias_base_mes||30,liq_dias_trabajados_efectivos:x.dias_trabajados_efectivos||'',dias_falta:x.dias_falta||0,horas_falta:x.horas_falta||0,horas_semana:x.horas_semana||42,atraso_hrs:Math.floor(atraso),atraso_min:Math.round((atraso-Math.floor(atraso))*60),aplica_grat:Number(x.gratificacion||0)>0?'si':'no',bonos:x.bonos||0,otros_imp:x.otros_imp||0,aplica_retro:Number(x.retro_base||0)>0||Number(x.retro_grat||0)>0?'si':'no',retro_manual:x.retro_base||0,retro_grat_auto:'manual',retro_grat_manual:x.retro_grat||0,retro_concepto:x.retro_concepto||'',colacion:x.colacion||0,movilizacion:x.movilizacion||0,viaticos:x.viaticos||0,otros_noimp:x.otros_noimp||0,cargas:x.cargas||0,monto_carga:x.asig_monto_carga||0,anticipo:x.anticipo||0,otros_desc:x.otros_desc||0,banco_pago:x.banco_pago||'',tipo_cuenta_pago:x.tipo_cuenta_pago||'',numero_cuenta_pago:x.numero_cuenta_pago||'',titular_cuenta_pago:x.titular_cuenta_pago||'',liq_fecha_pago:x.fecha_pago||x.form_data?.liq_fecha_pago||x.fecha_emision||'',liq_metodo_pago:x.metodo_pago||x.form_data?.liq_metodo_pago||'Transferencia',observaciones:x.observaciones||''};
+  return {folio:x.folio||'',fecha_emision:x.fecha_emision||'',nombre:x.nombre||'',rut:x.rut||'',cargo:x.cargo||'',tipo_contrato:x.tipo_contrato||'',fecha_ingreso:x.fecha_ingreso||'',mes_liquidacion:x.mes||'',anio_liquidacion:x.anio||'',periodo_desde:x.periodo_desde||'',periodo_hasta:x.periodo_hasta||'',region_code:x.region_code||'',comuna_code:x.comuna_code||'',jornada_code:x.jornada_code||'',caja_comp:x.caja_comp||'',afp_select:x.afp_code||'',afp_pct:x.afp_pct||'',salud_select:x.salud_name||'',salud_valor:x.salud_valor||'',salud_modalidad:x.salud_modalidad||'porcentaje',afc_pct:x.afc_pct||'',sueldo_base:x.base_pactado||'',liq_dias_base_mes:x.dias_base_mes||30,liq_dias_trabajados_efectivos:x.dias_trabajados_efectivos||'',dias_falta_completos:x.dias_falta_completos||0,horas_falta_parcial:x.horas_falta_parcial||0,dias_falta:x.dias_falta||0,horas_falta:x.horas_falta||0,horas_semana:x.horas_semana||42,atraso_hrs:Math.floor(atraso),atraso_min:Math.round((atraso-Math.floor(atraso))*60),aplica_grat:Number(x.gratificacion||0)>0?'si':'no',bonos:x.bonos||0,otros_imp:x.otros_imp||0,aplica_retro:Number(x.retro_base||0)>0||Number(x.retro_grat||0)>0?'si':'no',retro_manual:x.retro_base||0,retro_grat_auto:'manual',retro_grat_manual:x.retro_grat||0,retro_concepto:x.retro_concepto||'',colacion:x.colacion||0,movilizacion:x.movilizacion||0,viaticos:x.viaticos||0,otros_noimp:x.otros_noimp||0,cargas:x.cargas||0,monto_carga:x.asig_monto_carga||0,anticipo:x.anticipo||0,otros_desc:x.otros_desc||0,banco_pago:x.banco_pago||'',tipo_cuenta_pago:x.tipo_cuenta_pago||'',numero_cuenta_pago:x.numero_cuenta_pago||'',titular_cuenta_pago:x.titular_cuenta_pago||'',liq_fecha_pago:x.fecha_pago||x.form_data?.liq_fecha_pago||x.fecha_emision||'',liq_metodo_pago:x.metodo_pago||x.form_data?.liq_metodo_pago||'Transferencia',observaciones:x.observaciones||''};
 }
 function loadLiquidacionFromBook(id){
   const x=book().find(r=>String(r.id)===String(id));
@@ -6078,6 +6151,328 @@ function recordTooltip(rec){
   if(Number(rec.horas_extra||0)) parts.push('H. extra: '+Number(rec.horas_extra).toFixed(2));
   return parts.join(' · ');
 }
+
+/* --- Imagen mensual del libro de asistencia, local-only para ahorrar egress --- */
+const ATT_SNAPSHOT_DB='ecoluz_rrhh_attendance_images_v1';
+const ATT_SNAPSHOT_STORE='snapshots';
+function attendanceSnapshotPeriod(){
+  ensureAttendanceMonthControls();
+  const m=Number(val('att_month')||new Date().getMonth());
+  const y=Number(val('att_year')||new Date().getFullYear());
+  return {month:m,year:y,id:`${y}-${String(m+1).padStart(2,'0')}`,label:`${monthNames()[m]||''} ${y}`.toUpperCase()};
+}
+function openAttendanceSnapshotDB(){
+  return new Promise((resolve,reject)=>{
+    if(!window.indexedDB){reject(new Error('Este navegador no soporta IndexedDB.'));return;}
+    const req=indexedDB.open(ATT_SNAPSHOT_DB,1);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains(ATT_SNAPSHOT_STORE))db.createObjectStore(ATT_SNAPSHOT_STORE,{keyPath:'id'});
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error('No se pudo abrir la base local.'));
+  });
+}
+async function putAttendanceSnapshot(rec){
+  const db=await openAttendanceSnapshotDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(ATT_SNAPSHOT_STORE,'readwrite');
+    tx.objectStore(ATT_SNAPSHOT_STORE).put(rec);
+    tx.oncomplete=()=>{db.close();resolve(rec)};
+    tx.onerror=()=>{db.close();reject(tx.error||new Error('No se pudo guardar la imagen.'))};
+  });
+}
+async function getAttendanceSnapshot(id){
+  const db=await openAttendanceSnapshotDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(ATT_SNAPSHOT_STORE,'readonly');
+    const req=tx.objectStore(ATT_SNAPSHOT_STORE).get(id);
+    req.onsuccess=()=>{db.close();resolve(req.result||null)};
+    req.onerror=()=>{db.close();reject(req.error||new Error('No se pudo leer la imagen.'))};
+  });
+}
+async function removeAttendanceSnapshot(id){
+  const db=await openAttendanceSnapshotDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(ATT_SNAPSHOT_STORE,'readwrite');
+    tx.objectStore(ATT_SNAPSHOT_STORE).delete(id);
+    tx.oncomplete=()=>{db.close();resolve(true)};
+    tx.onerror=()=>{db.close();reject(tx.error||new Error('No se pudo eliminar la imagen.'))};
+  });
+}
+function attendanceCaptureCSS(){
+  return `
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#111827}
+  .att-capture-box{background:#fff;padding:0;margin:0;display:inline-block}
+  table.attendance-matrix{border-collapse:collapse;width:auto;min-width:max-content;font-size:12px;font-family:Arial,Helvetica,sans-serif;color:#111827;background:#fff}
+  .attendance-matrix th,.attendance-matrix td{border:1px solid #98a2b3;padding:6px 8px;text-align:center;white-space:nowrap;box-sizing:border-box}
+  .attendance-matrix thead th{background:#6d9427;color:#fff;font-weight:800}
+  .attendance-matrix thead .day-head{font-size:11px;letter-spacing:.02em;padding:8px 4px;background:#6d9427;color:#fff}
+  .attendance-matrix thead .day-num{background:#a9c58f;color:#fff;font-weight:700;padding:8px 4px}
+  .attendance-matrix thead .weekend{background:#ef6b3f!important;color:#fff!important}
+  .attendance-matrix .sticky-col{position:static!important;background:#f7faf2!important;text-align:left;min-width:220px;max-width:none;color:#1f2937}
+  .attendance-matrix thead .sticky-col{background:#adc99b!important;color:#1f2937!important}
+  .attendance-matrix .worker-name{font-weight:700;color:#1f2937}
+  .attendance-matrix .worker-rut{display:block;font-size:11px;color:#6b7280;font-weight:400;margin-top:2px}
+  .attendance-matrix .matrix-cell{min-width:34px}
+  .attendance-matrix .code-a{background:#dcfce7;color:#166534;font-weight:900}
+  .attendance-matrix .code-n{background:#fee2e2;color:#991b1b;font-weight:900}
+  .attendance-matrix .code-p{background:#fef3c7;color:#92400e;font-weight:900}
+  .attendance-matrix .code-l{background:#e0f2fe;color:#075985;font-weight:900}
+  .attendance-matrix .code-f{background:#ede9fe;color:#5b21b6;font-weight:900}
+  .attendance-matrix .code-li{background:#f1f5f9;color:#475467;font-weight:900}
+  .attendance-matrix .weekend-lite{background:#fff7ed;color:#9a3412}
+  .attendance-matrix .total-cell{background:#f8fafc;font-weight:900;color:#111827}
+  `;
+}
+function sanitizeCaptureTableClone(table){
+  const clone=table.cloneNode(true);
+  clone.querySelectorAll('[title]').forEach(el=>el.removeAttribute('title'));
+  clone.querySelectorAll('.sticky-col').forEach(el=>{el.style.position='static'; el.style.left='auto';});
+  return clone;
+}
+async function attendanceTableToPNGBlob(){
+  renderAttendanceMonthly();
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const table=byId('attendance_month_table');
+  if(!table||!table.innerHTML.trim())throw new Error('No hay cuadro de asistencia para guardar.');
+  const clone=sanitizeCaptureTableClone(table);
+  const holder=document.createElement('div');
+  holder.className='att-capture-box';
+  holder.style.position='fixed';
+  holder.style.left='-100000px';
+  holder.style.top='0';
+  holder.style.background='#fff';
+  holder.appendChild(clone);
+  document.body.appendChild(holder);
+  const width=Math.ceil(clone.scrollWidth||clone.getBoundingClientRect().width||1200);
+  const height=Math.ceil(clone.scrollHeight||clone.getBoundingClientRect().height||600);
+  const html=`<div xmlns="http://www.w3.org/1999/xhtml" class="att-capture-box"><style>${attendanceCaptureCSS()}</style>${clone.outerHTML}</div>`;
+  holder.remove();
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%">${html}</foreignObject></svg>`;
+  const svgBlob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(svgBlob);
+  try{
+    const img=await new Promise((resolve,reject)=>{
+      const im=new Image();
+      im.onload=()=>resolve(im);
+      im.onerror=()=>reject(new Error('No se pudo convertir el cuadro a imagen.'));
+      im.src=url;
+    });
+    const scale=Math.max(1,Math.min(2,8192/width,8192/height));
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(width*scale));
+    canvas.height=Math.max(1,Math.round(height*scale));
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('No se pudo crear el PNG.')),'image/png',0.92));
+  }finally{
+    URL.revokeObjectURL(url);
+  }
+}
+function downloadBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function loadImageFromBlob(blob){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(blob);
+    const img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('No se pudo preparar la imagen para PDF.'))};
+    img.src=url;
+  });
+}
+function safePdfFilename(name){
+  const base=String(name||'libro_asistencia.pdf').replace(/\.(png|jpg|jpeg)$/i,'.pdf');
+  return /\.pdf$/i.test(base)?base:base+'.pdf';
+}
+function asciiBytes(str){
+  const out=new Uint8Array(str.length);
+  for(let i=0;i<str.length;i++)out[i]=str.charCodeAt(i)&255;
+  return out;
+}
+function binaryStringToBytes(str){
+  const out=new Uint8Array(str.length);
+  for(let i=0;i<str.length;i++)out[i]=str.charCodeAt(i)&255;
+  return out;
+}
+function concatBytes(parts){
+  const total=parts.reduce((sum,p)=>sum+p.length,0);
+  const out=new Uint8Array(total);
+  let off=0;
+  parts.forEach(p=>{out.set(p,off);off+=p.length});
+  return out;
+}
+function jpegDataUrlToBytes(dataUrl){
+  const b64=String(dataUrl||'').split(',')[1]||'';
+  if(!b64)throw new Error('No se pudo preparar la imagen del PDF.');
+  return binaryStringToBytes(atob(b64));
+}
+function buildSingleImagePDF(jpgBytes,imgW,imgH,pageW,pageH){
+  const parts=[];
+  const offsets=[0];
+  let pos=0;
+  const push=(bytes)=>{parts.push(bytes);pos+=bytes.length};
+  const pushText=(txt)=>push(asciiBytes(txt));
+  pushText('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  function addObj(num,bodyParts){
+    offsets[num]=pos;
+    pushText(`${num} 0 obj\n`);
+    bodyParts.forEach(part=>typeof part==='string'?pushText(part):push(part));
+    pushText('\nendobj\n');
+  }
+  const content=`q\n${pageW} 0 0 ${pageH} 0 0 cm\n/Im0 Do\nQ`;
+  addObj(1,['<< /Type /Catalog /Pages 2 0 R >>']);
+  addObj(2,['<< /Type /Pages /Kids [3 0 R] /Count 1 >>']);
+  addObj(3,[`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`]);
+  addObj(4,[`<< /Type /XObject /Subtype /Image /Width ${imgW} /Height ${imgH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpgBytes.length} >>\nstream\n`,jpgBytes,'\nendstream']);
+  addObj(5,[`<< /Length ${asciiBytes(content).length} >>\nstream\n${content}\nendstream`]);
+  const xrefOffset=pos;
+  pushText(`xref\n0 6\n0000000000 65535 f \n`);
+  for(let i=1;i<=5;i++)pushText(String(offsets[i]).padStart(10,'0')+' 00000 n \n');
+  pushText(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`);
+  return new Blob([concatBytes(parts)],{type:'application/pdf'});
+}
+async function attendanceSnapshotToPDFBlob(rec){
+  if(!rec||!rec.blob)throw new Error('No existe imagen mensual guardada para generar el PDF.');
+  const img=await loadImageFromBlob(rec.blob);
+  const canvas=document.createElement('canvas');
+  canvas.width=img.naturalWidth||img.width||1200;
+  canvas.height=img.naturalHeight||img.height||800;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const jpgDataUrl=canvas.toDataURL('image/jpeg',0.9);
+  const jpgBytes=jpegDataUrlToBytes(jpgDataUrl);
+  const pageW=Math.max(300,Math.round(canvas.width*0.75));
+  const pageH=Math.max(300,Math.round(canvas.height*0.75));
+  return buildSingleImagePDF(jpgBytes,canvas.width,canvas.height,pageW,pageH);
+}
+function writeAttendancePDFHelperWindow(w,state,opts={}){
+  if(!w)return;
+  const title=opts.title||'Libro de asistencia PDF';
+  const msg=opts.message||'';
+  const url=opts.url||'';
+  const filename=opts.filename||'libro_asistencia.pdf';
+  const error=state==='error';
+  const ready=state==='ready'&&url;
+  const link=ready?`<a class="btn" id="pdf_link" href="${url}" download="${esc(filename)}">Descargar PDF</a><a class="btn secondary" href="${url}" target="_blank" rel="noopener">Abrir PDF</a>`:'';
+  const frame=ready?`<iframe src="${url}" title="PDF"></iframe>`:'';
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(title)}</title><style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f8fafc;color:#1f2937;margin:0;padding:22px}
+    .box{max-width:980px;margin:0 auto;background:#fff;border:1px solid #d0d7de;border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(15,23,42,.08)}
+    h1{font-size:18px;margin:0 0 8px;color:#1f5c24}.msg{margin:8px 0 14px;color:${error?'#b42318':'#475467'}}
+    .btn{display:inline-block;background:#7dad18;color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:800;margin-right:8px}.secondary{background:#475467}
+    iframe{width:100%;height:78vh;border:1px solid #d0d7de;border-radius:12px;margin-top:16px;background:#fff}
+    .spinner{width:22px;height:22px;border:3px solid #dbecc0;border-top-color:#7dad18;border-radius:50%;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px}@keyframes spin{to{transform:rotate(360deg)}}
+  </style></head><body><div class="box"><h1>${esc(title)}</h1><div class="msg">${state==='loading'?'<span class="spinner"></span>':''}${esc(msg)}</div><div>${link}</div>${frame}</div>${ready?'<script>setTimeout(function(){var a=document.getElementById("pdf_link"); if(a) a.click();},450)<\/script>':''}</body></html>`);
+  w.document.close();
+}
+async function downloadAttendanceMonthPDF(){
+  let helper=null;
+  try{
+    helper=window.open('','_blank');
+    writeAttendancePDFHelperWindow(helper,'loading',{message:'Generando PDF del cuadro de asistencia. Si el navegador bloquea la descarga automática, usa el botón de descarga que aparecerá aquí.'});
+  }catch(e){helper=null;}
+  try{
+    const rec=await ensureAttendanceSnapshot();
+    if(!rec){if(helper&&!helper.closed)helper.close();return;}
+    const pdfBlob=await attendanceSnapshotToPDFBlob(rec);
+    const filename=safePdfFilename(rec.filename||'libro_asistencia.pdf');
+    const url=URL.createObjectURL(pdfBlob);
+    downloadBlob(pdfBlob,filename);
+    writeAttendancePDFHelperWindow(helper,'ready',{title:'PDF listo · Libro de asistencia',message:'El PDF fue generado correctamente. La descarga automática debería iniciar; si no inicia, presiona “Descargar PDF”.',url,filename});
+    showMsg('msg-att','PDF del libro de asistencia generado. Si no se descarga automáticamente, usa la ventana que se abrió con el botón Descargar PDF.','ok');
+    setTimeout(()=>URL.revokeObjectURL(url),180000);
+  }catch(e){
+    writeAttendancePDFHelperWindow(helper,'error',{message:'No se pudo generar el PDF: '+(e.message||e)});
+    showMsg('msg-att','No se pudo descargar el PDF: '+(e.message||e),'err');
+  }
+}
+async function renderAttendanceMonthSnapshotStatus(){
+  const el=byId('att_month_snapshot_status');
+  if(!el)return;
+  const period=attendanceSnapshotPeriod();
+  try{
+    const rec=await getAttendanceSnapshot(period.id);
+    if(rec){
+      const size=rec.size?` · ${(rec.size/1024).toFixed(1)} KB`:'';
+      el.innerHTML=`<strong>Imagen guardada:</strong> ${esc(rec.filename||period.id+'.png')} · ${fmtDate((rec.created_at||'').slice(0,10))||''}${size} · Local, no sincronizada a Supabase.`;
+    }else{
+      el.innerHTML=`<strong>Imagen mensual:</strong> no guardada para ${esc(period.label)}.`;
+    }
+  }catch(e){
+    el.textContent='Imagen mensual: no disponible en este navegador.';
+  }
+}
+async function saveAttendanceMonthImage(){
+  const period=attendanceSnapshotPeriod();
+  try{
+    const blob=await attendanceTableToPNGBlob();
+    const rec={id:period.id,month:period.month,year:period.year,label:period.label,filename:`libro_asistencia_${period.id}.png`,blob,size:blob.size,created_at:new Date().toISOString(),local_only:true};
+    await putAttendanceSnapshot(rec);
+    await renderAttendanceMonthSnapshotStatus();
+    showMsg('msg-att',`Imagen del cuadro guardada localmente para ${period.label}. No se subió a Supabase, por lo tanto no aumenta el egress.`,'ok');
+    return rec;
+  }catch(e){
+    showMsg('msg-att','No se pudo guardar la imagen del cuadro: '+(e.message||e),'err');
+    return null;
+  }
+}
+async function ensureAttendanceSnapshot(){
+  const period=attendanceSnapshotPeriod();
+  let rec=null;
+  try{rec=await getAttendanceSnapshot(period.id)}catch(e){}
+  if(rec)return rec;
+  return await saveAttendanceMonthImage();
+}
+async function downloadAttendanceMonthImage(){
+  const rec=await ensureAttendanceSnapshot();
+  if(!rec)return;
+  downloadBlob(rec.blob,rec.filename||'libro_asistencia.png');
+}
+async function viewAttendanceMonthImage(){
+  const rec=await ensureAttendanceSnapshot();
+  if(!rec)return;
+  const url=URL.createObjectURL(rec.blob);
+  const w=window.open('','_blank');
+  if(!w){
+    window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+    return;
+  }
+  let pdfUrl='';
+  let pdfName=safePdfFilename(rec.filename||'libro_asistencia.pdf');
+  try{
+    const pdfBlob=await attendanceSnapshotToPDFBlob(rec);
+    pdfUrl=URL.createObjectURL(pdfBlob);
+  }catch(e){}
+  const pdfLink=pdfUrl?`<a href="${pdfUrl}" download="${esc(pdfName)}">Descargar PDF</a>`:'';
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(rec.filename||'Libro asistencia')}</title><style>body{margin:0;background:#f8fafc;font-family:Arial,Helvetica,sans-serif}.bar{position:sticky;top:0;background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.bar a{background:#7dad18;color:#fff;text-decoration:none;padding:8px 12px;border-radius:10px;font-weight:800}.bar a.secondary{background:#64748b}.wrap{padding:18px;overflow:auto}img{background:#fff;border:1px solid #d0d7de;max-width:none}</style></head><body><div class="bar"><strong>${esc(rec.filename||'Libro asistencia')}</strong>${pdfLink}<a class="secondary" href="${url}" download="${esc(rec.filename||'libro_asistencia.png')}">Descargar PNG</a></div><div class="wrap"><img src="${url}"></div></body></html>`);
+  w.document.close();
+  setTimeout(()=>{URL.revokeObjectURL(url); if(pdfUrl)URL.revokeObjectURL(pdfUrl);},60000);
+}
+async function deleteAttendanceMonthImage(){
+  const period=attendanceSnapshotPeriod();
+  if(!confirm(`¿Eliminar la imagen guardada del cuadro de ${period.label}? Esto no borra las marcaciones ni la asistencia.`))return;
+  try{
+    await removeAttendanceSnapshot(period.id);
+    await renderAttendanceMonthSnapshotStatus();
+    showMsg('msg-att','Imagen mensual eliminada. Las marcaciones siguen guardadas.','ok');
+  }catch(e){
+    showMsg('msg-att','No se pudo eliminar la imagen mensual: '+(e.message||e),'err');
+  }
+}
+
 function renderAttendanceMonthly(){
   ensureAttendanceMonthControls();
   const month=Number(val('att_month')||0), year=Number(val('att_year')||new Date().getFullYear());
@@ -6119,6 +6514,7 @@ function renderAttendanceMonthly(){
   }
   html += '</tbody>';
   table.innerHTML=html;
+  renderAttendanceMonthSnapshotStatus();
 }
 function renderAttendance(){refreshAllWorkerSelects();ensureAttendanceMonthControls();renderAttendanceMonthly();const a=filteredAttendance();const h=a.reduce((s,x)=>s+(Number(x.horas)||0),0), he=a.reduce((s,x)=>s+(Number(x.horas_extra)||0),0), hea=a.filter(x=>(x.he_autorizadas||'no')==='si').length;byId('att_summary').innerHTML=`<div class="kpi"><span>Registros</span><strong>${a.length}</strong></div><div class="kpi"><span>Asistencias</span><strong>${a.filter(x=>(x.asistio||'si')==='si').length}</strong></div><div class="kpi"><span>Horas trabajadas</span><strong>${h.toFixed(2)}</strong></div><div class="kpi"><span>Horas extra</span><strong>${he.toFixed(2)}</strong></div><div class="kpi"><span>H. extra autorizadas</span><strong>${hea}</strong></div>`;let rows='<tr><th>Fecha</th><th>Trabajador</th><th>RUT</th><th>Asistió</th><th>Estado</th><th>Llegada</th><th>Inicio colación</th><th>Fin colación</th><th>Salida</th><th>Horas trabajadas</th><th>H. extra</th><th>HE autorizadas</th><th>Autorizadas por</th><th>Obs</th><th class="no-print">Acción</th></tr>';if(!a.length)rows='<tr><th>Selecciona un trabajador para ver solo sus marcaciones registradas.</th></tr>';a.forEach(x=>{const obs=[x.obs_no||'',(!((x.asistio||'si')==='si')?('Ausencia: '+(x.ausencia_tipo||'completa')+' · '+(x.ausencia_horas||horasAusenciaRecord(x)||0)+' h'):''),x.colacion_obs||'',x.obs||'',x.he_motivo?('HE: '+x.he_motivo):''].filter(Boolean).join(' | ');rows+=`<tr><td>${fmtDate(x.fecha)}</td><td>${esc(x.nombre)}</td><td>${esc(x.rut)}</td><td>${esc(asistenciaLabel(x.asistio||'si'))}</td><td>${esc(x.estado||'')}</td><td>${esc(x.entrada||'')}</td><td>${esc(x.colacion_ini||'')}</td><td>${esc(x.colacion_fin||'')}</td><td>${esc(x.salida||'')}</td><td>${Number(x.horas||0).toFixed(2)}</td><td>${Number(x.horas_extra||0).toFixed(2)}</td><td>${esc(horasExtraAutLabel(x.he_autorizadas||'no'))}</td><td>${esc(x.he_autorizadas_por||'')}</td><td>${esc(obs)}</td><td class="no-print"><button class="btn small blue" onclick="editAttendance('${x.worker_key}','${x.fecha}')">Editar</button> <button class="btn small danger" onclick="deleteAttendance(${x.id})">Eliminar</button></td></tr>`});byId('attendance_table').innerHTML=rows}
 function editAttendance(k,f){byId('att_worker').value=k;if(byId('att_filter_worker'))byId('att_filter_worker').value=k;byId('att_fecha').value=f;loadAttendanceDraft();renderAttendance()}
