@@ -2683,7 +2683,7 @@ body.auth-locked .password-modal{
 
         <div class="form-section">
           <h3>Asistencia del mes para liquidación</h3>
-          <div class="note"><strong>Automático:</strong> toma la asistencia registrada del trabajador en el mes de la liquidación. Las inasistencias se cargan como días faltados y los atrasos como horas/minutos de atraso.</div>
+          <div class="note"><strong>Automático:</strong> toma la asistencia registrada del trabajador en el mes de la liquidación. Las inasistencias se calculan por jornada real: lunes a jueves 8,5 horas, viernes 8 horas; medio día descuenta la mitad de la jornada del día.</div>
           <div class="grid">
             <div><label>Hora contractual de llegada</label><input id="liq_hora_entrada_ref" type="time" value="09:00"></div>
             <div><label>Minutos de tolerancia</label><input id="liq_tolerancia_min" type="number" value="15" min="0"></div>
@@ -2708,10 +2708,11 @@ body.auth-locked .password-modal{
             <div><label>Movilización</label><input id="movilizacion" type="number" value="0" min="0"></div>
             <div><label>Viáticos</label><input id="viaticos" type="number" value="0" min="0"></div>
             <div><label>Otros no imponibles</label><input id="otros_noimp" type="number" value="0" min="0"></div>
-            <div><label>Días faltados</label><input id="dias_falta" type="number" value="0" min="0"></div>
+            <div><label>Días faltados equivalentes</label><input id="dias_falta" type="number" value="0" min="0" step="0.5"><div class="helper">Permite 0,5 si falta medio día.</div></div>
+            <div><label>Horas faltadas</label><input id="horas_falta" type="number" value="0" min="0" step="0.25"><div class="helper">Se calcula desde asistencia: lunes a jueves 8,5; viernes 8; medio día mitad.</div></div>
             <div><label>Atrasos horas</label><input id="atraso_hrs" type="number" value="0" min="0"></div>
             <div><label>Atrasos minutos</label><input id="atraso_min" type="number" value="0" min="0" max="59"></div>
-            <div><label>Horas jornada diaria</label><input id="horas_dia" type="number" value="8.5" step="0.5"></div>
+            <div><label>Horas semanales pactadas</label><input id="horas_semana" type="number" value="42" min="1" step="0.5"><div class="helper">Para valor hora de descuentos.</div></div>
             <div><label>Cargas familiares</label><input id="cargas" type="number" value="0" min="0"></div>
             <div><label>Monto por carga automático</label><input id="monto_carga" class="auto-readonly" type="number" value="0" min="0" readonly><div class="helper">Se calcula por tramo PreviRed del mes.</div></div>
             <div><label>Tramo asignación familiar</label><input id="asig_tramo_info" class="auto-readonly" readonly placeholder="Se calcula al generar"></div>
@@ -2783,7 +2784,9 @@ body.auth-locked .password-modal{
             <div><label>Fecha</label><input id="att_fecha" type="date" onchange="loadAttendanceDraft()"></div>
             <div><label>¿Asistió?</label><select id="att_asistio" onchange="applyAsistioState()"><option value="si" selected>Sí</option><option value="no">No</option></select></div>
             <div><label>Estado / motivo</label><select id="att_estado"><option>Trabajado</option><option>Permiso</option><option>Licencia</option><option>Feriado</option><option>Falta</option><option>Libre</option></select></div>
-            <div class="full att-absence-only"><label>Motivo cuando no asistió</label><textarea id="att_obs_no" placeholder="Ej.: falta, permiso, licencia, libre, feriado, etc."></textarea></div>
+            <div><label>Tipo de ausencia</label><select id="att_ausencia_tipo" class="att-absence-only" onchange="updateAusenciaHorasPreview()"><option value="completa" selected>Jornada completa</option><option value="medio_manana">Medio día mañana</option><option value="medio_tarde">Medio día tarde</option><option value="horas">Horas específicas</option></select></div>
+            <div><label>Horas ausencia</label><input id="att_ausencia_horas" class="att-absence-only" type="number" min="0" step="0.25" value="0"><div class="helper att-absence-only">Se autocalcula según el día. Puedes ajustar si son horas específicas.</div></div>
+            <div class="full att-absence-only"><label>Motivo cuando no asistió</label><textarea id="att_obs_no" placeholder="Ej.: falta, permiso, licencia, libre, feriado, medio día, etc."></textarea></div>
           </div>
           <div class="actions"><button class="btn danger att-absence-only" type="button" onclick="markAttendanceNo()">Guardar no asistencia</button></div>
         </div>
@@ -5216,14 +5219,21 @@ function updateFamilyAllowancePreview(){
 }
 function calculate(){
 setPayrollPreviredFields(false);
-const diasMes=Math.max(num('liq_dias_base_mes')||30,1), horasDia=Math.max(num('horas_dia'),0.5), base=num('sueldo_base');
+const diasMes=Math.max(num('liq_dias_base_mes')||30,1), base=num('sueldo_base');
 const diasFalta=Math.max(num('dias_falta'),0), atrasoH=num('atraso_hrs')+(num('atraso_min')/60);
+const horasSemana=Math.max(num('horas_semana')||42,1);
+let horasFalta=Math.max(num('horas_falta'),0);
+if(!horasFalta && diasFalta>0){
+  horasFalta=diasFalta*8.4;
+  if(byId('horas_falta'))byId('horas_falta').value=horasFalta.toFixed(2);
+}
 const diasRemunerados=Math.max(diasMes-diasFalta,0);
 let diasTrabajadosEfectivos=num('liq_dias_trabajados_efectivos');
 if(!diasTrabajadosEfectivos) diasTrabajadosEfectivos=diasRemunerados;
 if(byId('liq_dias_remunerados'))byId('liq_dias_remunerados').value=String(diasRemunerados);
 if(byId('liq_dias_trabajados_efectivos')&&!num('liq_dias_trabajados_efectivos'))byId('liq_dias_trabajados_efectivos').value=String(diasTrabajadosEfectivos);
-const descFaltas=(base/diasMes)*diasFalta, descAtrasos=(base/(diasMes*horasDia))*atrasoH;
+const valorHora=((base/30)*28)/(horasSemana*4);
+const descFaltas=valorHora*horasFalta, descAtrasos=valorHora*atrasoH;
 const basePagado=Math.max(base-descFaltas-descAtrasos,0);
 const aplicaGrat=val('aplica_grat')==='si';
 const grat=aplicaGrat?Math.min(basePagado*0.25,num('grat_tope')):0;
@@ -5247,7 +5257,7 @@ const anticipo=num('anticipo'), otrosDesc=num('otros_desc');
 const totalHab=totalImp+totalNo;
 const totalDesc=afp+salud+afc+anticipo+otrosDesc;
 const liq=totalHab-totalDesc;
-return attachPreviredPDFToLiquidacionData({id:Date.now(),folio:val('folio')||'',fecha_emision:val('fecha_emision'),nombre:val('nombre'),rut:val('rut'),cargo:val('cargo'),tipo_contrato:val('tipo_contrato'),fecha_ingreso:val('fecha_ingreso'),mes:val('mes_liquidacion'),anio:val('anio_liquidacion'),periodo_desde:val('periodo_desde'),periodo_hasta:val('periodo_hasta'),region_code:val('region_code'),comuna_code:val('comuna_code'),jornada_code:val('jornada_code'),caja_comp:val('caja_comp'),afp_code:val('afp_select'),afp_name:AFP_LABELS[val('afp_select')]||val('afp_select'),afp_pct:num('afp_pct'),salud_name:val('salud_select'),salud_valor:num('salud_valor'),salud_modalidad:val('salud_modalidad'),afc_pct:num('afc_pct'),base_pactado:base,base_pagado:basePagado,descuento_faltas:descFaltas,descuento_atrasos:descAtrasos,dias_base_mes:diasMes,dias_trabajados_efectivos:diasTrabajadosEfectivos,dias_remunerados:diasRemunerados,dias_falta:diasFalta,atraso_horas:atrasoH,gratificacion:grat,bonos,otros_imp:otrosImp,retro_base:retroBase,retro_grat:retroGrat,retro_concepto:val('retro_concepto'),colacion:col,movilizacion:mov,viaticos:via,otros_noimp:otrosNo,asig_familiar:asig,cargas:num('cargas'),asig_tramo:familyAuto.tramo,asig_monto_carga:familyAuto.montoPorCarga,asig_base_calculo:familyAuto.baseRenta,asig_detalle:familyAuto.detalle,afp,salud,afc,anticipo,otros_desc:otrosDesc,total_imponible:totalImp,total_noimp:totalNo,total_haberes:totalHab,total_descuentos:totalDesc,liquido:liq,banco_pago:val('banco_pago'),tipo_cuenta_pago:val('tipo_cuenta_pago'),numero_cuenta_pago:val('numero_cuenta_pago'),titular_cuenta_pago:val('titular_cuenta_pago'),fecha_pago:val('liq_fecha_pago')||val('fecha_emision'),metodo_pago:val('liq_metodo_pago')||'Transferencia',observaciones:val('observaciones')})}
+return attachPreviredPDFToLiquidacionData({id:Date.now(),folio:val('folio')||'',fecha_emision:val('fecha_emision'),nombre:val('nombre'),rut:val('rut'),cargo:val('cargo'),tipo_contrato:val('tipo_contrato'),fecha_ingreso:val('fecha_ingreso'),mes:val('mes_liquidacion'),anio:val('anio_liquidacion'),periodo_desde:val('periodo_desde'),periodo_hasta:val('periodo_hasta'),region_code:val('region_code'),comuna_code:val('comuna_code'),jornada_code:val('jornada_code'),caja_comp:val('caja_comp'),afp_code:val('afp_select'),afp_name:AFP_LABELS[val('afp_select')]||val('afp_select'),afp_pct:num('afp_pct'),salud_name:val('salud_select'),salud_valor:num('salud_valor'),salud_modalidad:val('salud_modalidad'),afc_pct:num('afc_pct'),base_pactado:base,base_pagado:basePagado,descuento_faltas:descFaltas,descuento_atrasos:descAtrasos,dias_base_mes:diasMes,dias_trabajados_efectivos:diasTrabajadosEfectivos,dias_remunerados:diasRemunerados,dias_falta:diasFalta,horas_falta:horasFalta,horas_semana:horasSemana,valor_hora_descuento:valorHora,atraso_horas:atrasoH,gratificacion:grat,bonos,otros_imp:otrosImp,retro_base:retroBase,retro_grat:retroGrat,retro_concepto:val('retro_concepto'),colacion:col,movilizacion:mov,viaticos:via,otros_noimp:otrosNo,asig_familiar:asig,cargas:num('cargas'),asig_tramo:familyAuto.tramo,asig_monto_carga:familyAuto.montoPorCarga,asig_base_calculo:familyAuto.baseRenta,asig_detalle:familyAuto.detalle,afp,salud,afc,anticipo,otros_desc:otrosDesc,total_imponible:totalImp,total_noimp:totalNo,total_haberes:totalHab,total_descuentos:totalDesc,liquido:liq,banco_pago:val('banco_pago'),tipo_cuenta_pago:val('tipo_cuenta_pago'),numero_cuenta_pago:val('numero_cuenta_pago'),titular_cuenta_pago:val('titular_cuenta_pago'),fecha_pago:val('liq_fecha_pago')||val('fecha_emision'),metodo_pago:val('liq_metodo_pago')||'Transferencia',observaciones:val('observaciones')})}
 
 
 
@@ -5301,6 +5311,42 @@ function getSelectedPayrollWorkerKey(){
   const map=workers();
   return Object.keys(map).find(k=>rutNoDots(map[k].rut||'')===rut)||'';
 }
+
+function horasJornadaLaboralFecha(fecha){
+  if(!fecha)return 0;
+  const d=new Date(fecha+'T00:00:00');
+  const day=d.getDay();
+  if(day>=1 && day<=4)return 8.5;
+  if(day===5)return 8;
+  return 0;
+}
+function horasAusenciaRecord(r){
+  if(!r)return 0;
+  const estado=String(r.estado||'');
+  const asistio=(r.asistio||'si')==='si';
+  if(asistio && estado!=='Falta')return 0;
+  if(['Permiso','Licencia','Feriado','Libre'].includes(estado))return 0;
+  const jornada=horasJornadaLaboralFecha(r.fecha);
+  const tipo=r.ausencia_tipo||'completa';
+  if(tipo==='medio_manana'||tipo==='medio_tarde')return jornada/2;
+  if(tipo==='horas')return Math.max(Number(r.ausencia_horas)||0,0);
+  return jornada;
+}
+function diasAusenciaEqRecord(r){
+  const h=horasAusenciaRecord(r);
+  const j=horasJornadaLaboralFecha(r&&r.fecha);
+  if(!j)return 0;
+  return h/j;
+}
+function updateAusenciaHorasPreview(){
+  if(!byId('att_ausencia_horas'))return;
+  const tipo=val('att_ausencia_tipo')||'completa';
+  const jornada=horasJornadaLaboralFecha(val('att_fecha'));
+  if(tipo==='completa')byId('att_ausencia_horas').value=String(jornada||0);
+  else if(tipo==='medio_manana'||tipo==='medio_tarde')byId('att_ausencia_horas').value=String((jornada/2||0).toFixed(2).replace(/\.00$/,''));
+  else if(!val('att_ausencia_horas'))byId('att_ausencia_horas').value='0';
+}
+
 function attendanceForPayrollMonth(workerKey,monthName,year){
   const month=MONTH_INDEX[String(monthName||'').toUpperCase()];
   const y=Number(year||0);
@@ -5320,12 +5366,17 @@ function isWeekendDateStr(fecha){
 function summarizeAttendanceForPayroll(workerKey,monthName,year,entryRef='09:00',tolerance=15){
   const records=attendanceForPayrollMonth(workerKey,monthName,year);
   const ref=minutesFromHHMM(entryRef);
-  let faltas=0, atrasosMin=0, permisos=0, licencias=0, feriados=0, libres=0, asistencias=0;
+  let faltas=0, faltasEq=0, faltasHoras=0, atrasosMin=0, permisos=0, licencias=0, feriados=0, libres=0, asistencias=0;
   records.forEach(r=>{
     if(isWeekendDateStr(r.fecha))return;
     const estado=String(r.estado||'');
     const asistio=(r.asistio||'si')==='si';
-    if(!asistio || estado==='Falta'){faltas++;return}
+    if(!asistio || estado==='Falta'){
+      const h=horasAusenciaRecord(r);
+      const eq=diasAusenciaEqRecord(r);
+      if(h>0){faltas++;faltasHoras+=h;faltasEq+=eq;}
+      return;
+    }
     if(estado==='Permiso'){permisos++;return}
     if(estado==='Licencia'){licencias++;return}
     if(estado==='Feriado'){feriados++;return}
@@ -5339,7 +5390,7 @@ function summarizeAttendanceForPayroll(workerKey,monthName,year,entryRef='09:00'
       }
     }
   });
-  return {records,faltas,atrasosMin,permisos,licencias,feriados,libres,asistencias};
+  return {records,faltas,faltasEq,faltasHoras,atrasosMin,permisos,licencias,feriados,libres,asistencias};
 }
 function applyAttendanceToPayroll(){
   const workerKey=getSelectedPayrollWorkerKey();
@@ -5352,8 +5403,11 @@ function applyAttendanceToPayroll(){
   const atrasoHrs=Math.floor(s.atrasosMin/60);
   const atrasoMin=s.atrasosMin%60;
   const diasBase=num('liq_dias_base_mes')||30;
-  const diasRemunerados=Math.max(diasBase-s.faltas,0);
-  if(byId('dias_falta'))byId('dias_falta').value=String(s.faltas);
+  const diasFaltaEq=Number((s.faltasEq||0).toFixed(2));
+  const horasFalta=Number((s.faltasHoras||0).toFixed(2));
+  const diasRemunerados=Math.max(diasBase-diasFaltaEq,0);
+  if(byId('dias_falta'))byId('dias_falta').value=String(diasFaltaEq);
+  if(byId('horas_falta'))byId('horas_falta').value=String(horasFalta);
   if(byId('atraso_hrs'))byId('atraso_hrs').value=String(atrasoHrs);
   if(byId('atraso_min'))byId('atraso_min').value=String(atrasoMin);
   if(byId('liq_dias_trabajados_efectivos'))byId('liq_dias_trabajados_efectivos').value=String(s.asistencias);
@@ -5363,18 +5417,18 @@ function applyAttendanceToPayroll(){
     `Registros encontrados: ${s.records.length}`,
     `Días trabajados efectivos: ${s.asistencias}`,
     `Días remunerados sueldo base: ${diasRemunerados}`,
-    `Inasistencias/Faltas descontables: ${s.faltas}`,
+    `Inasistencias/Faltas descontables: ${s.faltas} registro(s) · ${diasFaltaEq} día(s) equivalente(s) · ${horasFalta} hora(s)`,
     `Atrasos descontables: ${atrasoHrs} hora(s) y ${atrasoMin} minuto(s)`,
     `Permisos: ${s.permisos}`,
     `Licencias: ${s.licencias}`,
     `Feriados: ${s.feriados}`,
     `Libres: ${s.libres}`,
-    `Criterio atraso: llegada posterior a ${entradaRef} con ${tolerancia} min de tolerancia. Sábados y domingos no se consideran en el cálculo.`
+    `Criterio atraso: llegada posterior a ${entradaRef} con ${tolerancia} min de tolerancia. Sábados y domingos no se consideran. Jornada para faltas: lunes a jueves 8,5 horas; viernes 8 horas; medio día descuenta la mitad.`
   ].join('\n');
   if(byId('liq_asistencia_resumen'))byId('liq_asistencia_resumen').value=resumen;
   if(byId('observaciones')){
     const actual=val('observaciones');
-    const nota=`Asistencia aplicada: ${s.asistencias} día(s) trabajados efectivos, ${diasRemunerados} día(s) remunerados para sueldo base, ${s.faltas} día(s) faltados y ${atrasoHrs} hora(s) ${atrasoMin} minuto(s) de atraso según registros de asistencia del mes.`;
+    const nota=`Asistencia aplicada: ${s.asistencias} día(s) trabajados efectivos, ${diasRemunerados} día(s) remunerados para sueldo base, ${diasFaltaEq} día(s) equivalente(s) faltados (${horasFalta} hora(s)) y ${atrasoHrs} hora(s) ${atrasoMin} minuto(s) de atraso según registros de asistencia del mes.`;
     byId('observaciones').value=actual ? actual+'\n'+nota : nota;
   }
   generateLiquidacion(false);
@@ -5412,7 +5466,7 @@ function renderLiquidacion(d){
   const atrasoHoras=Math.floor(Number(d.atraso_horas||0));
   const atrasoMin=Math.round((Number(d.atraso_horas||0)-atrasoHoras)*60);
   const resumenAjuste=[];
-  if(showMoney(d.descuento_faltas))resumenAjuste.push(`Sueldo base pactado ${clp(d.base_pactado)}; ${d.dias_falta||0} día(s) sin goce generan rebaja de ${clp(d.descuento_faltas)}.`);
+  if(showMoney(d.descuento_faltas))resumenAjuste.push(`Sueldo base pactado ${clp(d.base_pactado)}; ${d.dias_falta||0} día(s) equivalente(s) sin goce (${Number(d.horas_falta||0).toFixed(2)} h) generan rebaja de ${clp(d.descuento_faltas)}.`);
   if(showMoney(d.descuento_atrasos))resumenAjuste.push(`Atrasos registrados: ${atrasoHoras} h ${atrasoMin} min, rebaja aplicada ${clp(d.descuento_atrasos)}.`);
   if(huboAjusteBase)resumenAjuste.push('La rebaja ya está aplicada en el sueldo base pagado y no se descuenta nuevamente en la sección descuentos.');
 
@@ -5507,7 +5561,7 @@ function renderLiquidacion(d){
 
   byId('print_host').innerHTML=`<div class="classic-print-page">${doc('ORIGINAL')}</div><div class="classic-print-page">${doc('COPIA')}</div>`;
 }
-function printLiquidacion(){if(!byId('print_host').innerHTML.trim()){if(!generateLiquidacion())return}window.print()} function clearPayrollForm(){localStorage.removeItem(KEY_DRAFT);payrollIds().forEach(id=>{const el=byId(id);if(!el)return;if(el.tagName==='SELECT')el.selectedIndex=0;else if(el.type==='number')el.value='0';else el.value=''});byId('sueldo_base').value='553553';byId('retro_sueldo_anterior').value='539000';byId('retro_sueldo_nuevo').value='553553';byId('retro_meses').value='1';byId('aplica_retro').value='si';byId('retro_grat_auto').value='auto';byId('aplica_grat').value='si';byId('grat_tope').value='219323';byId('monto_carga').value='0';byId('horas_dia').value='8.5';byId('afp_pct').value='10.58';byId('salud_valor').value='7';byId('afc_pct').value='0.60';byId('retro_concepto').value='Retroactivo sueldo base MAYO 2026 por reajuste IMM';byId('mes_liquidacion').value='JUNIO';byId('anio_liquidacion').value='2026';setDefaultDates();applyContractRules();byId('print_host').innerHTML='';showMsg('msg-liq','Formulario limpio.');}
+function printLiquidacion(){if(!byId('print_host').innerHTML.trim()){if(!generateLiquidacion())return}window.print()} function clearPayrollForm(){localStorage.removeItem(KEY_DRAFT);payrollIds().forEach(id=>{const el=byId(id);if(!el)return;if(el.tagName==='SELECT')el.selectedIndex=0;else if(el.type==='number')el.value='0';else el.value=''});byId('sueldo_base').value='553553';byId('retro_sueldo_anterior').value='539000';byId('retro_sueldo_nuevo').value='553553';byId('retro_meses').value='1';byId('aplica_retro').value='si';byId('retro_grat_auto').value='auto';byId('aplica_grat').value='si';byId('grat_tope').value='219323';byId('monto_carga').value='0';if(byId('horas_falta'))byId('horas_falta').value='0';if(byId('horas_semana'))byId('horas_semana').value='42';byId('afp_pct').value='10.58';byId('salud_valor').value='7';byId('afc_pct').value='0.60';byId('retro_concepto').value='Retroactivo sueldo base MAYO 2026 por reajuste IMM';byId('mes_liquidacion').value='JUNIO';byId('anio_liquidacion').value='2026';setDefaultDates();applyContractRules();byId('print_host').innerHTML='';showMsg('msg-liq','Formulario limpio.');}
 function book(){return getJSON(KEY_BOOK,[])}
 function setBook(b){setJSON(KEY_BOOK,b)}
 function savedLiquidacionWorkerKey(x){
@@ -5541,7 +5595,7 @@ function renderSavedLiquidacionesForWorker(){
 }
 function savedLiquidacionFallbackForm(x){
   const atraso=Number(x.atraso_horas||0);
-  return {folio:x.folio||'',fecha_emision:x.fecha_emision||'',nombre:x.nombre||'',rut:x.rut||'',cargo:x.cargo||'',tipo_contrato:x.tipo_contrato||'',fecha_ingreso:x.fecha_ingreso||'',mes_liquidacion:x.mes||'',anio_liquidacion:x.anio||'',periodo_desde:x.periodo_desde||'',periodo_hasta:x.periodo_hasta||'',region_code:x.region_code||'',comuna_code:x.comuna_code||'',jornada_code:x.jornada_code||'',caja_comp:x.caja_comp||'',afp_select:x.afp_code||'',afp_pct:x.afp_pct||'',salud_select:x.salud_name||'',salud_valor:x.salud_valor||'',salud_modalidad:x.salud_modalidad||'porcentaje',afc_pct:x.afc_pct||'',sueldo_base:x.base_pactado||'',liq_dias_base_mes:x.dias_base_mes||30,liq_dias_trabajados_efectivos:x.dias_trabajados_efectivos||'',dias_falta:x.dias_falta||0,atraso_hrs:Math.floor(atraso),atraso_min:Math.round((atraso-Math.floor(atraso))*60),aplica_grat:Number(x.gratificacion||0)>0?'si':'no',bonos:x.bonos||0,otros_imp:x.otros_imp||0,aplica_retro:Number(x.retro_base||0)>0||Number(x.retro_grat||0)>0?'si':'no',retro_manual:x.retro_base||0,retro_grat_auto:'manual',retro_grat_manual:x.retro_grat||0,retro_concepto:x.retro_concepto||'',colacion:x.colacion||0,movilizacion:x.movilizacion||0,viaticos:x.viaticos||0,otros_noimp:x.otros_noimp||0,cargas:x.cargas||0,monto_carga:x.asig_monto_carga||0,anticipo:x.anticipo||0,otros_desc:x.otros_desc||0,banco_pago:x.banco_pago||'',tipo_cuenta_pago:x.tipo_cuenta_pago||'',numero_cuenta_pago:x.numero_cuenta_pago||'',titular_cuenta_pago:x.titular_cuenta_pago||'',liq_fecha_pago:x.fecha_pago||x.form_data?.liq_fecha_pago||x.fecha_emision||'',liq_metodo_pago:x.metodo_pago||x.form_data?.liq_metodo_pago||'Transferencia',observaciones:x.observaciones||''};
+  return {folio:x.folio||'',fecha_emision:x.fecha_emision||'',nombre:x.nombre||'',rut:x.rut||'',cargo:x.cargo||'',tipo_contrato:x.tipo_contrato||'',fecha_ingreso:x.fecha_ingreso||'',mes_liquidacion:x.mes||'',anio_liquidacion:x.anio||'',periodo_desde:x.periodo_desde||'',periodo_hasta:x.periodo_hasta||'',region_code:x.region_code||'',comuna_code:x.comuna_code||'',jornada_code:x.jornada_code||'',caja_comp:x.caja_comp||'',afp_select:x.afp_code||'',afp_pct:x.afp_pct||'',salud_select:x.salud_name||'',salud_valor:x.salud_valor||'',salud_modalidad:x.salud_modalidad||'porcentaje',afc_pct:x.afc_pct||'',sueldo_base:x.base_pactado||'',liq_dias_base_mes:x.dias_base_mes||30,liq_dias_trabajados_efectivos:x.dias_trabajados_efectivos||'',dias_falta:x.dias_falta||0,horas_falta:x.horas_falta||0,horas_semana:x.horas_semana||42,atraso_hrs:Math.floor(atraso),atraso_min:Math.round((atraso-Math.floor(atraso))*60),aplica_grat:Number(x.gratificacion||0)>0?'si':'no',bonos:x.bonos||0,otros_imp:x.otros_imp||0,aplica_retro:Number(x.retro_base||0)>0||Number(x.retro_grat||0)>0?'si':'no',retro_manual:x.retro_base||0,retro_grat_auto:'manual',retro_grat_manual:x.retro_grat||0,retro_concepto:x.retro_concepto||'',colacion:x.colacion||0,movilizacion:x.movilizacion||0,viaticos:x.viaticos||0,otros_noimp:x.otros_noimp||0,cargas:x.cargas||0,monto_carga:x.asig_monto_carga||0,anticipo:x.anticipo||0,otros_desc:x.otros_desc||0,banco_pago:x.banco_pago||'',tipo_cuenta_pago:x.tipo_cuenta_pago||'',numero_cuenta_pago:x.numero_cuenta_pago||'',titular_cuenta_pago:x.titular_cuenta_pago||'',liq_fecha_pago:x.fecha_pago||x.form_data?.liq_fecha_pago||x.fecha_emision||'',liq_metodo_pago:x.metodo_pago||x.form_data?.liq_metodo_pago||'Transferencia',observaciones:x.observaciones||''};
 }
 function loadLiquidacionFromBook(id){
   const x=book().find(r=>String(r.id)===String(id));
@@ -5959,18 +6013,18 @@ function calcAttHours(){return calcHoursFromRecord({asistio:val('att_asistio'),e
 function updateHorasTrabajadas(){if(byId('att_horas_trabajadas'))byId('att_horas_trabajadas').value=calcAttHours().toFixed(2)}
 function getAttendanceDraft(){const k=val('att_worker'), f=val('att_fecha');if(!k||!f)return null;return attendance().find(x=>x.worker_key===k&&x.fecha===f)||null}
 function setAttendanceStatusPills(r){if(!byId('att_state_llegada'))return;byId('att_state_llegada').textContent=r&&r.entrada?'Registrada':'Pendiente';byId('att_state_colacion').textContent=r&&(r.colacion_ini||r.colacion_fin)?'En registro':'Pendiente';if(r&&r.colacion_ini&&r.colacion_fin)byId('att_state_colacion').textContent='Registrada';byId('att_state_salida').textContent=r&&r.salida?'Registrada':'Pendiente'}
-function attendancePayload(extra={}){const k=val('att_worker'), f=val('att_fecha');const w=workers()[k]||{};const old=getAttendanceDraft()||{};const rec=Object.assign({},old,{id:old.id||Date.now(),worker_key:k,nombre:w.nombre||old.nombre||'',rut:w.rut||old.rut||'',fecha:f,asistio:val('att_asistio')||'si',estado:val('att_estado'),entrada:val('att_entrada'),salida:val('att_salida'),colacion_tipo:val('att_colacion_tipo')||'normal',colacion_ini:val('att_colacion_ini'),colacion_fin:val('att_colacion_fin'),colacion_min:currentColacionMinutes(),almuerzo_empleador:val('att_almuerzo_empleador')||'si',horas_extra:num('att_horas_extra'),he_autorizadas:val('att_he_autorizadas')||'no',he_autorizadas_por:val('att_he_autorizadas_por'),he_motivo:val('att_he_motivo'),colacion_obs:val('att_colacion_obs'),obs:val('att_obs'),obs_no:val('att_obs_no')},extra);rec.horas=calcHoursFromRecord(rec);return rec}
+function attendancePayload(extra={}){const k=val('att_worker'), f=val('att_fecha');const w=workers()[k]||{};const old=getAttendanceDraft()||{};const rec=Object.assign({},old,{id:old.id||Date.now(),worker_key:k,nombre:w.nombre||old.nombre||'',rut:w.rut||old.rut||'',fecha:f,asistio:val('att_asistio')||'si',estado:val('att_estado'),entrada:val('att_entrada'),salida:val('att_salida'),colacion_tipo:val('att_colacion_tipo')||'normal',colacion_ini:val('att_colacion_ini'),colacion_fin:val('att_colacion_fin'),colacion_min:currentColacionMinutes(),almuerzo_empleador:val('att_almuerzo_empleador')||'si',horas_extra:num('att_horas_extra'),he_autorizadas:val('att_he_autorizadas')||'no',he_autorizadas_por:val('att_he_autorizadas_por'),he_motivo:val('att_he_motivo'),colacion_obs:val('att_colacion_obs'),obs:val('att_obs'),obs_no:val('att_obs_no'),ausencia_tipo:val('att_ausencia_tipo')||'completa',ausencia_horas:num('att_ausencia_horas')},extra);rec.horas=calcHoursFromRecord(rec);return rec}
 function upsertAttendanceRecord(rec,msg){if(!rec.worker_key||!rec.fecha){showMsg('msg-att','Selecciona trabajador y fecha.','err');return}const a=attendance();const idx=a.findIndex(x=>x.worker_key===rec.worker_key&&x.fecha===rec.fecha);if(idx>=0)a[idx]=rec;else a.push(rec);setAttendance(a);if(byId('att_filter_worker'))byId('att_filter_worker').value=rec.worker_key;loadAttendanceDraft(false);renderAttendance();if(msg)showMsg('msg-att',msg,'ok')}
-function loadAttendanceDraft(show=true){const r=getAttendanceDraft();if(r){byId('att_asistio').value=r.asistio||'si';byId('att_estado').value=r.estado||'Trabajado';byId('att_entrada').value=r.entrada||'';byId('att_salida').value=r.salida||'';byId('att_colacion_tipo').value=r.colacion_tipo||'normal';byId('att_colacion_ini').value=r.colacion_ini||'';byId('att_colacion_fin').value=r.colacion_fin||'';byId('att_colacion_min').value=(r.colacion_min!==undefined?r.colacion_min:'90');byId('att_almuerzo_empleador').value=r.almuerzo_empleador||'si';byId('att_horas_extra').value=r.horas_extra||0;byId('att_he_autorizadas').value=r.he_autorizadas||'no';byId('att_he_autorizadas_por').value=r.he_autorizadas_por||'';byId('att_he_motivo').value=r.he_motivo||'';byId('att_colacion_obs').value=r.colacion_obs||'';byId('att_obs').value=r.obs||'';if(byId('att_obs_no'))byId('att_obs_no').value=r.obs_no||r.obs||'';setAttendanceStatusPills(r);if(show)showMsg('msg-att','Registro cargado para editar.','ok')}else{const keepWorker=val('att_worker'), keepDate=val('att_fecha');clearAttendanceForm(false);byId('att_worker').value=keepWorker;byId('att_fecha').value=keepDate;setAttendanceStatusPills(null)}applyAsistioState(false);updateHorasTrabajadas()}
-function applyAsistioState(show=true){const no=val('att_asistio')==='no';document.querySelectorAll('.att-attended-only').forEach(el=>el.style.display=no?'none':'block');document.querySelectorAll('.att-absence-only').forEach(el=>el.style.display=no?'block':'none');if(no){if(val('att_estado')==='Trabajado')byId('att_estado').value='Falta'}else{if(['Falta','Permiso','Licencia','Feriado','Libre'].includes(val('att_estado')))byId('att_estado').value='Trabajado'}updateHorasTrabajadas()}
+function loadAttendanceDraft(show=true){const r=getAttendanceDraft();if(r){byId('att_asistio').value=r.asistio||'si';byId('att_estado').value=r.estado||'Trabajado';byId('att_entrada').value=r.entrada||'';byId('att_salida').value=r.salida||'';byId('att_colacion_tipo').value=r.colacion_tipo||'normal';byId('att_colacion_ini').value=r.colacion_ini||'';byId('att_colacion_fin').value=r.colacion_fin||'';byId('att_colacion_min').value=(r.colacion_min!==undefined?r.colacion_min:'90');byId('att_almuerzo_empleador').value=r.almuerzo_empleador||'si';byId('att_horas_extra').value=r.horas_extra||0;byId('att_he_autorizadas').value=r.he_autorizadas||'no';byId('att_he_autorizadas_por').value=r.he_autorizadas_por||'';byId('att_he_motivo').value=r.he_motivo||'';byId('att_colacion_obs').value=r.colacion_obs||'';byId('att_obs').value=r.obs||'';if(byId('att_obs_no'))byId('att_obs_no').value=r.obs_no||r.obs||'';if(byId('att_ausencia_tipo'))byId('att_ausencia_tipo').value=r.ausencia_tipo||'completa';if(byId('att_ausencia_horas'))byId('att_ausencia_horas').value=(r.ausencia_horas!==undefined?r.ausencia_horas:horasAusenciaRecord(r));setAttendanceStatusPills(r);if(show)showMsg('msg-att','Registro cargado para editar.','ok')}else{const keepWorker=val('att_worker'), keepDate=val('att_fecha');clearAttendanceForm(false);byId('att_worker').value=keepWorker;byId('att_fecha').value=keepDate;setAttendanceStatusPills(null)}applyAsistioState(false);updateHorasTrabajadas()}
+function applyAsistioState(show=true){const no=val('att_asistio')==='no';document.querySelectorAll('.att-attended-only').forEach(el=>el.style.display=no?'none':'block');document.querySelectorAll('.att-absence-only').forEach(el=>el.style.display=no?'block':'none');if(no){if(val('att_estado')==='Trabajado')byId('att_estado').value='Falta';updateAusenciaHorasPreview()}else{if(['Falta','Permiso','Licencia','Feriado','Libre'].includes(val('att_estado')))byId('att_estado').value='Trabajado'}updateHorasTrabajadas()}
 function applyColacionPreset(){const tipo=val('att_colacion_tipo')||'normal';if(tipo==='reducida30'){byId('att_colacion_min').value='30';byId('att_almuerzo_empleador').value='si';if(!val('att_colacion_ini'))byId('att_colacion_ini').value=nowTime();if(!val('att_colacion_fin'))byId('att_colacion_fin').value=addMinutesToTime(val('att_colacion_ini'),30)}else if(tipo==='sin'){byId('att_colacion_min').value='0';byId('att_colacion_ini').value='';byId('att_colacion_fin').value='';byId('att_almuerzo_empleador').value='no_aplica'}else{if(!val('att_colacion_min'))byId('att_colacion_min').value='90';if(val('att_almuerzo_empleador')==='no_aplica')byId('att_almuerzo_empleador').value='si'}updateHorasTrabajadas()}
-function markAttendanceNo(){byId('att_asistio').value='no';if(val('att_estado')==='Trabajado')byId('att_estado').value='Falta';byId('att_entrada').value='';byId('att_salida').value='';byId('att_colacion_tipo').value='sin';byId('att_colacion_ini').value='';byId('att_colacion_fin').value='';byId('att_colacion_min').value='0';byId('att_horas_extra').value='0';byId('att_he_autorizadas').value='no';byId('att_almuerzo_empleador').value='no_aplica';const rec=attendancePayload({asistio:'no',horas:0,horas_extra:0});upsertAttendanceRecord(rec,'No asistencia guardada.')}
+function markAttendanceNo(){byId('att_asistio').value='no';if(val('att_estado')==='Trabajado')byId('att_estado').value='Falta';byId('att_entrada').value='';byId('att_salida').value='';byId('att_colacion_tipo').value='sin';if(byId('att_ausencia_tipo')&&!val('att_ausencia_tipo'))byId('att_ausencia_tipo').value='completa';updateAusenciaHorasPreview();byId('att_colacion_ini').value='';byId('att_colacion_fin').value='';byId('att_colacion_min').value='0';byId('att_horas_extra').value='0';byId('att_he_autorizadas').value='no';byId('att_almuerzo_empleador').value='no_aplica';const rec=attendancePayload({asistio:'no',horas:0,horas_extra:0});upsertAttendanceRecord(rec,'No asistencia guardada.')}
 function markArrival(){if(!val('att_worker')||!val('att_fecha')){showMsg('msg-att','Selecciona trabajador y fecha.','err');return}byId('att_asistio').value='si';byId('att_estado').value='Trabajado';if(!val('att_entrada'))byId('att_entrada').value=nowTime();upsertAttendanceRecord(attendancePayload(),'Llegada registrada.')}
 function markLunchStart(){if(!val('att_worker')||!val('att_fecha')){showMsg('msg-att','Selecciona trabajador y fecha.','err');return}byId('att_asistio').value='si';if(val('att_colacion_tipo')==='sin')byId('att_colacion_tipo').value='normal';if(!val('att_colacion_ini'))byId('att_colacion_ini').value=nowTime();if(!val('att_colacion_min'))byId('att_colacion_min').value='90';upsertAttendanceRecord(attendancePayload(),'Inicio de colación registrado.')}
 function markLunchEnd(){if(!val('att_worker')||!val('att_fecha')){showMsg('msg-att','Selecciona trabajador y fecha.','err');return}byId('att_asistio').value='si';if(!val('att_colacion_fin')){const mins=Number(val('att_colacion_min')||0);byId('att_colacion_fin').value=mins&&val('att_colacion_ini')?addMinutesToTime(val('att_colacion_ini'),mins):nowTime()}if(val('att_colacion_ini')&&val('att_colacion_fin'))byId('att_colacion_min').value=String(Math.round(hoursBetween(val('att_colacion_ini'),val('att_colacion_fin'))*60)||0);upsertAttendanceRecord(attendancePayload(),'Fin de colación registrado.')}
 function markExit(){if(!val('att_worker')||!val('att_fecha')){showMsg('msg-att','Selecciona trabajador y fecha.','err');return}byId('att_asistio').value='si';byId('att_estado').value='Trabajado';if(!val('att_salida'))byId('att_salida').value=nowTime();updateHorasTrabajadas();upsertAttendanceRecord(attendancePayload(),'Salida registrada y jornada cerrada.')}
 function saveAttendance(){if(!val('att_worker')||!val('att_fecha')){showMsg('msg-att','Selecciona trabajador y fecha.','err');return}if(val('att_asistio')==='no')return markAttendanceNo();upsertAttendanceRecord(attendancePayload(),'Cambios guardados.')}
-function clearAttendanceForm(keepDate=true){['att_obs','att_colacion_obs','att_he_autorizadas_por','att_he_motivo','att_obs_no'].forEach(id=>{if(byId(id))byId(id).value=''});if(byId('att_asistio'))byId('att_asistio').value='si';if(byId('att_estado'))byId('att_estado').value='Trabajado';if(byId('att_entrada'))byId('att_entrada').value='';if(byId('att_salida'))byId('att_salida').value='';if(byId('att_colacion_tipo'))byId('att_colacion_tipo').value='normal';if(byId('att_colacion_ini'))byId('att_colacion_ini').value='';if(byId('att_colacion_fin'))byId('att_colacion_fin').value='';if(byId('att_colacion_min'))byId('att_colacion_min').value='90';if(byId('att_almuerzo_empleador'))byId('att_almuerzo_empleador').value='si';if(byId('att_horas_extra'))byId('att_horas_extra').value='0';if(byId('att_he_autorizadas'))byId('att_he_autorizadas').value='no';if(keepDate)setDefaultDates();setAttendanceStatusPills(null);applyAsistioState(false);updateHorasTrabajadas()}
+function clearAttendanceForm(keepDate=true){['att_obs','att_colacion_obs','att_he_autorizadas_por','att_he_motivo','att_obs_no'].forEach(id=>{if(byId(id))byId(id).value=''});if(byId('att_asistio'))byId('att_asistio').value='si';if(byId('att_ausencia_tipo'))byId('att_ausencia_tipo').value='completa';if(byId('att_ausencia_horas'))byId('att_ausencia_horas').value='0';if(byId('att_estado'))byId('att_estado').value='Trabajado';if(byId('att_entrada'))byId('att_entrada').value='';if(byId('att_salida'))byId('att_salida').value='';if(byId('att_colacion_tipo'))byId('att_colacion_tipo').value='normal';if(byId('att_colacion_ini'))byId('att_colacion_ini').value='';if(byId('att_colacion_fin'))byId('att_colacion_fin').value='';if(byId('att_colacion_min'))byId('att_colacion_min').value='90';if(byId('att_almuerzo_empleador'))byId('att_almuerzo_empleador').value='si';if(byId('att_horas_extra'))byId('att_horas_extra').value='0';if(byId('att_he_autorizadas'))byId('att_he_autorizadas').value='no';if(keepDate)setDefaultDates();setAttendanceStatusPills(null);applyAsistioState(false);updateHorasTrabajadas()}
 function filteredAttendance(){let a=attendance();const wk=val('att_filter_worker')||val('att_worker'), f=val('att_filter_from'), t=val('att_filter_to');if(!wk)return [];a=a.filter(x=>x.worker_key===wk);if(f)a=a.filter(x=>x.fecha>=f);if(t)a=a.filter(x=>x.fecha<=t);return a.sort((x,y)=>(x.fecha||'').localeCompare(y.fecha||''));}
 function monthNames(){return ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']}
 function dayShortNames(){return ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM']}
@@ -6066,11 +6120,11 @@ function renderAttendanceMonthly(){
   html += '</tbody>';
   table.innerHTML=html;
 }
-function renderAttendance(){refreshAllWorkerSelects();ensureAttendanceMonthControls();renderAttendanceMonthly();const a=filteredAttendance();const h=a.reduce((s,x)=>s+(Number(x.horas)||0),0), he=a.reduce((s,x)=>s+(Number(x.horas_extra)||0),0), hea=a.filter(x=>(x.he_autorizadas||'no')==='si').length;byId('att_summary').innerHTML=`<div class="kpi"><span>Registros</span><strong>${a.length}</strong></div><div class="kpi"><span>Asistencias</span><strong>${a.filter(x=>(x.asistio||'si')==='si').length}</strong></div><div class="kpi"><span>Horas trabajadas</span><strong>${h.toFixed(2)}</strong></div><div class="kpi"><span>Horas extra</span><strong>${he.toFixed(2)}</strong></div><div class="kpi"><span>H. extra autorizadas</span><strong>${hea}</strong></div>`;let rows='<tr><th>Fecha</th><th>Trabajador</th><th>RUT</th><th>Asistió</th><th>Estado</th><th>Llegada</th><th>Inicio colación</th><th>Fin colación</th><th>Salida</th><th>Horas trabajadas</th><th>H. extra</th><th>HE autorizadas</th><th>Autorizadas por</th><th>Obs</th><th class="no-print">Acción</th></tr>';if(!a.length)rows='<tr><th>Selecciona un trabajador para ver solo sus marcaciones registradas.</th></tr>';a.forEach(x=>{const obs=[x.obs_no||'',x.colacion_obs||'',x.obs||'',x.he_motivo?('HE: '+x.he_motivo):''].filter(Boolean).join(' | ');rows+=`<tr><td>${fmtDate(x.fecha)}</td><td>${esc(x.nombre)}</td><td>${esc(x.rut)}</td><td>${esc(asistenciaLabel(x.asistio||'si'))}</td><td>${esc(x.estado||'')}</td><td>${esc(x.entrada||'')}</td><td>${esc(x.colacion_ini||'')}</td><td>${esc(x.colacion_fin||'')}</td><td>${esc(x.salida||'')}</td><td>${Number(x.horas||0).toFixed(2)}</td><td>${Number(x.horas_extra||0).toFixed(2)}</td><td>${esc(horasExtraAutLabel(x.he_autorizadas||'no'))}</td><td>${esc(x.he_autorizadas_por||'')}</td><td>${esc(obs)}</td><td class="no-print"><button class="btn small blue" onclick="editAttendance('${x.worker_key}','${x.fecha}')">Editar</button> <button class="btn small danger" onclick="deleteAttendance(${x.id})">Eliminar</button></td></tr>`});byId('attendance_table').innerHTML=rows}
+function renderAttendance(){refreshAllWorkerSelects();ensureAttendanceMonthControls();renderAttendanceMonthly();const a=filteredAttendance();const h=a.reduce((s,x)=>s+(Number(x.horas)||0),0), he=a.reduce((s,x)=>s+(Number(x.horas_extra)||0),0), hea=a.filter(x=>(x.he_autorizadas||'no')==='si').length;byId('att_summary').innerHTML=`<div class="kpi"><span>Registros</span><strong>${a.length}</strong></div><div class="kpi"><span>Asistencias</span><strong>${a.filter(x=>(x.asistio||'si')==='si').length}</strong></div><div class="kpi"><span>Horas trabajadas</span><strong>${h.toFixed(2)}</strong></div><div class="kpi"><span>Horas extra</span><strong>${he.toFixed(2)}</strong></div><div class="kpi"><span>H. extra autorizadas</span><strong>${hea}</strong></div>`;let rows='<tr><th>Fecha</th><th>Trabajador</th><th>RUT</th><th>Asistió</th><th>Estado</th><th>Llegada</th><th>Inicio colación</th><th>Fin colación</th><th>Salida</th><th>Horas trabajadas</th><th>H. extra</th><th>HE autorizadas</th><th>Autorizadas por</th><th>Obs</th><th class="no-print">Acción</th></tr>';if(!a.length)rows='<tr><th>Selecciona un trabajador para ver solo sus marcaciones registradas.</th></tr>';a.forEach(x=>{const obs=[x.obs_no||'',(!((x.asistio||'si')==='si')?('Ausencia: '+(x.ausencia_tipo||'completa')+' · '+(x.ausencia_horas||horasAusenciaRecord(x)||0)+' h'):''),x.colacion_obs||'',x.obs||'',x.he_motivo?('HE: '+x.he_motivo):''].filter(Boolean).join(' | ');rows+=`<tr><td>${fmtDate(x.fecha)}</td><td>${esc(x.nombre)}</td><td>${esc(x.rut)}</td><td>${esc(asistenciaLabel(x.asistio||'si'))}</td><td>${esc(x.estado||'')}</td><td>${esc(x.entrada||'')}</td><td>${esc(x.colacion_ini||'')}</td><td>${esc(x.colacion_fin||'')}</td><td>${esc(x.salida||'')}</td><td>${Number(x.horas||0).toFixed(2)}</td><td>${Number(x.horas_extra||0).toFixed(2)}</td><td>${esc(horasExtraAutLabel(x.he_autorizadas||'no'))}</td><td>${esc(x.he_autorizadas_por||'')}</td><td>${esc(obs)}</td><td class="no-print"><button class="btn small blue" onclick="editAttendance('${x.worker_key}','${x.fecha}')">Editar</button> <button class="btn small danger" onclick="deleteAttendance(${x.id})">Eliminar</button></td></tr>`});byId('attendance_table').innerHTML=rows}
 function editAttendance(k,f){byId('att_worker').value=k;if(byId('att_filter_worker'))byId('att_filter_worker').value=k;byId('att_fecha').value=f;loadAttendanceDraft();renderAttendance()}
 function deleteAttendance(id){setAttendance(attendance().filter(x=>String(x.id)!==String(id)));renderAttendance();setAttendanceStatusPills(getAttendanceDraft())}
 function resetAttendanceFilters(){const k=val('att_worker');byId('att_filter_worker').value=k||'';byId('att_filter_from').value='';byId('att_filter_to').value='';renderAttendance()}
-function exportAttendanceCSV(){const headers=['fecha','trabajador','rut','asistio','estado','hora_llegada','inicio_colacion','fin_colacion','hora_salida','horas_trabajadas','tipo_colacion','minutos_colacion','almuerzo_otorgado_por_empleador','horas_extra','horas_extra_autorizadas','autorizadas_por','motivo_horas_extra','observacion_colacion','observacion_general','motivo_no_asistencia'];const rows=filteredAttendance().map(x=>[x.fecha,x.nombre,x.rut,asistenciaLabel(x.asistio||'si'),x.estado,x.entrada,x.colacion_ini,x.colacion_fin,x.salida,x.horas,colacionLabel(x.colacion_tipo||'normal'),x.colacion_min!==undefined?x.colacion_min:Math.round(hoursBetween(x.colacion_ini,x.colacion_fin)*60),almuerzoLabel(x.almuerzo_empleador||'si'),x.horas_extra,horasExtraAutLabel(x.he_autorizadas||'no'),x.he_autorizadas_por||'',x.he_motivo||'',x.colacion_obs||'',x.obs||'',x.obs_no||'']);downloadText('asistencia_marcaciones_ecoluz.csv','\ufeff'+line(headers)+'\n'+rows.map(line).join('\n'))}
+function exportAttendanceCSV(){const headers=['fecha','trabajador','rut','asistio','estado','hora_llegada','inicio_colacion','fin_colacion','hora_salida','horas_trabajadas','tipo_colacion','minutos_colacion','almuerzo_otorgado_por_empleador','horas_extra','horas_extra_autorizadas','autorizadas_por','motivo_horas_extra','observacion_colacion','observacion_general','motivo_no_asistencia','tipo_ausencia','horas_ausencia'];const rows=filteredAttendance().map(x=>[x.fecha,x.nombre,x.rut,asistenciaLabel(x.asistio||'si'),x.estado,x.entrada,x.colacion_ini,x.colacion_fin,x.salida,x.horas,colacionLabel(x.colacion_tipo||'normal'),x.colacion_min!==undefined?x.colacion_min:Math.round(hoursBetween(x.colacion_ini,x.colacion_fin)*60),almuerzoLabel(x.almuerzo_empleador||'si'),x.horas_extra,horasExtraAutLabel(x.he_autorizadas||'no'),x.he_autorizadas_por||'',x.he_motivo||'',x.colacion_obs||'',x.obs||'',x.obs_no||'',x.ausencia_tipo||'',x.ausencia_horas||'']);downloadText('asistencia_marcaciones_ecoluz.csv','\ufeff'+line(headers)+'\n'+rows.map(line).join('\n'))}
 function quincenas(){return getJSON(KEY_QUIN,[])} function setQuincenas(q){setJSON(KEY_QUIN,q)} function saveQuincena(){const k=val('quin_worker');if(!k||!val('quin_fecha')||num('quin_monto')<=0){showMsg('msg-quin','Selecciona trabajador, fecha y monto.','err');return}const w=workers()[k]||{};const q=quincenas();q.push({id:Date.now(),worker_key:k,nombre:w.nombre||'',rut:w.rut||'',fecha:val('quin_fecha'),mes:val('quin_mes'),anio:val('quin_anio'),monto:num('quin_monto'),medio:val('quin_medio'),obs:val('quin_obs'),banco:w.banco||'',cuenta:w.numero_cuenta||''});setQuincenas(q);renderQuincenas();showMsg('msg-quin','Quincena guardada.')} function filteredQuincenas(){let q=quincenas();const wk=val('quin_filter_worker'), mes=val('quin_filter_mes'), anio=val('quin_filter_anio');if(wk)q=q.filter(x=>x.worker_key===wk);if(mes)q=q.filter(x=>x.mes===mes);if(anio)q=q.filter(x=>String(x.anio)===String(anio));return q.sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''))}
 function renderQuincenas(){
   refreshAllWorkerSelects();
@@ -6800,12 +6854,13 @@ function printContractDoc(){
 function loadContractsFrame(){refreshAllWorkerSelects();setContractDefaultDates();applyContractModelDefaults();toggleContractAnexoFields();renderContractDoc(false)} function printActiveView(){window.print()} function attachAutosave(){document.querySelectorAll('#view-liquidaciones input,#view-liquidaciones select,#view-liquidaciones textarea').forEach(el=>{el.addEventListener('input',saveDraft);el.addEventListener('change',saveDraft)})}
 
 document.addEventListener('change',function(e){
-  const ids=['att_entrada','att_salida','att_colacion_ini','att_colacion_fin','att_colacion_min','att_colacion_tipo','att_asistio','att_estado'];
+  const ids=['att_entrada','att_salida','att_colacion_ini','att_colacion_fin','att_colacion_min','att_colacion_tipo','att_asistio','att_estado','att_ausencia_tipo','att_ausencia_horas','att_fecha'];
   if(ids.includes(e.target.id)){
     if((e.target.id==='att_colacion_ini'||e.target.id==='att_colacion_fin') && byId('att_colacion_tipo') && val('att_colacion_tipo')==='normal'){
       const min=Math.round(hoursBetween(val('att_colacion_ini'),val('att_colacion_fin'))*60);
       if(byId('att_colacion_min')) byId('att_colacion_min').value=String(min||0);
     }
+    if(typeof updateAusenciaHorasPreview==='function' && (e.target.id==='att_fecha'||e.target.id==='att_ausencia_tipo')) updateAusenciaHorasPreview();
     if(typeof updateHorasTrabajadas==='function') updateHorasTrabajadas();
   }
 });
