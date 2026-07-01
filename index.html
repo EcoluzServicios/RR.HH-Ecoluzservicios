@@ -101,6 +101,7 @@ body.sidebar-collapsed .shell{grid-template-columns:86px 1fr}body.sidebar-collap
 .attendance-matrix .weekend-lite{background:#f8fafc}
 .attendance-matrix .code-a{background:#d8a84c;color:#111827}
 .attendance-matrix .code-n{background:#ff2b2b;color:#fff}
+.attendance-matrix .code-md{background:linear-gradient(135deg,#ff2b2b 0 50%,#f5c04a 50% 100%);color:#111827;font-weight:900;text-shadow:0 1px 0 rgba(255,255,255,.65)}
 .attendance-matrix .code-p{background:#d9d2e9;color:#111827}
 .attendance-matrix .code-l{background:#f6d78d;color:#7c5700}
 .attendance-matrix .code-f{background:#9ad0f5;color:#083b66}
@@ -125,6 +126,7 @@ body.sidebar-collapsed .shell{grid-template-columns:86px 1fr}body.sidebar-collap
 .att-capture-box .attendance-matrix .worker-rut{display:block;font-size:11px;color:#6b7280;font-weight:400;margin-top:2px}
 .att-capture-box .attendance-matrix .code-a{background:#dcfce7;color:#166534;font-weight:900}
 .att-capture-box .attendance-matrix .code-n{background:#fee2e2;color:#991b1b;font-weight:900}
+.att-capture-box .attendance-matrix .code-md{background:linear-gradient(135deg,#fee2e2 0 50%,#fef3c7 50% 100%);color:#7f1d1d;font-weight:900}
 .att-capture-box .attendance-matrix .code-p{background:#fef3c7;color:#92400e;font-weight:900}
 .att-capture-box .attendance-matrix .code-l{background:#e0f2fe;color:#075985;font-weight:900}
 .att-capture-box .attendance-matrix .code-f{background:#ede9fe;color:#5b21b6;font-weight:900}
@@ -1910,12 +1912,45 @@ body.sidebar-collapsed .compact-top-controls{
 
 
 /* --- Contratos / Anexos --- */
+.contract-warning-fields{
+  display:none;
+}
+body.contract-doc-amonestacion .contract-warning-fields{
+  display:block!important;
+}
+body.contract-doc-amonestacion .contract-annex-fields{
+  display:none!important;
+}
 body.contract-doc-contrato .contract-annex-fields{
   display:none!important;
 }
 body.contract-doc-anexo .contract-only-label{
   display:none!important;
 }
+
+.amon-motivos-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:8px;
+  padding:10px;
+  border:1px solid #d0d7e2;
+  border-radius:12px;
+  background:#fbfff4;
+}
+.amon-motivos-grid label{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  padding:8px 10px;
+  border:1px solid #dfe8cf;
+  border-radius:10px;
+  background:#fff;
+  font-weight:800;
+  color:#1d2a3a;
+}
+.amon-motivos-grid input{margin-top:2px;min-width:16px}
+.contract-warning-list{margin:6px 0 10px 18px;padding:0}
+.contract-warning-list li{font-size:12px;line-height:1.55;margin:2px 0;text-align:justify}
 .anexo-sueldo,.anexo-cargo,.anexo-jornada,.anexo-plazo,.anexo-horas-extra,.anexo-horas-descanso,.anexo-he-compensatorio{
   display:none;
 }
@@ -2870,13 +2905,10 @@ body.auth-locked .password-modal{
             </div>
           </div>
           <div class="att-snapshot-actions no-print">
-            <button class="btn primary" type="button" onclick="saveAttendanceMonthImage()">Guardar imagen del cuadro</button>
-            <button class="btn soft" type="button" onclick="viewAttendanceMonthImage()">Ver imagen guardada</button>
-            <button class="btn blue" type="button" onclick="downloadAttendanceMonthPDF()">Descargar PDF</button>
-            <button class="btn danger" type="button" onclick="deleteAttendanceMonthImage()">Eliminar imagen</button>
+            <button class="btn blue" type="button" onclick="downloadAttendanceMonthPDF()">Descargar libro PDF</button>
           </div>
-          <div id="att_month_snapshot_status" class="att-snapshot-status no-print">Imagen mensual: no consultada.</div>
-          <div class="note no-print"><strong>Ahorro de egress:</strong> esta imagen mensual se guarda en este navegador mediante IndexedDB y no se sube a Supabase. La descarga en PDF se genera desde esa imagen local, sin aumentar el consumo de datos de la nube.</div>
+          <div id="att_month_snapshot_status" class="att-snapshot-status no-print"><strong>PDF local:</strong> se genera directamente desde el cuadro visible, sin subir archivos a Supabase.</div>
+          <div class="note no-print"><strong>Ahorro de egress:</strong> el PDF del libro de asistencia se genera en este navegador y no se sube a Supabase.</div>
           <div class="table-wrap att-matrix-wrap"><table id="attendance_month_table" class="attendance-matrix"></table></div>
         </div>
 
@@ -3085,13 +3117,13 @@ body.auth-locked .password-modal{
   <section id="view-contratos" class="view">
     <div class="layout contract-layout">
       <aside class="panel no-print contract-panel">
-        <div class="note"><strong>Contratos / Anexos:</strong> selecciona si necesitas generar un contrato o un anexo. Los datos del trabajador se cargan desde la ficha y el documento cambia automáticamente.</div>
+        <div class="note"><strong>Contratos / Anexos / Amonestaciones:</strong> selecciona si necesitas generar un contrato, anexo o carta de amonestación. Los datos del trabajador se cargan desde la ficha y el documento cambia automáticamente.</div>
         <div id="msg-contract" class="status"></div>
 
         <div class="form-section">
           <h3>Modelo y trabajador</h3>
           <div class="grid">
-            <div class="full"><label>Tipo de documento</label><select id="contract_doc_tipo" onchange="toggleContractAnexoFields();renderContractDoc()"><option value="contrato">Contrato individual de trabajo</option><option value="anexo">Anexo de contrato</option></select></div>
+            <div class="full"><label>Tipo de documento</label><select id="contract_doc_tipo" onchange="toggleContractAnexoFields();renderContractDoc()"><option value="contrato">Contrato individual de trabajo</option><option value="anexo">Anexo de contrato</option><option value="amonestacion">Carta de amonestación</option></select></div>
             <div class="full"><label>Trabajador guardado</label><select id="contract_worker" onchange="loadWorkerToContract()"><option value="">-- Seleccionar --</option></select></div>
             <div class="full"><label>Modelo de contrato</label><select id="contract_model" onchange="applyContractModelDefaults();renderContractDoc()"><option value="tecnico">Técnicos / Ayudantes</option><option value="administrativo">Administración</option></select></div>
             <div><label>Fecha de firma</label><input id="contract_fecha_firma" type="date" onchange="renderContractDoc()"></div>
@@ -3169,6 +3201,44 @@ body.auth-locked .password-modal{
 
             <div class="anexo-plazo"><label>Nueva fecha de término</label><input id="contract_anexo_fecha_termino" type="date" onchange="renderContractDoc()"></div>
             <div class="full"><label>Detalle / cláusula general del anexo</label><textarea id="contract_anexo_detalle" oninput="renderContractDoc()" placeholder="Escribe aquí cualquier detalle adicional que deba quedar en el anexo."></textarea></div>
+          </div>
+        </div>
+
+        <div class="form-section contract-warning-fields">
+          <h3>Carta de amonestación</h3>
+          <div class="grid">
+            <div><label>Fecha de carta</label><input id="contract_amon_fecha" type="date" onchange="renderContractDoc()"></div>
+            <div><label>Fecha del hecho</label><input id="contract_amon_fecha_hecho" type="date" onchange="renderContractDoc()"></div>
+            <div><label>Hora aproximada</label><input id="contract_amon_hora_hecho" type="time" onchange="renderContractDoc()"></div>
+            <div><label>Tipo de amonestación</label>
+              <select id="contract_amon_tipo" onchange="renderContractDoc()">
+                <option value="Amonestación escrita">Amonestación escrita</option>
+                <option value="Amonestación escrita con copia a carpeta personal">Amonestación escrita con copia a carpeta personal</option>
+                <option value="Advertencia formal">Advertencia formal</option>
+              </select>
+            </div>
+            <div class="full"><label>Motivos de la amonestación <small style="font-weight:700;color:#667085">(puedes seleccionar más de uno)</small></label>
+              <div class="amon-motivos-grid">
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Inasistencia injustificada" onchange="renderContractDoc()" checked> Inasistencia injustificada</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Atraso en horario de ingreso" onchange="renderContractDoc()"> Atraso en horario de ingreso</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Atrasos reiterados" onchange="renderContractDoc()"> Atrasos reiterados</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Incumplimiento de instrucciones o subordinación" onchange="renderContractDoc()"> Incumplimiento de instrucciones o subordinación</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Abandono del puesto de trabajo" onchange="renderContractDoc()"> Abandono del puesto de trabajo</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Incumplimiento de funciones" onchange="renderContractDoc()"> Incumplimiento de funciones</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Conducta irrespetuosa o inadecuada" onchange="renderContractDoc()"> Conducta irrespetuosa o inadecuada</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Uso indebido de herramientas, vehículo o recursos de la empresa" onchange="renderContractDoc()"> Uso indebido de herramientas, vehículo o recursos</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Incumplimiento de normas de seguridad" onchange="renderContractDoc()"> Incumplimiento de normas de seguridad</label>
+                <label><input type="checkbox" class="contract_amon_motivo_chk" value="Otro incumplimiento laboral" onchange="renderContractDoc()"> Otro incumplimiento laboral</label>
+              </div>
+            </div>
+            <div><label>Cantidad de hechos / eventos</label><input id="contract_amon_cantidad" type="number" min="1" step="1" value="1" oninput="renderContractDoc()"></div>
+            <div><label>Antecedentes o respaldo</label><input id="contract_amon_respaldo" oninput="renderContractDoc()" placeholder="Ej: libro asistencia, WhatsApp, correo, informe jefatura"></div>
+            <div class="full"><label>Detalle de los hechos</label><textarea id="contract_amon_detalle" oninput="renderContractDoc()" placeholder="Describe los hechos concretos: fechas, turnos, atrasos, ausencias, instrucciones incumplidas, quién informó y cualquier antecedente verificable. Evita opiniones personales."></textarea></div>
+            <div class="full"><label>Norma, instrucción o deber incumplido</label><textarea id="contract_amon_norma" oninput="renderContractDoc()" placeholder="Ej: cumplir jornada, registrar asistencia, informar ausencias/atrasos, obedecer instrucciones de jefatura, respetar protocolos, cuidar herramientas y cumplir normas de seguridad."></textarea></div>
+            <div class="full"><label>Instrucción / medida solicitada al trabajador</label><textarea id="contract_amon_medida" oninput="renderContractDoc()" placeholder="Ej: corregir la conducta, cumplir horario, justificar ausencias, seguir instrucciones, registrar asistencia y evitar reiteración de los hechos."></textarea></div>
+            <div class="full"><label>Observación adicional</label><textarea id="contract_amon_obs" oninput="renderContractDoc()" placeholder="Opcional: agregar antecedentes, respaldos, descargos o advertencias internas."></textarea></div>
+            <div><label>Copia a carpeta personal</label><select id="contract_amon_carpeta" onchange="renderContractDoc()"><option>Sí</option><option>No</option></select></div>
+            <div><label>Canal de notificación</label><select id="contract_amon_canal" onchange="renderContractDoc()"><option>Entrega presencial</option><option>Correo electrónico</option><option>WhatsApp laboral</option><option>Carta certificada</option><option>Otro medio escrito</option></select></div>
           </div>
         </div>
 
@@ -6125,6 +6195,10 @@ function activeWorkersForAttendance(){
     .filter(x=>x.nombre)
     .sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
 }
+function isMedioDiaAttendance(rec){
+  const tipo=String((rec&&rec.ausencia_tipo)||'');
+  return tipo==='medio_manana'||tipo==='medio_tarde';
+}
 function recordCode(rec){
   if(!rec) return '';
   const st=String(rec.estado||'');
@@ -6133,23 +6207,31 @@ function recordCode(rec){
     if(st==='Licencia')return 'L';
     if(st==='Feriado')return 'F';
     if(st==='Libre')return 'LI';
+    if(isMedioDiaAttendance(rec))return 'MD';
     return 'N';
   }
+  if(st==='Falta' && isMedioDiaAttendance(rec))return 'MD';
   if(st==='Permiso')return 'P';
   if(st==='Licencia')return 'L';
   if(st==='Feriado')return 'F';
   if(st==='Libre')return 'LI';
   return 'A';
 }
-function recordCodeClass(code){return ({'A':'code-a','N':'code-n','P':'code-p','L':'code-l','F':'code-f','LI':'code-li'})[code]||''}
+function recordCodeClass(code){return ({'A':'code-a','N':'code-n','MD':'code-md','P':'code-p','L':'code-l','F':'code-f','LI':'code-li'})[code]||''}
 function recordTooltip(rec){
   if(!rec) return '';
   const parts=[fmtDate(rec.fecha), rec.nombre||'', 'Estado: '+(rec.estado||''), 'Asistió: '+asistenciaLabel(rec.asistio||'si')];
+  if(isMedioDiaAttendance(rec))parts.push('Medio día: '+((rec.ausencia_tipo==='medio_manana')?'mañana':'tarde'));
+  if(rec.ausencia_horas!==undefined && Number(rec.ausencia_horas||0)>0)parts.push('Horas ausencia: '+Number(rec.ausencia_horas||0).toFixed(2));
   if(rec.entrada) parts.push('Llegada: '+rec.entrada);
   if(rec.colacion_ini||rec.colacion_fin) parts.push('Colación: '+(rec.colacion_ini||'')+' - '+(rec.colacion_fin||''));
   if(rec.salida) parts.push('Salida: '+rec.salida);
   if(Number(rec.horas_extra||0)) parts.push('H. extra: '+Number(rec.horas_extra).toFixed(2));
   return parts.join(' · ');
+}
+function formatAttendanceBookTotal(n){
+  const v=Number(n)||0;
+  return Number.isInteger(v)?String(v):String(Number(v.toFixed(2))).replace('.',',');
 }
 
 /* --- Imagen mensual del libro de asistencia, local-only para ahorrar egress --- */
@@ -6218,6 +6300,7 @@ function attendanceCaptureCSS(){
   .attendance-matrix .matrix-cell{min-width:34px}
   .attendance-matrix .code-a{background:#dcfce7;color:#166534;font-weight:900}
   .attendance-matrix .code-n{background:#fee2e2;color:#991b1b;font-weight:900}
+  .attendance-matrix .code-md{background:linear-gradient(135deg,#fee2e2 0 50%,#fef3c7 50% 100%);color:#7f1d1d;font-weight:900}
   .attendance-matrix .code-p{background:#fef3c7;color:#92400e;font-weight:900}
   .attendance-matrix .code-l{background:#e0f2fe;color:#075985;font-weight:900}
   .attendance-matrix .code-f{background:#ede9fe;color:#5b21b6;font-weight:900}
@@ -6377,42 +6460,283 @@ function writeAttendancePDFHelperWindow(w,state,opts={}){
   </style></head><body><div class="box"><h1>${esc(title)}</h1><div class="msg">${state==='loading'?'<span class="spinner"></span>':''}${esc(msg)}</div><div>${link}</div>${frame}</div>${ready?'<script>setTimeout(function(){var a=document.getElementById("pdf_link"); if(a) a.click();},450)<\/script>':''}</body></html>`);
   w.document.close();
 }
+
+function attendancePdfCellColor(code,isWeekend){
+  if(isWeekend)return '#f1f5f9';
+  const c=String(code||'').toUpperCase();
+  if(c==='A')return '#e0ad3f';
+  if(c==='N')return '#ff2d2d';
+  if(c==='MD')return '#f59e0b';
+  if(c==='P')return '#d8cff7';
+  if(c==='F')return '#8fd0f1';
+  if(c==='LI')return '#eef2f7';
+  if(c==='L')return '#e0f2fe';
+  return '#ffffff';
+}
+function attendancePdfTextColor(code,isWeekend){
+  const c=String(code||'').toUpperCase();
+  if(c==='N')return '#ffffff';
+  if(c==='MD')return '#111827';
+  if(c==='F')return '#075985';
+  if(c==='LI')return '#475467';
+  return '#071421';
+}
+function drawPdfCell(ctx,x,y,w,h,fill,stroke='#9aa4b2'){
+  ctx.fillStyle=fill||'#ffffff';
+  ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle=stroke;
+  ctx.lineWidth=1;
+  ctx.strokeRect(x,y,w,h);
+}
+function drawAttendancePdfCodeCell(ctx,x,y,w,h,code,isWeekend,stroke='#b6bfca'){
+  const c=String(code||'').toUpperCase();
+  if(!isWeekend && c==='MD'){
+    ctx.fillStyle='#ff2d2d';
+    ctx.fillRect(x,y,w/2,h);
+    ctx.fillStyle='#f5c04a';
+    ctx.fillRect(x+w/2,y,w/2,h);
+    ctx.strokeStyle=stroke;
+    ctx.lineWidth=1;
+    ctx.strokeRect(x,y,w,h);
+    return;
+  }
+  drawPdfCell(ctx,x,y,w,h,attendancePdfCellColor(code,isWeekend),stroke);
+}
+function fitCanvasText(ctx,text,maxWidth){
+  text=String(text||'');
+  if(ctx.measureText(text).width<=maxWidth)return text;
+  let out=text;
+  while(out.length>1 && ctx.measureText(out+'…').width>maxWidth)out=out.slice(0,-1);
+  return out+'…';
+}
+function drawCenteredText(ctx,text,x,y,w,h,opts={}){
+  ctx.save();
+  ctx.font=opts.font||'700 12px Arial';
+  ctx.fillStyle=opts.color||'#111827';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  const t=fitCanvasText(ctx,text,Math.max(4,w-8));
+  ctx.fillText(t,x+w/2,y+h/2);
+  ctx.restore();
+}
+function drawLeftText(ctx,text,x,y,w,h,opts={}){
+  ctx.save();
+  ctx.font=opts.font||'700 12px Arial';
+  ctx.fillStyle=opts.color||'#111827';
+  ctx.textAlign='left';
+  ctx.textBaseline='middle';
+  const t=fitCanvasText(ctx,text,Math.max(4,w-10));
+  ctx.fillText(t,x+6,y+h/2);
+  ctx.restore();
+}
+function buildAttendanceBookCanvas(){
+  ensureAttendanceMonthControls();
+  renderAttendanceMonthly();
+  const period=attendanceSnapshotPeriod();
+  const month=Number(period.month||0), year=Number(period.year||new Date().getFullYear());
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const workersList=activeWorkersForAttendance();
+  const recMap=new Map();
+  attendance().forEach(r=>{if(r&&r.worker_key&&r.fecha)recMap.set(r.worker_key+'|'+r.fecha,r)});
+
+  // Hoja carta vertical: 8.5 x 11 pulgadas. Se dibuja en la misma proporción
+  // para que el PDF no deforme la tabla y pueda imprimirse directo.
+  const baseW=816, baseH=1056; // proporción carta vertical
+  const margin=14;
+  const contentW=baseW-(margin*2);
+  const headerTopH=78;
+  const headH1=22, headH2=22;
+  const footerH=56;
+  const nameW=155;
+  const totalWCell=43;
+  const dayW=(contentW-nameW-(totalWCell*2))/daysInMonth;
+  const tableW=nameW+(daysInMonth*dayW)+(totalWCell*2);
+  const maxRows=Math.max(workersList.length,1);
+  const maxBodyH=baseH-(margin*2)-headerTopH-headH1-headH2-footerH-8;
+  const rowH=Math.max(16,Math.min(31,Math.floor(maxBodyH/maxRows)));
+  const scale=2;
+
+  const canvas=document.createElement('canvas');
+  canvas.width=baseW*scale;
+  canvas.height=baseH*scale;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(scale,scale);
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,baseW,baseH);
+
+  const empresaNombre=(typeof empresa!=='undefined'&&empresa&&empresa.nombre)?empresa.nombre:'ECOLUZ SERVICIOS LIMITADA';
+  const empresaRut=(typeof empresa!=='undefined'&&empresa&&empresa.rut)?empresa.rut:'76.295.478-8';
+  const empresaDireccion=(typeof empresa!=='undefined'&&empresa&&empresa.direccion)?empresa.direccion:'21 de Mayo #1223, Iquique';
+  const x0=margin;
+  let y=margin;
+
+  // Encabezado compacto
+  ctx.fillStyle='#0f172a';
+  ctx.font='800 11px Arial';
+  ctx.textAlign='left';
+  ctx.textBaseline='alphabetic';
+  ctx.fillText(fitCanvasText(ctx,String(empresaNombre).toUpperCase(),205),x0,y+12);
+  ctx.font='9px Arial';
+  ctx.fillText('RUT: '+empresaRut,x0,y+27);
+  ctx.fillText('Dirección: '+empresaDireccion,x0,y+40);
+
+  ctx.textAlign='center';
+  ctx.fillStyle='#4f7f00';
+  ctx.font='800 17px Arial';
+  ctx.fillText('LIBRO DE ASISTENCIA MENSUAL',x0+tableW/2,y+17);
+  ctx.fillStyle='#111827';
+  ctx.font='11px Arial';
+  ctx.fillText('Período: '+period.label,x0+tableW/2,y+38);
+  ctx.font='9px Arial';
+  ctx.fillText('Formato: Carta vertical',x0+tableW/2,y+53);
+
+  ctx.textAlign='right';
+  ctx.font='9px Arial';
+  const hoy=new Date().toLocaleDateString('es-CL');
+  ctx.fillText('Fecha emisión: '+hoy,x0+tableW,y+14);
+  ctx.fillText('Trabajadores: '+workersList.length,x0+tableW,y+28);
+
+  // Leyenda superior compacta
+  ctx.textAlign='left';
+  ctx.font='8.5px Arial';
+  ctx.fillStyle='#475467';
+  ctx.fillText('Códigos: A asistencia · N falta · MD medio día · P permiso · F feriado · LI licencia/libre',x0,y+64);
+
+  y+=headerTopH;
+  ctx.strokeStyle='#6d9427';
+  ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(x0,y-9);ctx.lineTo(x0+tableW,y-9);ctx.stroke();
+
+  // Encabezado tabla
+  drawPdfCell(ctx,x0,y,nameW,headH1+headH2,'#b2cda2','#899aa8');
+  drawLeftText(ctx,'Nombre trabajador',x0,y,nameW,headH1+headH2,{font:'800 10px Arial'});
+  let x=x0+nameW;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateObj=new Date(year,month,d);
+    const weekday=(dateObj.getDay()+6)%7;
+    const isWeekend=weekday>=5;
+    const fill=isWeekend?'#ef6b3f':'#6d9427';
+    drawPdfCell(ctx,x,y,dayW,headH1,fill,'#899aa8');
+    drawCenteredText(ctx,dayShortNames()[weekday],x,y,dayW,headH1,{font:'800 6.8px Arial',color:'#ffffff'});
+    x+=dayW;
+  }
+  drawPdfCell(ctx,x,y,totalWCell,headH1+headH2,'#3f7f16','#899aa8');
+  drawCenteredText(ctx,'ASIST.',x,y,totalWCell,headH1+headH2,{font:'800 8px Arial',color:'#ffffff'});
+  x+=totalWCell;
+  drawPdfCell(ctx,x,y,totalWCell,headH1+headH2,'#c64622','#899aa8');
+  drawCenteredText(ctx,'FALT.',x,y,totalWCell,headH1+headH2,{font:'800 8px Arial',color:'#ffffff'});
+
+  x=x0+nameW;
+  y+=headH1;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateObj=new Date(year,month,d);
+    const weekday=(dateObj.getDay()+6)%7;
+    const isWeekend=weekday>=5;
+    drawPdfCell(ctx,x,y,dayW,headH2,isWeekend?'#ef6b3f':'#a9c58f','#899aa8');
+    drawCenteredText(ctx,String(d),x,y,dayW,headH2,{font:'800 8px Arial',color:'#ffffff'});
+    x+=dayW;
+  }
+
+  y+=headH2;
+  if(!workersList.length){
+    drawPdfCell(ctx,x0,y,nameW,rowH,'#f7faf2','#cbd5e1');
+    drawLeftText(ctx,'Sin trabajadores registrados',x0,y,nameW,rowH,{font:'700 8px Arial'});
+    drawPdfCell(ctx,x0+nameW,y,daysInMonth*dayW+totalWCell*2,rowH,'#ffffff','#cbd5e1');
+    drawLeftText(ctx,'Agrega trabajadores y marcaciones para visualizar el libro mensual.',x0+nameW,y,daysInMonth*dayW+totalWCell*2,rowH,{font:'8px Arial',color:'#475467'});
+    y+=rowH;
+  }else{
+    workersList.forEach(w=>{
+      let totalAsistidos=0,totalFaltantes=0;
+      drawPdfCell(ctx,x0,y,nameW,rowH,'#f7faf2','#cbd5e1');
+      ctx.save();
+      ctx.fillStyle='#0f172a';
+      ctx.font='800 8px Arial';
+      ctx.textAlign='left';
+      ctx.textBaseline='middle';
+      ctx.fillText(fitCanvasText(ctx,w.nombre||'',nameW-10),x0+5,y+(rowH/2)-5);
+      ctx.fillStyle='#475467';
+      ctx.font='7px Arial';
+      ctx.fillText(fitCanvasText(ctx,w.rut||'',nameW-10),x0+5,y+(rowH/2)+6);
+      ctx.restore();
+      let xx=x0+nameW;
+      for(let d=1;d<=daysInMonth;d++){
+        const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const rec=recMap.get(w.key+'|'+dateStr);
+        const code=recordCode(rec);
+        const dateObj=new Date(year,month,d);
+        const weekday=(dateObj.getDay()+6)%7;
+        const isWeekend=weekday>=5;
+        if(!isWeekend){
+          if(code==='A')totalAsistidos++;
+          if(code==='MD'){totalAsistidos+=0.5; totalFaltantes+=0.5;}
+          if(code==='N')totalFaltantes++;
+        }
+        drawAttendancePdfCodeCell(ctx,xx,y,dayW,rowH,code,isWeekend,'#cbd5e1');
+        drawCenteredText(ctx,code,xx,y,dayW,rowH,{font:(code==='MD'?'800 7px Arial':'900 8px Arial'),color:attendancePdfTextColor(code,isWeekend)});
+        xx+=dayW;
+      }
+      drawPdfCell(ctx,xx,y,totalWCell,rowH,'#eaf6d9','#cbd5e1');
+      drawCenteredText(ctx,formatAttendanceBookTotal(totalAsistidos),xx,y,totalWCell,rowH,{font:'900 9px Arial',color:'#3f7f16'});
+      xx+=totalWCell;
+      drawPdfCell(ctx,xx,y,totalWCell,rowH,'#fde8e4','#cbd5e1');
+      drawCenteredText(ctx,formatAttendanceBookTotal(totalFaltantes),xx,y,totalWCell,rowH,{font:'900 9px Arial',color:'#a52a12'});
+      y+=rowH;
+    });
+  }
+
+  // Pie y firmas dentro de la misma hoja
+  const footerY=Math.min(baseH-margin-footerH+8,y+16);
+  ctx.fillStyle='#475467';
+  ctx.font='8px Arial';
+  ctx.textAlign='left';
+  ctx.fillText('Observación: sábados, domingos y feriados no se consideran en los totales de asistencia mensual.',x0,footerY);
+  ctx.strokeStyle='#111827';
+  ctx.lineWidth=0.8;
+  const sigY=baseH-margin-20;
+  ctx.beginPath();ctx.moveTo(x0+40,sigY);ctx.lineTo(x0+300,sigY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x0+tableW-300,sigY);ctx.lineTo(x0+tableW-40,sigY);ctx.stroke();
+  ctx.fillStyle='#111827';
+  ctx.font='800 8.5px Arial';
+  ctx.textAlign='center';
+  ctx.fillText('Revisado por RR.HH.',x0+170,sigY+13);
+  ctx.fillText('Autorización jefatura',x0+tableW-170,sigY+13);
+
+  return canvas;
+}
+function openAttendancePrintableBookFallback(){
+  renderAttendanceMonthly();
+  const table=byId('attendance_month_table');
+  const period=attendanceSnapshotPeriod();
+  const clone=table?sanitizeCaptureTableClone(table):null;
+  const w=window.open('','_blank');
+  if(!w){alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para esta página.');return;}
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Libro asistencia ${esc(period.label)}</title><style>${attendanceCaptureCSS()}body{padding:18px}.head{text-align:center;margin-bottom:12px}.head h1{font-size:18px;color:#4f7f00;margin:0}.head p{margin:4px 0 0}@page{size:letter portrait;margin:6mm}@media print{body{padding:0}.attendance-matrix{transform:scale(.62);transform-origin:top left}}</style></head><body><div class="head"><h1>LIBRO DE ASISTENCIA MENSUAL</h1><p>Período: <strong>${esc(period.label)}</strong></p></div>${clone?clone.outerHTML:'<p>No hay cuadro disponible.</p>'}<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script></body></html>`);
+  w.document.close();
+}
 async function downloadAttendanceMonthPDF(){
-  let helper=null;
   try{
-    helper=window.open('','_blank');
-    writeAttendancePDFHelperWindow(helper,'loading',{message:'Generando PDF del cuadro de asistencia. Si el navegador bloquea la descarga automática, usa el botón de descarga que aparecerá aquí.'});
-  }catch(e){helper=null;}
-  try{
-    const rec=await ensureAttendanceSnapshot();
-    if(!rec){if(helper&&!helper.closed)helper.close();return;}
-    const pdfBlob=await attendanceSnapshotToPDFBlob(rec);
-    const filename=safePdfFilename(rec.filename||'libro_asistencia.pdf');
-    const url=URL.createObjectURL(pdfBlob);
+    const period=attendanceSnapshotPeriod();
+    const canvas=buildAttendanceBookCanvas();
+    const jpgDataUrl=canvas.toDataURL('image/jpeg',0.92);
+    const jpgBytes=jpegDataUrlToBytes(jpgDataUrl);
+    const pageW=612;
+    const pageH=792;
+    const pdfBlob=buildSingleImagePDF(jpgBytes,canvas.width,canvas.height,pageW,pageH);
+    const filename=`libro_asistencia_${period.id}.pdf`;
     downloadBlob(pdfBlob,filename);
-    writeAttendancePDFHelperWindow(helper,'ready',{title:'PDF listo · Libro de asistencia',message:'El PDF fue generado correctamente. La descarga automática debería iniciar; si no inicia, presiona “Descargar PDF”.',url,filename});
-    showMsg('msg-att','PDF del libro de asistencia generado. Si no se descarga automáticamente, usa la ventana que se abrió con el botón Descargar PDF.','ok');
-    setTimeout(()=>URL.revokeObjectURL(url),180000);
+    showMsg('msg-att','PDF del libro de asistencia descargado en tamaño carta vertical, listo para imprimir. Se genera localmente, sin subir archivos a Supabase.','ok');
   }catch(e){
-    writeAttendancePDFHelperWindow(helper,'error',{message:'No se pudo generar el PDF: '+(e.message||e)});
-    showMsg('msg-att','No se pudo descargar el PDF: '+(e.message||e),'err');
+    console.error(e);
+    showMsg('msg-att','No se pudo descargar automáticamente el PDF. Se abrirá una versión imprimible para guardar como PDF.','err');
+    openAttendancePrintableBookFallback();
   }
 }
 async function renderAttendanceMonthSnapshotStatus(){
   const el=byId('att_month_snapshot_status');
   if(!el)return;
   const period=attendanceSnapshotPeriod();
-  try{
-    const rec=await getAttendanceSnapshot(period.id);
-    if(rec){
-      const size=rec.size?` · ${(rec.size/1024).toFixed(1)} KB`:'';
-      el.innerHTML=`<strong>Imagen guardada:</strong> ${esc(rec.filename||period.id+'.png')} · ${fmtDate((rec.created_at||'').slice(0,10))||''}${size} · Local, no sincronizada a Supabase.`;
-    }else{
-      el.innerHTML=`<strong>Imagen mensual:</strong> no guardada para ${esc(period.label)}.`;
-    }
-  }catch(e){
-    el.textContent='Imagen mensual: no disponible en este navegador.';
-  }
+  el.innerHTML=`<strong>PDF local:</strong> listo para descargar el libro de asistencia de ${esc(period.label)}. No se guarda imagen ni se sube archivo a Supabase.`;
 }
 async function saveAttendanceMonthImage(){
   const period=attendanceSnapshotPeriod();
@@ -6505,11 +6829,12 @@ function renderAttendanceMonthly(){
         const dateObj=new Date(year,month,d); const weekday=(dateObj.getDay()+6)%7; const isWeekend=weekday>=5;
         if(!isWeekend){
           if(code==='A') totalAsistidos += 1;
+          if(code==='MD'){ totalAsistidos += 0.5; totalFaltantes += 0.5; }
           if(code==='N') totalFaltantes += 1;
         }
         html += `<td class="matrix-cell ${recordCodeClass(code)} ${isWeekend?'weekend-lite':''}" title="${esc(recordTooltip(rec))}">${esc(code)}</td>`;
       }
-      html += `<td class="total-cell total-asistidos">${totalAsistidos}</td><td class="total-cell total-faltantes">${totalFaltantes}</td></tr>`;
+      html += `<td class="total-cell total-asistidos">${formatAttendanceBookTotal(totalAsistidos)}</td><td class="total-cell total-faltantes">${formatAttendanceBookTotal(totalFaltantes)}</td></tr>`;
     });
   }
   html += '</tbody>';
@@ -6906,26 +7231,33 @@ function setContractDefaultDates(){
   if(byId('contract_fecha_anexo')&&!contractVal('contract_fecha_anexo'))byId('contract_fecha_anexo').value=`${yyyy}-${mm}-${dd}`;
   if(byId('contract_anexo_vigencia')&&!contractVal('contract_anexo_vigencia'))byId('contract_anexo_vigencia').value=`${yyyy}-${mm}-${dd}`;
   if(byId('contract_anexo_hec_hasta')&&!contractVal('contract_anexo_hec_hasta'))byId('contract_anexo_hec_hasta').value=`${yyyy}-12-31`;
+  if(byId('contract_amon_fecha')&&!contractVal('contract_amon_fecha'))byId('contract_amon_fecha').value=`${yyyy}-${mm}-${dd}`;
+  if(byId('contract_amon_fecha_hecho')&&!contractVal('contract_amon_fecha_hecho'))byId('contract_amon_fecha_hecho').value=`${yyyy}-${mm}-${dd}`;
 }
 function applyContractModelDefaults(){
   const model=contractVal('contract_model');
-  const isAnexo=contractVal('contract_doc_tipo')==='anexo';
+  const docTipo=contractVal('contract_doc_tipo');
+  const isAnexo=docTipo==='anexo';
+  const isAmon=docTipo==='amonestacion';
   const title=byId('contract_current_model');
-  if(title)title.textContent=isAnexo?'Documento: Anexo de contrato':(model==='administrativo'?'Documento: Contrato administración':'Documento: Contrato técnicos / ayudantes');
+  if(title)title.textContent=isAmon?'Documento: Carta de amonestación':(isAnexo?'Documento: Anexo de contrato':(model==='administrativo'?'Documento: Contrato administración':'Documento: Contrato técnicos / ayudantes'));
   const cargo=byId('contract_cargo');
   if(cargo&&!cargo.value) cargo.value=model==='administrativo'?'Asistente Administrativo/a':'Técnico en Climatización';
   toggleContractEndDate();
   toggleContractAnexoFields();
 }
 function toggleContractAnexoFields(){
-  const isAnexo=contractVal('contract_doc_tipo')==='anexo';
+  const docTipo=contractVal('contract_doc_tipo');
+  const isAnexo=docTipo==='anexo';
+  const isAmon=docTipo==='amonestacion';
   document.body.classList.toggle('contract-doc-anexo',isAnexo);
-  document.body.classList.toggle('contract-doc-contrato',!isAnexo);
+  document.body.classList.toggle('contract-doc-amonestacion',isAmon);
+  document.body.classList.toggle('contract-doc-contrato',!isAnexo&&!isAmon);
   toggleAnexoTipoFields();
   const title=byId('contract_current_model');
   if(title){
     const model=contractVal('contract_model');
-    title.textContent=isAnexo?'Documento: Anexo de contrato':(model==='administrativo'?'Documento: Contrato administración':'Documento: Contrato técnicos / ayudantes');
+    title.textContent=isAmon?'Documento: Carta de amonestación':(isAnexo?'Documento: Anexo de contrato':(model==='administrativo'?'Documento: Contrato administración':'Documento: Contrato técnicos / ayudantes'));
   }
 }
 function toggleAnexoTipoFields(){
@@ -6952,7 +7284,7 @@ function loadWorkerToContract(){
   renderContractDoc(true);
 }
 function clearContractForm(){
-  ['contract_worker','contract_nombre','contract_rut','contract_cargo','contract_fecha_nacimiento','contract_domicilio_trabajador','contract_correo_trabajador','contract_telefono','contract_rut_representante','contract_fecha_termino','contract_anexo_sueldo','contract_anexo_sueldo_desc','contract_anexo_cargo','contract_anexo_jornada','contract_anexo_he_hasta','contract_anexo_he_desc','contract_anexo_descanso_periodo','contract_anexo_descanso_desc','contract_anexo_hec_hasta','contract_anexo_hec_desc','contract_anexo_fecha_termino','contract_anexo_detalle'].forEach(id=>{if(byId(id))byId(id).value=''});
+  ['contract_worker','contract_nombre','contract_rut','contract_cargo','contract_fecha_nacimiento','contract_domicilio_trabajador','contract_correo_trabajador','contract_telefono','contract_rut_representante','contract_fecha_termino','contract_anexo_sueldo','contract_anexo_sueldo_desc','contract_anexo_cargo','contract_anexo_jornada','contract_anexo_he_hasta','contract_anexo_he_desc','contract_anexo_descanso_periodo','contract_anexo_descanso_desc','contract_anexo_hec_hasta','contract_anexo_hec_desc','contract_anexo_fecha_termino','contract_anexo_detalle','contract_amon_hora_hecho','contract_amon_respaldo','contract_amon_detalle','contract_amon_norma','contract_amon_medida','contract_amon_obs'].forEach(id=>{if(byId(id))byId(id).value=''});
   if(byId('contract_doc_tipo'))byId('contract_doc_tipo').value='contrato';
   if(byId('contract_model'))byId('contract_model').value='tecnico';
   if(byId('contract_tipo'))byId('contract_tipo').value='INDEFINIDO';
@@ -6961,6 +7293,11 @@ function clearContractForm(){
   if(byId('contract_sueldo'))byId('contract_sueldo').value='553553';
   if(byId('contract_dia_pago'))byId('contract_dia_pago').value='05';
   if(byId('contract_anexo_tipo'))byId('contract_anexo_tipo').value='sueldo';
+  if(byId('contract_amon_tipo'))byId('contract_amon_tipo').value='Amonestación escrita';
+  setAmonestacionMotivos(['Inasistencia injustificada']);
+  if(byId('contract_amon_cantidad'))byId('contract_amon_cantidad').value='1';
+  if(byId('contract_amon_carpeta'))byId('contract_amon_carpeta').value='Sí';
+  if(byId('contract_amon_canal'))byId('contract_amon_canal').value='Entrega presencial';
   if(byId('contract_anexo_he_pago'))byId('contract_anexo_he_pago').value='Se pagarán con el recargo legal correspondiente';
   if(byId('contract_anexo_descanso_forma'))byId('contract_anexo_descanso_forma').value='Tiempo de descanso compensatorio acordado por las partes';
   if(byId('contract_anexo_hec_max'))byId('contract_anexo_hec_max').value='5';
@@ -7192,8 +7529,111 @@ function buildAnexoCopyHTML(label){
     </main>
   </article>`;
 }
+function getAmonestacionMotivos(){
+  const selected=Array.from(document.querySelectorAll('.contract_amon_motivo_chk:checked')).map(x=>x.value).filter(Boolean);
+  if(selected.length)return selected;
+  const legacy=contractVal('contract_amon_motivo');
+  return legacy?[legacy]:['Inasistencia injustificada'];
+}
+function setAmonestacionMotivos(values){
+  const set=new Set((values&&values.length?values:['Inasistencia injustificada']).map(String));
+  const checks=document.querySelectorAll('.contract_amon_motivo_chk');
+  checks.forEach(ch=>{ch.checked=set.has(ch.value)});
+  if(checks.length && !Array.from(checks).some(ch=>ch.checked))checks[0].checked=true;
+}
+function amonestacionMotivoDefaultText(motivos){
+  const arr=Array.isArray(motivos)?motivos:[motivos];
+  const textos=[];
+  arr.forEach(motivo=>{
+    const m=String(motivo||'').toLowerCase();
+    if(m.includes('inasistencia'))textos.push('no asistió a sus labores en la fecha indicada, sin presentar respaldo o justificación suficiente ante el Empleador dentro de los canales y plazos esperados');
+    else if(m.includes('atrasos reiterados'))textos.push('ha registrado atrasos reiterados en su horario de ingreso, afectando la organización del trabajo, la continuidad de las labores y la coordinación con el equipo');
+    else if(m.includes('atraso'))textos.push('registró atraso en su horario de ingreso o incumplió el horario pactado, afectando la coordinación interna y la continuidad del servicio');
+    else if(m.includes('subordinación')||m.includes('instrucciones'))textos.push('incumplió instrucciones entregadas por la jefatura, supervisor o persona responsable, afectando el orden, la coordinación y la subordinación propia de la relación laboral');
+    else if(m.includes('abandono'))textos.push('se ausentó o abandonó su puesto, instalación, faena o lugar de trabajo sin autorización previa de la jefatura directa');
+    else if(m.includes('funciones'))textos.push('no ejecutó o ejecutó deficientemente funciones propias de su cargo o labores encomendadas por la empresa');
+    else if(m.includes('irrespetuosa'))textos.push('mantuvo una conducta irrespetuosa o inadecuada hacia integrantes de la empresa, jefatura, compañeros, clientes o terceros relacionados con el servicio');
+    else if(m.includes('herramientas')||m.includes('vehículo')||m.includes('recursos'))textos.push('utilizó de forma indebida herramientas, vehículo, equipos, materiales o recursos entregados por la empresa para el cumplimiento de sus funciones');
+    else if(m.includes('seguridad'))textos.push('incumplió instrucciones o normas de seguridad, higiene, uso de elementos de protección personal o prevención de riesgos aplicables a sus funciones');
+    else textos.push('incurrió en un incumplimiento laboral que debe ser corregido conforme a sus obligaciones contractuales, instrucciones de la empresa y normativa interna aplicable');
+  });
+  if(!textos.length)return 'Se deja constancia de un incumplimiento laboral que debe ser corregido por el Trabajador.';
+  return 'De acuerdo con los antecedentes revisados, se deja constancia de que el Trabajador '+textos.join('; además, ')+'.';
+}
+function amonestacionNormaDefaultText(motivos){
+  const arr=Array.isArray(motivos)?motivos:[motivos];
+  const base=['cumplir íntegra y puntualmente la jornada de trabajo pactada','registrar correctamente la asistencia, ingreso, salida y demás marcas que correspondan','informar oportunamente atrasos, ausencias o situaciones que impidan cumplir la jornada','ejecutar sus funciones con responsabilidad, diligencia y buena fe'];
+  const txt=arr.join(' ').toLowerCase();
+  if(txt.includes('subordinación')||txt.includes('instrucciones'))base.push('acatar las instrucciones entregadas por el Empleador, representante legal, jefe directo, supervisor o encargado del servicio');
+  if(txt.includes('seguridad'))base.push('respetar las normas de seguridad, prevención de riesgos y uso de elementos de protección personal');
+  if(txt.includes('herramientas')||txt.includes('vehículo')||txt.includes('recursos'))base.push('cuidar y utilizar adecuadamente herramientas, equipos, vehículos, materiales y recursos de la empresa');
+  if(txt.includes('irrespetuosa'))base.push('mantener trato respetuoso con jefaturas, compañeros de trabajo, clientes y terceros relacionados con la prestación del servicio');
+  return 'El trabajador debe '+base.join('; ')+'.';
+}
+function buildAmonestacionCopyHTML(label){
+  const fecha=contractDate('contract_amon_fecha')||contractDate('contract_fecha_firma');
+  const fechaHecho=contractDate('contract_amon_fecha_hecho')||'________________';
+  const hora=contractVal('contract_amon_hora_hecho');
+  const nombre=contractVal('contract_nombre')||'________________';
+  const rut=contractVal('contract_rut')||'________________';
+  const cargo=contractVal('contract_cargo')||'________________';
+  const tipo=contractVal('contract_amon_tipo')||'Amonestación escrita';
+  const motivos=getAmonestacionMotivos();
+  const motivoTexto=motivos.join(', ');
+  const cantidad=Math.max(1,Math.round(Number(contractVal('contract_amon_cantidad')||1)));
+  const respaldo=contractVal('contract_amon_respaldo');
+  const detalle=contractVal('contract_amon_detalle')||amonestacionMotivoDefaultText(motivos);
+  const norma=contractVal('contract_amon_norma')||amonestacionNormaDefaultText(motivos);
+  const medida=contractVal('contract_amon_medida')||'Se instruye al trabajador a corregir inmediatamente la conducta observada, cumplir su jornada y funciones en los términos pactados, registrar correctamente su asistencia, respetar las instrucciones de jefatura y evitar la reiteración de hechos similares.';
+  const obs=contractVal('contract_amon_obs');
+  const carpeta=contractVal('contract_amon_carpeta')||'Sí';
+  const canal=contractVal('contract_amon_canal')||'Entrega presencial';
+  const horaTxt=hora?`, aproximadamente a las ${esc(hora)} horas`:'';
+  const cantidadTxt=cantidad>1?`Se deja constancia de ${cantidad} hechos, eventos o registros asociados a esta amonestación.`:'Se deja constancia de un hecho, evento o registro asociado a esta amonestación.';
+  const respaldoTxt=respaldo?` Como antecedente o respaldo se considera: ${esc(respaldo)}.`:'';
+  const copiaTxt=carpeta==='Sí'?'La presente carta quedará incorporada en la carpeta personal del Trabajador como respaldo interno de RR.HH.':'La presente carta se entrega como advertencia formal, sin perjuicio de los registros internos que correspondan.';
+  const motivoList=motivos.map(m=>`<li>${esc(m)}</li>`).join('');
+  return `<article class="contract-copy-page">
+    <div class="contract-copy-label">${esc(label)}</div>
+    <header class="contract-header-print">
+      <div class="contract-company">${esc(empresa.nombre)}</div>
+      <h1>CARTA DE AMONESTACIÓN</h1>
+    </header>
+    <main class="contract-text">
+      <p><strong>Iquique, ${fecha}.</strong></p>
+      <p>Señor/a:<br><strong>${esc(nombre)}</strong><br>RUT: ${esc(rut)}<br>Cargo: ${esc(cargo)}</p>
+      <p>Por medio de la presente, ${esc(empresa.nombre)}, RUT N° ${esc(empresa.rut)}, comunica a usted una <strong>${esc(tipo)}</strong>, debido a hechos que constituyen incumplimiento de obligaciones laborales, contractuales, de asistencia, disciplina, subordinación, seguridad o instrucciones internas, según se detalla a continuación.</p>
+      <h2 class="contract-clause">PRIMERO: Motivo(s) de la amonestación</h2>
+      <p>La presente comunicación se emite por el o los siguientes motivos:</p>
+      <ul class="contract-warning-list">${motivoList}</ul>
+      <h2 class="contract-clause">SEGUNDO: Hechos observados</h2>
+      <p>Con fecha ${fechaHecho}${horaTxt}, se deja constancia de lo siguiente: ${esc(detalle)}</p>
+      <p>${esc(cantidadTxt)}${respaldoTxt}</p>
+      <h2 class="contract-clause">TERCERO: Obligaciones, deberes o instrucciones incumplidas</h2>
+      <p>${esc(norma)}</p>
+      <h2 class="contract-clause">CUARTO: Instrucción correctiva</h2>
+      <p>${esc(medida)}</p>
+      <p>Se solicita al Trabajador adoptar las medidas necesarias para evitar la reiteración de estos hechos. La repetición de conductas similares podrá ser evaluada por el Empleador conforme al contrato de trabajo, reglamento interno si correspondiere, registros de asistencia, instrucciones de jefatura y normativa laboral vigente.</p>
+      <h2 class="contract-clause">QUINTO: Descargos y constancia de recepción</h2>
+      <p>El Trabajador podrá dejar constancia de sus descargos o presentar antecedentes que estime pertinentes por los canales definidos por la empresa. La firma de esta carta acredita la recepción del documento, sin que implique necesariamente conformidad con su contenido.</p>
+      <p>La presente comunicación se notifica mediante ${esc(canal)}. ${esc(copiaTxt)}</p>
+      ${obs?`<p><strong>Observación adicional:</strong> ${esc(obs)}</p>`:''}
+      <section class="contract-sign-section">
+        <div class="contract-sign-heading">CONSTANCIA Y FIRMAS</div>
+        <div class="contract-sign-grid">
+          ${employerSignatureHTML({})}
+          ${workerSignatureHTML({nombre:nombre,rut:rut})}
+        </div>
+        <p style="font-size:11px;margin-top:12px"><strong>Constancia:</strong> En caso de negativa a firmar, se dejará registro de dicha circunstancia por escrito, con indicación de fecha, hora, medio de notificación y, si es posible, testigo o respaldo de entrega.</p>
+      </section>
+    </main>
+  </article>`;
+}
 function buildDocumentCopyHTML(label){
-  return contractVal('contract_doc_tipo')==='anexo'?buildAnexoCopyHTML(label):buildContractCopyHTML(label);
+  const tipo=contractVal('contract_doc_tipo');
+  if(tipo==='anexo')return buildAnexoCopyHTML(label);
+  if(tipo==='amonestacion')return buildAmonestacionCopyHTML(label);
+  return buildContractCopyHTML(label);
 }
 function buildContractCopyHTML(label){
   const modelName=contractVal('contract_model')==='administrativo'?'Administración':'Técnicos / Ayudantes';
@@ -7210,7 +7650,10 @@ function renderContractDoc(show=false){
   const host=byId('contract_preview');
   if(!host)return;
   host.innerHTML=buildDocumentCopyHTML('ORIGINAL EMPRESA')+buildDocumentCopyHTML('COPIA TRABAJADOR');
-  if(show)showMsg('msg-contract',(contractVal('contract_doc_tipo')==='anexo'?'Anexo actualizado.':'Contrato actualizado.'));
+  if(show){
+    const tipo=contractVal('contract_doc_tipo');
+    showMsg('msg-contract',tipo==='amonestacion'?'Carta de amonestación actualizada.':(tipo==='anexo'?'Anexo actualizado.':'Contrato actualizado.'));
+  }
 }
 function printContractDoc(){
   renderContractDoc(false);
