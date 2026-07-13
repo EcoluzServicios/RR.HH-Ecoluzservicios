@@ -106,6 +106,8 @@ body.sidebar-collapsed .shell{grid-template-columns:86px 1fr}body.sidebar-collap
 .attendance-matrix .code-l{background:#f6d78d;color:#7c5700}
 .attendance-matrix .code-f{background:#9ad0f5;color:#083b66}
 .attendance-matrix .code-li{background:#e5e7eb;color:#374151}
+.attendance-matrix .code-v{background:#c7f0d8;color:#14532d}
+.attendance-matrix .code-x,.attendance-matrix .code-x.weekend-lite{background:#334155;color:#fff}
 @media (max-width:1100px){.att-month-head{flex-direction:column;align-items:flex-start}.attendance-matrix .sticky-col{min-width:180px;max-width:180px}}
 
 
@@ -131,6 +133,8 @@ body.sidebar-collapsed .shell{grid-template-columns:86px 1fr}body.sidebar-collap
 .att-capture-box .attendance-matrix .code-l{background:#e0f2fe;color:#075985;font-weight:900}
 .att-capture-box .attendance-matrix .code-f{background:#ede9fe;color:#5b21b6;font-weight:900}
 .att-capture-box .attendance-matrix .code-li{background:#f1f5f9;color:#475467;font-weight:900}
+.att-capture-box .attendance-matrix .code-v{background:#dcfce7;color:#166534;font-weight:900}
+.att-capture-box .attendance-matrix .code-x,.att-capture-box .attendance-matrix .code-x.weekend-lite{background:#334155;color:#fff;font-weight:900}
 .att-capture-box .attendance-matrix .weekend-lite{background:#fff7ed;color:#9a3412}
 .att-capture-box .attendance-matrix .total-cell{background:#f8fafc;font-weight:900;color:#111827}
 
@@ -1951,7 +1955,7 @@ body.contract-doc-anexo .contract-only-label{
 .amon-motivos-grid input{margin-top:2px;min-width:16px}
 .contract-warning-list{margin:6px 0 10px 18px;padding:0}
 .contract-warning-list li{font-size:12px;line-height:1.55;margin:2px 0;text-align:justify}
-.anexo-sueldo,.anexo-cargo,.anexo-jornada,.anexo-plazo,.anexo-horas-extra,.anexo-horas-descanso,.anexo-he-compensatorio{
+.anexo-sueldo,.anexo-cargo,.anexo-jornada,.anexo-plazo,.anexo-horas-extra,.anexo-horas-descanso,.anexo-he-compensatorio,.anexo-libre{
   display:none;
 }
 body.anexo-tipo-sueldo .anexo-sueldo,
@@ -1960,7 +1964,9 @@ body.anexo-tipo-jornada .anexo-jornada,
 body.anexo-tipo-plazo .anexo-plazo,
 body.anexo-tipo-horas_extra .anexo-horas-extra,
 body.anexo-tipo-horas_descanso .anexo-horas-descanso,
-body.anexo-tipo_he_compensatorio .anexo-he-compensatorio{
+body.anexo-tipo-he_compensatorio .anexo-he-compensatorio,
+body.anexo-tipo_he_compensatorio .anexo-he-compensatorio,
+body.anexo-tipo-anexo_libre .anexo-libre{
   display:block;
 }
 .annex-warning{
@@ -2620,7 +2626,8 @@ body.auth-locked .password-modal{
             <input type="hidden" id="w_key">
             <div class="full"><label>Nombre completo</label><input id="w_nombre" placeholder="Nombre y apellidos"></div>
             <div><label>RUT</label><input id="w_rut" placeholder="12.345.678-9"></div>
-            <div><label>Estado</label><select id="w_estado"><option>Activo</option><option>Inactivo</option><option>Finiquitado</option></select></div>
+            <div><label>Estado</label><select id="w_estado" onchange="updateWorkerFiniquitoUI()"><option>Activo</option><option>Inactivo</option><option>Finiquitado</option></select></div>
+            <div id="worker_finiquito_date_wrap" class="hidden"><label>Fecha de finiquito / término</label><input id="w_fecha_finiquito" type="date"><div class="helper">Desde el día siguiente se marcará X en asistencia y el trabajador no aparecerá en los meses posteriores.</div></div>
             <div><label>Cargo</label><input id="w_cargo" placeholder="Técnico / Administrativo"></div>
             <div><label>Tipo contrato / vinculación</label><select id="w_tipo_contrato" onchange="updateWorkerHonorariosUI()"><option>Indefinido</option><option>Plazo fijo</option><option>Obra o faena</option><option>Honorarios / Prestador de servicios</option></select></div>
             <div><label>Fecha ingreso / inicio prestación</label><input id="w_fecha_ingreso" type="date"></div>
@@ -2844,7 +2851,7 @@ body.auth-locked .password-modal{
             <div class="full"><label>Trabajador</label><select id="att_worker" onchange="loadAttendanceDraft()"><option value="">-- Seleccionar --</option></select></div>
             <div><label>Fecha</label><input id="att_fecha" type="date" onchange="loadAttendanceDraft()"></div>
             <div><label>¿Asistió?</label><select id="att_asistio" onchange="applyAsistioState()"><option value="si" selected>Sí</option><option value="no">No</option></select></div>
-            <div><label>Estado / motivo</label><select id="att_estado"><option>Trabajado</option><option>Permiso</option><option>Licencia</option><option>Feriado</option><option>Falta</option><option>Libre</option></select></div>
+            <div><label>Estado / motivo</label><select id="att_estado" onchange="applyAttendanceStatusState()"><option>Trabajado</option><option>Vacaciones</option><option>Permiso</option><option>Licencia</option><option>Feriado</option><option>Falta</option><option>Libre</option></select></div>
             <div><label>Tipo de ausencia</label><select id="att_ausencia_tipo" class="att-absence-only" onchange="updateAusenciaHorasPreview()"><option value="completa" selected>Jornada completa</option><option value="medio_manana">Medio día mañana</option><option value="medio_tarde">Medio día tarde</option><option value="horas">Horas específicas</option></select></div>
             <div><label>Horas ausencia</label><input id="att_ausencia_horas" class="att-absence-only" type="number" min="0" step="0.25" value="0"><div class="helper att-absence-only">Se autocalcula según el día. Puedes ajustar si son horas específicas.</div></div>
             <div class="full att-absence-only"><label>Motivo cuando no asistió</label><textarea id="att_obs_no" placeholder="Ej.: falta, permiso, licencia, libre, feriado, medio día, etc."></textarea></div>
@@ -2895,7 +2902,7 @@ body.auth-locked .password-modal{
           <div class="att-month-head">
             <div>
               <h3>Libro de asistencia mensual</h3>
-              <p>Vista tipo libro de asistencia del mes en curso con todos los trabajadores. Sábados y domingos no se consideran en los totales.</p>
+              <p>Vista tipo libro de asistencia del mes con trabajadores dependientes. Honorarios no aparecen. Un trabajador finiquitado tendrá X desde el día siguiente a su término y no aparecerá en meses posteriores. Sábados y domingos no se consideran en los totales.</p>
             </div>
             <div class="att-month-controls no-print">
               <button class="btn soft small" type="button" onclick="shiftAttendanceMonth(-1)">◀</button>
@@ -3176,6 +3183,7 @@ body.auth-locked .password-modal{
                 <option value="he_compensatorio">Acuerdo horas extras por días compensatorios</option>
                 <option value="horas_descanso">Horas extra por tiempo de descanso</option>
                 <option value="plazo">Prórroga o modificación de plazo fijo</option>
+                <option value="anexo_libre">Anexo libre</option>
                 <option value="otro">Otro acuerdo</option>
               </select>
             </div>
@@ -3200,6 +3208,10 @@ body.auth-locked .password-modal{
             <div class="full anexo-he-compensatorio"><label>Descripción acuerdo horas extra compensadas</label><textarea id="contract_anexo_hec_desc" oninput="renderContractDoc()" placeholder="Ej: Las horas extraordinarias autorizadas podrán compensarse por días hábiles adicionales de descanso, dejando registro de horas, período, autorización y día compensatorio usado."></textarea></div>
 
             <div class="anexo-plazo"><label>Nueva fecha de término</label><input id="contract_anexo_fecha_termino" type="date" onchange="renderContractDoc()"></div>
+
+            <div class="full anexo-libre"><label>Título del anexo libre</label><input id="contract_anexo_libre_titulo" oninput="renderContractDoc()" placeholder="Ej: Anexo por bono de asistencia, acuerdo especial, entrega de herramientas, cambio de condiciones, etc."></div>
+            <div class="full anexo-libre"><label>Puntos / cláusulas del anexo libre</label><textarea id="contract_anexo_libre_puntos" oninput="renderContractDoc()" placeholder="Escribe aquí todos los puntos del anexo. Puedes separar cada punto con un salto de línea. Los datos del trabajador y del representante legal se completan automáticamente en el documento."></textarea></div>
+
             <div class="full"><label>Detalle / cláusula general del anexo</label><textarea id="contract_anexo_detalle" oninput="renderContractDoc()" placeholder="Escribe aquí cualquier detalle adicional que deba quedar en el anexo."></textarea></div>
           </div>
         </div>
@@ -5148,7 +5160,13 @@ function workers(){return getJSON(KEY_WORKERS,{})} function setWorkers(w){setJSO
 function isHonorariosValue(v){return norm(v||'').includes('honor')}
 function isHonorariosWorker(x){return isHonorariosValue(x?.tipo_contrato||'')}
 function workerTipoLabel(x){return isHonorariosWorker(x)?'Honorarios / Prestador de servicios':(x?.tipo_contrato||'')}
-function workerFields(){return ['key','nombre','rut','estado','cargo','tipo_contrato','fecha_ingreso','sueldo_base','colacion','movilizacion','region_code','comuna_code','afp_select','afp_pct','salud_select','salud_valor','salud_modalidad','afc_pct','honorarios_documento','honorarios_servicio','honorarios_periodo','honorarios_obs','banco','tipo_cuenta','numero_cuenta','titular_cuenta','correo','telefono']}
+function updateWorkerFiniquitoUI(){
+  const finiquitado=val('w_estado')==='Finiquitado';
+  const wrap=byId('worker_finiquito_date_wrap');
+  if(wrap)wrap.classList.toggle('hidden',!finiquitado);
+  if(finiquitado&&byId('w_fecha_finiquito')&&!val('w_fecha_finiquito'))byId('w_fecha_finiquito').value=new Date().toISOString().slice(0,10);
+}
+function workerFields(){return ['key','nombre','rut','estado','cargo','tipo_contrato','fecha_ingreso','fecha_finiquito','sueldo_base','colacion','movilizacion','region_code','comuna_code','afp_select','afp_pct','salud_select','salud_valor','salud_modalidad','afc_pct','honorarios_documento','honorarios_servicio','honorarios_periodo','honorarios_obs','banco','tipo_cuenta','numero_cuenta','titular_cuenta','correo','telefono']}
 function setWorkerDependentInputsDisabled(disabled){['w_sueldo_base','w_colacion','w_movilizacion','w_afp_select','w_afp_pct','w_salud_select','w_salud_valor','w_salud_modalidad','w_afc_pct'].forEach(id=>{const el=byId(id);if(el)el.disabled=disabled;});}
 function updateWorkerHonorariosUI(){
   const hon=isHonorariosValue(val('w_tipo_contrato'));
@@ -5173,10 +5191,10 @@ function updateWorkerHonorariosUI(){
   }
 }
 function collectWorkerForm(){const d={};workerFields().forEach(f=>{const id='w_'+f; if(byId(id))d[f]=val(id)});d.key=d.key||workerKeyFromRut(d.rut);if(isHonorariosValue(d.tipo_contrato)){d.tipo_contrato='Honorarios / Prestador de servicios';d.sueldo_base='';d.colacion='';d.movilizacion='';d.afp_select='NINGUNA';d.afp_pct='';d.salud_select='';d.salud_valor='';d.salud_modalidad='';d.afc_pct='';}return d}
-function fillWorkerForm(d={}){workerFields().forEach(f=>{const id='w_'+f;if(byId(id))byId(id).value=d[f]||''});if(isHonorariosValue(d.tipo_contrato)&&byId('w_tipo_contrato'))byId('w_tipo_contrato').value='Honorarios / Prestador de servicios';if(!val('w_estado'))byId('w_estado').value='Activo';if(!isHonorariosValue(val('w_tipo_contrato'))){if(!val('w_sueldo_base'))byId('w_sueldo_base').value='553553';if(!val('w_afp_pct'))byId('w_afp_pct').value='10.58';if(!val('w_salud_valor'))byId('w_salud_valor').value='7';if(!val('w_afc_pct'))byId('w_afc_pct').value='0.60'}updateWorkerHonorariosUI();}
+function fillWorkerForm(d={}){workerFields().forEach(f=>{const id='w_'+f;if(byId(id))byId(id).value=d[f]||''});if(isHonorariosValue(d.tipo_contrato)&&byId('w_tipo_contrato'))byId('w_tipo_contrato').value='Honorarios / Prestador de servicios';if(!val('w_estado'))byId('w_estado').value='Activo';updateWorkerFiniquitoUI();if(!isHonorariosValue(val('w_tipo_contrato'))){if(!val('w_sueldo_base'))byId('w_sueldo_base').value='553553';if(!val('w_afp_pct'))byId('w_afp_pct').value='10.58';if(!val('w_salud_valor'))byId('w_salud_valor').value='7';if(!val('w_afc_pct'))byId('w_afc_pct').value='0.60'}updateWorkerHonorariosUI();}
 function resetHonorariosPaymentInputs(){const today=new Date().toISOString().slice(0,10);if(byId('w_honorarios_fecha_pago'))byId('w_honorarios_fecha_pago').value=today;['w_honorarios_monto_pago','w_honorarios_numero_documento','w_honorarios_periodo'].forEach(id=>{if(byId(id))byId(id).value=''});if(byId('w_honorarios_metodo_pago'))byId('w_honorarios_metodo_pago').value='Transferencia';}
 function updateWorkerMode(text){const el=byId('worker_form_mode');if(el)el.innerHTML=text||'<strong>Nuevo trabajador</strong>';}
-function saveWorkerFromForm(){const d=collectWorkerForm(); if(!d.nombre||!d.rut){showMsg('msg-worker','Falta nombre o RUT para guardar trabajador.','err');return}const oldKey=val('w_key');const newKey=workerKeyFromRut(d.rut);const w=workers();if(oldKey&&oldKey!==newKey&&w[oldKey])delete w[oldKey];d.key=newKey;w[newKey]=d;setWorkers(w);byId('w_key').value=newKey;refreshAllWorkerSelects();renderWorkers();updateWorkerMode(`<strong>Modificando:</strong> ${esc(d.nombre)} · ${esc(d.rut)}`);showMsg('msg-worker',isHonorariosWorker(d)?'Prestador a honorarios guardado para control interno. Cuando trabaje este mes, registra su pago para que aparezca en el cuadro general.':'Trabajador guardado/actualizado correctamente.');}
+function saveWorkerFromForm(){const d=collectWorkerForm(); if(!d.nombre||!d.rut){showMsg('msg-worker','Falta nombre o RUT para guardar trabajador.','err');return}if(d.estado==='Finiquitado'&&!d.fecha_finiquito)d.fecha_finiquito=new Date().toISOString().slice(0,10);const oldKey=val('w_key');const newKey=workerKeyFromRut(d.rut);const w=workers();if(oldKey&&oldKey!==newKey&&w[oldKey])delete w[oldKey];d.key=newKey;w[newKey]=d;setWorkers(w);byId('w_key').value=newKey;refreshAllWorkerSelects();renderWorkers();updateWorkerMode(`<strong>Modificando:</strong> ${esc(d.nombre)} · ${esc(d.rut)}`);showMsg('msg-worker',isHonorariosWorker(d)?'Prestador a honorarios guardado para control interno. Cuando trabaje este mes, registra su pago para que aparezca en el cuadro general.':'Trabajador guardado/actualizado correctamente.');}
 function clearWorkerForm(){fillWorkerForm({key:'',estado:'Activo',tipo_contrato:'Indefinido',sueldo_base:'553553',afp_select:'HABITAT',afp_pct:'10.58',salud_select:'Fonasa',salud_valor:'7',salud_modalidad:'porcentaje',afc_pct:'0.60',region_code:'1',comuna_code:'1101',colacion:'0',movilizacion:'0',honorarios_documento:'',honorarios_servicio:'',honorarios_periodo:'',honorarios_obs:''});resetHonorariosPaymentInputs();updateWorkerMode('<strong>Nuevo trabajador</strong>');}
 function editWorker(k){const d=workers()[k]; if(!d)return; fillWorkerForm({...d,key:k}); resetHonorariosPaymentInputs(); updateWorkerMode(`<strong>Modificando:</strong> ${esc(d.nombre||'Trabajador')} · ${esc(d.rut||'')}`); document.querySelector('[data-view="trabajadores"]').click(); setTimeout(()=>byId('w_nombre')?.focus(),80);}
 function deleteWorker(k){const w=workers();const d=w[k]||{};if(confirm(`¿Eliminar a ${d.nombre||'este trabajador'} de la lista?`)){delete w[k];setWorkers(w);refreshAllWorkerSelects();renderWorkers();if(val('w_key')===k)clearWorkerForm();showMsg('msg-worker','Trabajador eliminado.');}}
@@ -5189,7 +5207,7 @@ function renderWorkers(){
   const depKeys=activeKeys.filter(k=>!isHonorariosWorker(w[k]));
   const depSueldoProm=depKeys.reduce((a,k)=>a+(Number(w[k].sueldo_base)||0),0)/(depKeys.length||1);
   byId('worker_summary').innerHTML=`<div class="metric"><span>Total registrados</span><strong>${keys.length}</strong></div><div class="metric"><span>Dependientes activos</span><strong>${depKeys.length}</strong></div><div class="metric"><span>Honorarios activos</span><strong>${honorKeys.length}</strong></div><div class="metric"><span>Promedio sueldo base</span><strong>${clp(depSueldoProm)}</strong></div>`;
-  let rows='<tr><th>Nombre</th><th>RUT</th><th>Estado</th><th>Cargo</th><th>Vinculación</th><th>Referencia pago</th><th>Documento honorarios</th><th>Banco</th><th>Cuenta</th><th class="no-print">Acciones</th></tr>';
+  let rows='<tr><th>Nombre</th><th>RUT</th><th>Estado</th><th>Fecha término</th><th>Cargo</th><th>Vinculación</th><th>Referencia pago</th><th>Documento honorarios</th><th>Banco</th><th>Cuenta</th><th class="no-print">Acciones</th></tr>';
   if(!keys.length)rows='<tr><th>No hay trabajadores o prestadores guardados todavía.</th></tr>';
   keys.sort((a,b)=>(w[a].nombre||'').localeCompare(w[b].nombre||'')).forEach(k=>{
     const x=w[k];
@@ -5197,7 +5215,7 @@ function renderWorkers(){
     const pagoRef=esHon?'No genera liquidación':clp(x.sueldo_base);
     const docHon=esHon?esc(x.honorarios_documento||'Pendiente'):'—';
     const liquidarBtn=esHon?`<button class="btn small primary" type="button" onclick="createHonorariosBoletinFromWorker('${k}')">Boletín pago</button>`:`<button class="btn small soft" onclick="loadWorkerToPayroll('${k}')">Liquidar</button>`;
-    rows+=`<tr><td>${esc(x.nombre)}</td><td>${esc(x.rut)}</td><td>${esc(x.estado||'Activo')}</td><td>${esc(x.cargo||'')}</td><td>${esc(workerTipoLabel(x))}</td><td>${pagoRef}</td><td>${docHon}</td><td>${esc(x.banco||'')}</td><td>${esc(x.tipo_cuenta||'')} ${esc(x.numero_cuenta||'')}</td><td class="no-print"><button class="btn small blue" onclick="editWorker('${k}')">Modificar</button> ${liquidarBtn} <button class="btn small danger" onclick="deleteWorker('${k}')">Eliminar</button></td></tr>`;
+    rows+=`<tr><td>${esc(x.nombre)}</td><td>${esc(x.rut)}</td><td>${esc(x.estado||'Activo')}</td><td>${esc(x.fecha_finiquito?fmtDate(x.fecha_finiquito):'—')}</td><td>${esc(x.cargo||'')}</td><td>${esc(workerTipoLabel(x))}</td><td>${pagoRef}</td><td>${docHon}</td><td>${esc(x.banco||'')}</td><td>${esc(x.tipo_cuenta||'')} ${esc(x.numero_cuenta||'')}</td><td class="no-print"><button class="btn small blue" onclick="editWorker('${k}')">Modificar</button> ${liquidarBtn} <button class="btn small danger" onclick="deleteWorker('${k}')">Eliminar</button></td></tr>`;
   });
   byId('workers_table').innerHTML=rows;
   refreshAllWorkerSelects();
@@ -5211,7 +5229,7 @@ function refreshAllWorkerSelects(){
     const current=sel.value;
     let first=id==='att_filter_worker'?'<option value="">-- Seleccionar --</option>':(id.includes('filter')?'<option value="">Todos</option>':'<option value="">-- Seleccionar --</option>');
     sel.innerHTML=first;
-    const excludeHonorarios=['worker_select','quin_worker'].includes(id);
+    const excludeHonorarios=['worker_select','quin_worker','att_worker','att_filter_worker'].includes(id);
     Object.keys(w).sort((a,b)=>(w[a].nombre||'').localeCompare(w[b].nombre||'')).forEach(k=>{
       const activo=(w[k].estado||'Activo')==='Activo';
       if(!id.includes('filter')&&!activo)return;
@@ -5496,11 +5514,16 @@ function isWeekendDateStr(fecha){
 function summarizeAttendanceForPayroll(workerKey,monthName,year,entryRef='09:00',tolerance=15){
   const records=attendanceForPayrollMonth(workerKey,monthName,year);
   const ref=minutesFromHHMM(entryRef);
-  let faltas=0, faltasEq=0, faltasHoras=0, faltasCompletas=0, faltasParcialesHoras=0, atrasosMin=0, permisos=0, licencias=0, feriados=0, libres=0, asistencias=0;
+  let faltas=0, faltasEq=0, faltasHoras=0, faltasCompletas=0, faltasParcialesHoras=0, atrasosMin=0, permisos=0, licencias=0, feriados=0, libres=0, vacaciones=0, asistencias=0;
   records.forEach(r=>{
     if(isWeekendDateStr(r.fecha))return;
     const estado=String(r.estado||'');
     const asistio=(r.asistio||'si')==='si';
+    if(estado==='Vacaciones'){vacaciones++;return}
+    if(estado==='Permiso'){permisos++;return}
+    if(estado==='Licencia'){licencias++;return}
+    if(estado==='Feriado'){feriados++;return}
+    if(estado==='Libre'){libres++;return}
     if(!asistio || estado==='Falta'){
       const h=horasAusenciaRecord(r);
       const eq=diasAusenciaEqRecord(r);
@@ -5514,10 +5537,6 @@ function summarizeAttendanceForPayroll(workerKey,monthName,year,entryRef='09:00'
       }
       return;
     }
-    if(estado==='Permiso'){permisos++;return}
-    if(estado==='Licencia'){licencias++;return}
-    if(estado==='Feriado'){feriados++;return}
-    if(estado==='Libre'){libres++;return}
     if(estado==='Trabajado'){
       asistencias++;
       const ent=minutesFromHHMM(r.entrada);
@@ -5527,7 +5546,7 @@ function summarizeAttendanceForPayroll(workerKey,monthName,year,entryRef='09:00'
       }
     }
   });
-  return {records,faltas,faltasEq,faltasHoras,faltasCompletas,faltasParcialesHoras,atrasosMin,permisos,licencias,feriados,libres,asistencias};
+  return {records,faltas,faltasEq,faltasHoras,faltasCompletas,faltasParcialesHoras,atrasosMin,permisos,licencias,feriados,libres,vacaciones,asistencias};
 }
 function applyAttendanceToPayroll(){
   const workerKey=getSelectedPayrollWorkerKey();
@@ -5560,6 +5579,7 @@ function applyAttendanceToPayroll(){
     `Días remunerados sueldo base: ${diasRemunerados}`,
     `Inasistencias/Faltas descontables: ${s.faltas} registro(s) · ${diasFaltaCompletos} día(s) completo(s) · ${horasFaltaParcial} h parcial(es) · ${diasFaltaEq} día(s) equivalente(s) informativo(s)`,
     `Atrasos descontables: ${atrasoHrs} hora(s) y ${atrasoMin} minuto(s)`,
+    `Vacaciones: ${s.vacaciones||0}`,
     `Permisos: ${s.permisos}`,
     `Licencias: ${s.licencias}`,
     `Feriados: ${s.feriados}`,
@@ -6159,7 +6179,15 @@ function setAttendanceStatusPills(r){if(!byId('att_state_llegada'))return;byId('
 function attendancePayload(extra={}){const k=val('att_worker'), f=val('att_fecha');const w=workers()[k]||{};const old=getAttendanceDraft()||{};const rec=Object.assign({},old,{id:old.id||Date.now(),worker_key:k,nombre:w.nombre||old.nombre||'',rut:w.rut||old.rut||'',fecha:f,asistio:val('att_asistio')||'si',estado:val('att_estado'),entrada:val('att_entrada'),salida:val('att_salida'),colacion_tipo:val('att_colacion_tipo')||'normal',colacion_ini:val('att_colacion_ini'),colacion_fin:val('att_colacion_fin'),colacion_min:currentColacionMinutes(),almuerzo_empleador:val('att_almuerzo_empleador')||'si',horas_extra:num('att_horas_extra'),he_autorizadas:val('att_he_autorizadas')||'no',he_autorizadas_por:val('att_he_autorizadas_por'),he_motivo:val('att_he_motivo'),colacion_obs:val('att_colacion_obs'),obs:val('att_obs'),obs_no:val('att_obs_no'),ausencia_tipo:val('att_ausencia_tipo')||'completa',ausencia_horas:num('att_ausencia_horas')},extra);rec.horas=calcHoursFromRecord(rec);return rec}
 function upsertAttendanceRecord(rec,msg){if(!rec.worker_key||!rec.fecha){showMsg('msg-att','Selecciona trabajador y fecha.','err');return}const a=attendance();const idx=a.findIndex(x=>x.worker_key===rec.worker_key&&x.fecha===rec.fecha);if(idx>=0)a[idx]=rec;else a.push(rec);setAttendance(a);if(byId('att_filter_worker'))byId('att_filter_worker').value=rec.worker_key;loadAttendanceDraft(false);renderAttendance();if(msg)showMsg('msg-att',msg,'ok')}
 function loadAttendanceDraft(show=true){const r=getAttendanceDraft();if(r){byId('att_asistio').value=r.asistio||'si';byId('att_estado').value=r.estado||'Trabajado';byId('att_entrada').value=r.entrada||'';byId('att_salida').value=r.salida||'';byId('att_colacion_tipo').value=r.colacion_tipo||'normal';byId('att_colacion_ini').value=r.colacion_ini||'';byId('att_colacion_fin').value=r.colacion_fin||'';byId('att_colacion_min').value=(r.colacion_min!==undefined?r.colacion_min:'90');byId('att_almuerzo_empleador').value=r.almuerzo_empleador||'si';byId('att_horas_extra').value=r.horas_extra||0;byId('att_he_autorizadas').value=r.he_autorizadas||'no';byId('att_he_autorizadas_por').value=r.he_autorizadas_por||'';byId('att_he_motivo').value=r.he_motivo||'';byId('att_colacion_obs').value=r.colacion_obs||'';byId('att_obs').value=r.obs||'';if(byId('att_obs_no'))byId('att_obs_no').value=r.obs_no||r.obs||'';if(byId('att_ausencia_tipo'))byId('att_ausencia_tipo').value=r.ausencia_tipo||'completa';if(byId('att_ausencia_horas'))byId('att_ausencia_horas').value=(r.ausencia_horas!==undefined?r.ausencia_horas:horasAusenciaRecord(r));setAttendanceStatusPills(r);if(show)showMsg('msg-att','Registro cargado para editar.','ok')}else{const keepWorker=val('att_worker'), keepDate=val('att_fecha');clearAttendanceForm(false);byId('att_worker').value=keepWorker;byId('att_fecha').value=keepDate;setAttendanceStatusPills(null)}applyAsistioState(false);updateHorasTrabajadas()}
-function applyAsistioState(show=true){const no=val('att_asistio')==='no';document.querySelectorAll('.att-attended-only').forEach(el=>el.style.display=no?'none':'block');document.querySelectorAll('.att-absence-only').forEach(el=>el.style.display=no?'block':'none');if(no){if(val('att_estado')==='Trabajado')byId('att_estado').value='Falta';updateAusenciaHorasPreview()}else{if(['Falta','Permiso','Licencia','Feriado','Libre'].includes(val('att_estado')))byId('att_estado').value='Trabajado'}updateHorasTrabajadas()}
+function applyAsistioState(show=true){const no=val('att_asistio')==='no';document.querySelectorAll('.att-attended-only').forEach(el=>el.style.display=no?'none':'block');document.querySelectorAll('.att-absence-only').forEach(el=>el.style.display=no?'block':'none');if(no){if(val('att_estado')==='Trabajado')byId('att_estado').value='Falta';updateAusenciaHorasPreview()}else{if(['Falta','Vacaciones','Permiso','Licencia','Feriado','Libre'].includes(val('att_estado')))byId('att_estado').value='Trabajado'}updateHorasTrabajadas()}
+function applyAttendanceStatusState(){
+  if(val('att_estado')==='Vacaciones'){
+    if(byId('att_asistio'))byId('att_asistio').value='no';
+    if(byId('att_ausencia_tipo'))byId('att_ausencia_tipo').value='completa';
+    if(byId('att_obs_no')&&!val('att_obs_no'))byId('att_obs_no').value='Vacaciones';
+  }
+  applyAsistioState(false);
+}
 function applyColacionPreset(){const tipo=val('att_colacion_tipo')||'normal';if(tipo==='reducida30'){byId('att_colacion_min').value='30';byId('att_almuerzo_empleador').value='si';if(!val('att_colacion_ini'))byId('att_colacion_ini').value=nowTime();if(!val('att_colacion_fin'))byId('att_colacion_fin').value=addMinutesToTime(val('att_colacion_ini'),30)}else if(tipo==='sin'){byId('att_colacion_min').value='0';byId('att_colacion_ini').value='';byId('att_colacion_fin').value='';byId('att_almuerzo_empleador').value='no_aplica'}else{if(!val('att_colacion_min'))byId('att_colacion_min').value='90';if(val('att_almuerzo_empleador')==='no_aplica')byId('att_almuerzo_empleador').value='si'}updateHorasTrabajadas()}
 function markAttendanceNo(){byId('att_asistio').value='no';if(val('att_estado')==='Trabajado')byId('att_estado').value='Falta';byId('att_entrada').value='';byId('att_salida').value='';byId('att_colacion_tipo').value='sin';if(byId('att_ausencia_tipo')&&!val('att_ausencia_tipo'))byId('att_ausencia_tipo').value='completa';updateAusenciaHorasPreview();byId('att_colacion_ini').value='';byId('att_colacion_fin').value='';byId('att_colacion_min').value='0';byId('att_horas_extra').value='0';byId('att_he_autorizadas').value='no';byId('att_almuerzo_empleador').value='no_aplica';const rec=attendancePayload({asistio:'no',horas:0,horas_extra:0});upsertAttendanceRecord(rec,'No asistencia guardada.')}
 function markArrival(){if(!val('att_worker')||!val('att_fecha')){showMsg('msg-att','Selecciona trabajador y fecha.','err');return}byId('att_asistio').value='si';byId('att_estado').value='Trabajado';if(!val('att_entrada'))byId('att_entrada').value=nowTime();upsertAttendanceRecord(attendancePayload(),'Llegada registrada.')}
@@ -6187,13 +6215,38 @@ function shiftAttendanceMonth(delta){
   if(m>11){m=0;y+=1}
   byId('att_month').value=String(m);byId('att_year').value=String(y);renderAttendanceMonthly();
 }
-function activeWorkersForAttendance(){
+function attendancePeriodBounds(month,year){
+  const start=`${year}-${String(month+1).padStart(2,'0')}-01`;
+  const end=`${year}-${String(month+1).padStart(2,'0')}-${String(new Date(year,month+1,0).getDate()).padStart(2,'0')}`;
+  return {start,end};
+}
+function workerFiniquitoDate(w){
+  if(!w||String(w.estado||'')!=='Finiquitado')return '';
+  return String(w.fecha_finiquito||w.fecha_termino||new Date().toISOString().slice(0,10));
+}
+function activeWorkersForAttendance(month=null,year=null){
+  const now=new Date();
+  month=month===null?now.getMonth():Number(month);year=year===null?now.getFullYear():Number(year);
+  const {start,end}=attendancePeriodBounds(month,year);
   const map=workers();
   const att=attendance();
-  const keys=new Set([...Object.keys(map), ...att.map(x=>x.worker_key).filter(Boolean)]);
-  return [...keys].map(k=>({key:k,...(map[k]||{}),nombre:(map[k]&&map[k].nombre)||att.find(x=>x.worker_key===k)?.nombre||'(Sin nombre)',rut:(map[k]&&map[k].rut)||att.find(x=>x.worker_key===k)?.rut||''}))
-    .filter(x=>x.nombre)
+  const monthRecords=att.filter(r=>r&&r.fecha&&r.fecha>=start&&r.fecha<=end);
+  const keys=new Set([...Object.keys(map), ...monthRecords.map(x=>x.worker_key).filter(Boolean)]);
+  return [...keys].map(k=>({key:k,...(map[k]||{}),nombre:(map[k]&&map[k].nombre)||monthRecords.find(x=>x.worker_key===k)?.nombre||'(Sin nombre)',rut:(map[k]&&map[k].rut)||monthRecords.find(x=>x.worker_key===k)?.rut||'',_hasMonthRecord:monthRecords.some(x=>x.worker_key===k)}))
+    .filter(x=>{
+      if(!x.nombre||isHonorariosWorker(x))return false;
+      if(x.fecha_ingreso&&String(x.fecha_ingreso)>end)return false;
+      const fin=workerFiniquitoDate(x);
+      if(fin&&fin<start)return false;
+      if(String(x.estado||'Activo')==='Inactivo'&&!x._hasMonthRecord)return false;
+      return true;
+    })
     .sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
+}
+function attendanceCodeForDay(worker,dateStr,rec){
+  const fin=workerFiniquitoDate(worker);
+  if(fin&&dateStr>fin)return 'X';
+  return recordCode(rec);
 }
 function isMedioDiaAttendance(rec){
   const tipo=String((rec&&rec.ausencia_tipo)||'');
@@ -6202,6 +6255,7 @@ function isMedioDiaAttendance(rec){
 function recordCode(rec){
   if(!rec) return '';
   const st=String(rec.estado||'');
+  if(st==='Vacaciones')return 'V';
   if(rec.asistio==='no'){
     if(st==='Permiso')return 'P';
     if(st==='Licencia')return 'L';
@@ -6217,7 +6271,7 @@ function recordCode(rec){
   if(st==='Libre')return 'LI';
   return 'A';
 }
-function recordCodeClass(code){return ({'A':'code-a','N':'code-n','MD':'code-md','P':'code-p','L':'code-l','F':'code-f','LI':'code-li'})[code]||''}
+function recordCodeClass(code){return ({'A':'code-a','N':'code-n','MD':'code-md','P':'code-p','L':'code-l','F':'code-f','LI':'code-li','V':'code-v','X':'code-x'})[code]||''}
 function recordTooltip(rec){
   if(!rec) return '';
   const parts=[fmtDate(rec.fecha), rec.nombre||'', 'Estado: '+(rec.estado||''), 'Asistió: '+asistenciaLabel(rec.asistio||'si')];
@@ -6305,6 +6359,8 @@ function attendanceCaptureCSS(){
   .attendance-matrix .code-l{background:#e0f2fe;color:#075985;font-weight:900}
   .attendance-matrix .code-f{background:#ede9fe;color:#5b21b6;font-weight:900}
   .attendance-matrix .code-li{background:#f1f5f9;color:#475467;font-weight:900}
+  .attendance-matrix .code-v{background:#dcfce7;color:#166534;font-weight:900}
+  .attendance-matrix .code-x,.attendance-matrix .code-x.weekend-lite{background:#334155;color:#fff;font-weight:900}
   .attendance-matrix .weekend-lite{background:#fff7ed;color:#9a3412}
   .attendance-matrix .total-cell{background:#f8fafc;font-weight:900;color:#111827}
   `;
@@ -6462,14 +6518,17 @@ function writeAttendancePDFHelperWindow(w,state,opts={}){
 }
 
 function attendancePdfCellColor(code,isWeekend){
-  if(isWeekend)return '#f1f5f9';
   const c=String(code||'').toUpperCase();
+  if(c==='X')return '#334155';
+  if(isWeekend)return '#f1f5f9';
   if(c==='A')return '#e0ad3f';
   if(c==='N')return '#ff2d2d';
   if(c==='MD')return '#f59e0b';
   if(c==='P')return '#d8cff7';
   if(c==='F')return '#8fd0f1';
   if(c==='LI')return '#eef2f7';
+  if(c==='V')return '#dcfce7';
+  if(c==='X')return '#334155';
   if(c==='L')return '#e0f2fe';
   return '#ffffff';
 }
@@ -6479,6 +6538,8 @@ function attendancePdfTextColor(code,isWeekend){
   if(c==='MD')return '#111827';
   if(c==='F')return '#075985';
   if(c==='LI')return '#475467';
+  if(c==='V')return '#166534';
+  if(c==='X')return '#ffffff';
   return '#071421';
 }
 function drawPdfCell(ctx,x,y,w,h,fill,stroke='#9aa4b2'){
@@ -6535,7 +6596,7 @@ function buildAttendanceBookCanvas(){
   const period=attendanceSnapshotPeriod();
   const month=Number(period.month||0), year=Number(period.year||new Date().getFullYear());
   const daysInMonth=new Date(year,month+1,0).getDate();
-  const workersList=activeWorkersForAttendance();
+  const workersList=activeWorkersForAttendance(month,year);
   const recMap=new Map();
   attendance().forEach(r=>{if(r&&r.worker_key&&r.fecha)recMap.set(r.worker_key+'|'+r.fecha,r)});
 
@@ -6600,7 +6661,7 @@ function buildAttendanceBookCanvas(){
   ctx.textAlign='left';
   ctx.font='8.5px Arial';
   ctx.fillStyle='#475467';
-  ctx.fillText('Códigos: A asistencia · N falta · MD medio día · P permiso · F feriado · LI licencia/libre',x0,y+64);
+  ctx.fillText('Códigos: A asistencia · N falta · MD medio día · V vacaciones · P permiso · F feriado · LI licencia/libre · X finiquitado',x0,y+64);
 
   y+=headerTopH;
   ctx.strokeStyle='#6d9427';
@@ -6662,7 +6723,7 @@ function buildAttendanceBookCanvas(){
       for(let d=1;d<=daysInMonth;d++){
         const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const rec=recMap.get(w.key+'|'+dateStr);
-        const code=recordCode(rec);
+        const code=attendanceCodeForDay(w,dateStr,rec);
         const dateObj=new Date(year,month,d);
         const weekday=(dateObj.getDay()+6)%7;
         const isWeekend=weekday>=5;
@@ -6689,7 +6750,7 @@ function buildAttendanceBookCanvas(){
   ctx.fillStyle='#475467';
   ctx.font='8px Arial';
   ctx.textAlign='left';
-  ctx.fillText('Observación: sábados, domingos y feriados no se consideran en los totales de asistencia mensual.',x0,footerY);
+  ctx.fillText('Observación: sábados, domingos, feriados, vacaciones y días posteriores al finiquito no se consideran como faltas en los totales de asistencia mensual.',x0,footerY);
   ctx.strokeStyle='#111827';
   ctx.lineWidth=0.8;
   const sigY=baseH-margin-20;
@@ -6803,7 +6864,7 @@ function renderAttendanceMonthly(){
   const table=byId('attendance_month_table');
   if(!table) return;
   const daysInMonth=new Date(year,month+1,0).getDate();
-  const workersList=activeWorkersForAttendance();
+  const workersList=activeWorkersForAttendance(month,year);
   const recMap=new Map();
   attendance().forEach(r=>{if(!r||!r.worker_key||!r.fecha) return; recMap.set(r.worker_key+'|'+r.fecha,r)});
   let html='<thead><tr><th class="sticky-col head-name" rowspan="2">Nombre del trabajador</th>';
@@ -6825,14 +6886,14 @@ function renderAttendanceMonthly(){
       html += `<tr><td class="sticky-col worker-name">${esc(w.nombre||'')}<span class="worker-rut">${esc(w.rut||'')}</span></td>`;
       for(let d=1; d<=daysInMonth; d++){
         const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const rec=recMap.get(w.key+'|'+dateStr); const code=recordCode(rec);
+        const rec=recMap.get(w.key+'|'+dateStr); const code=attendanceCodeForDay(w,dateStr,rec);
         const dateObj=new Date(year,month,d); const weekday=(dateObj.getDay()+6)%7; const isWeekend=weekday>=5;
         if(!isWeekend){
           if(code==='A') totalAsistidos += 1;
           if(code==='MD'){ totalAsistidos += 0.5; totalFaltantes += 0.5; }
           if(code==='N') totalFaltantes += 1;
         }
-        html += `<td class="matrix-cell ${recordCodeClass(code)} ${isWeekend?'weekend-lite':''}" title="${esc(recordTooltip(rec))}">${esc(code)}</td>`;
+        html += `<td class="matrix-cell ${recordCodeClass(code)} ${isWeekend?'weekend-lite':''}" title="${esc(code==='X'?'Trabajador finiquitado: fuera de dotación desde esta fecha':recordTooltip(rec))}">${esc(code)}</td>`;
       }
       html += `<td class="total-cell total-asistidos">${formatAttendanceBookTotal(totalAsistidos)}</td><td class="total-cell total-faltantes">${formatAttendanceBookTotal(totalFaltantes)}</td></tr>`;
     });
@@ -7262,7 +7323,7 @@ function toggleContractAnexoFields(){
 }
 function toggleAnexoTipoFields(){
   const t=contractVal('contract_anexo_tipo')||'sueldo';
-  ['sueldo','cargo','jornada','horas_extra','horas_descanso','plazo','otro'].forEach(x=>document.body.classList.toggle('anexo-tipo-'+x,t===x));
+  ['sueldo','cargo','jornada','horas_extra','he_compensatorio','horas_descanso','plazo','anexo_libre','otro'].forEach(x=>document.body.classList.toggle('anexo-tipo-'+x,t===x));
 }
 function toggleContractEndDate(){
   const isFixed=contractVal('contract_tipo')==='PLAZO FIJO';
@@ -7284,7 +7345,7 @@ function loadWorkerToContract(){
   renderContractDoc(true);
 }
 function clearContractForm(){
-  ['contract_worker','contract_nombre','contract_rut','contract_cargo','contract_fecha_nacimiento','contract_domicilio_trabajador','contract_correo_trabajador','contract_telefono','contract_rut_representante','contract_fecha_termino','contract_anexo_sueldo','contract_anexo_sueldo_desc','contract_anexo_cargo','contract_anexo_jornada','contract_anexo_he_hasta','contract_anexo_he_desc','contract_anexo_descanso_periodo','contract_anexo_descanso_desc','contract_anexo_hec_hasta','contract_anexo_hec_desc','contract_anexo_fecha_termino','contract_anexo_detalle','contract_amon_hora_hecho','contract_amon_respaldo','contract_amon_detalle','contract_amon_norma','contract_amon_medida','contract_amon_obs'].forEach(id=>{if(byId(id))byId(id).value=''});
+  ['contract_worker','contract_nombre','contract_rut','contract_cargo','contract_fecha_nacimiento','contract_domicilio_trabajador','contract_correo_trabajador','contract_telefono','contract_rut_representante','contract_fecha_termino','contract_anexo_sueldo','contract_anexo_sueldo_desc','contract_anexo_cargo','contract_anexo_jornada','contract_anexo_he_hasta','contract_anexo_he_desc','contract_anexo_descanso_periodo','contract_anexo_descanso_desc','contract_anexo_hec_hasta','contract_anexo_hec_desc','contract_anexo_fecha_termino','contract_anexo_libre_titulo','contract_anexo_libre_puntos','contract_anexo_detalle','contract_amon_hora_hecho','contract_amon_respaldo','contract_amon_detalle','contract_amon_norma','contract_amon_medida','contract_amon_obs'].forEach(id=>{if(byId(id))byId(id).value=''});
   if(byId('contract_doc_tipo'))byId('contract_doc_tipo').value='contrato';
   if(byId('contract_model'))byId('contract_model').value='tecnico';
   if(byId('contract_tipo'))byId('contract_tipo').value='INDEFINIDO';
@@ -7445,7 +7506,7 @@ function buildContractBodyHTML(){
   return body.join('');
 }
 function anexoTipoLabel(){
-  const map={sueldo:'Modificación de sueldo base',cargo:'Cambio de cargo / funciones',jornada:'Cambio de jornada u horario',horas_extra:'Pacto de horas extraordinarias',he_compensatorio:'Acuerdo horas extras por días compensatorios',horas_descanso:'Horas extra compensadas con tiempo de descanso',plazo:'Prórroga o modificación de plazo fijo',otro:'Otro acuerdo'};
+  const map={sueldo:'Modificación de sueldo base',cargo:'Cambio de cargo / funciones',jornada:'Cambio de jornada u horario',horas_extra:'Pacto de horas extraordinarias',he_compensatorio:'Acuerdo horas extras por días compensatorios',horas_descanso:'Horas extra compensadas con tiempo de descanso',plazo:'Prórroga o modificación de plazo fijo',anexo_libre:(contractVal('contract_anexo_libre_titulo')||'Anexo libre'),otro:'Otro acuerdo'};
   return map[contractVal('contract_anexo_tipo')||'sueldo']||'Anexo de contrato';
 }
 function buildAnexoAcuerdoHTML(){
@@ -7468,6 +7529,8 @@ function buildAnexoAcuerdoHTML(){
   const hecPlazo=contractVal('contract_anexo_hec_plazo')||'dentro de los 6 meses siguientes al ciclo en que se originaron';
   const hecAviso=contractVal('contract_anexo_hec_aviso')||'48 horas de anticipación';
   const hecDesc=contractVal('contract_anexo_hec_desc');
+  const libreTitulo=contractVal('contract_anexo_libre_titulo')||'Anexo libre';
+  const librePuntos=contractVal('contract_anexo_libre_puntos');
 
   let main='';
   let specific='';
@@ -7489,6 +7552,12 @@ function buildAnexoAcuerdoHTML(){
     specific=`<p>Para que proceda esta compensación, las horas o tiempos deberán estar autorizados por la jefatura, registrados de forma clara y coordinados previamente con el Trabajador, dejando constancia del período, cantidad de horas y oportunidad del descanso compensatorio.</p>${descansoDesc?`<p><strong>Descripción adicional:</strong> ${esc(descansoDesc)}</p>`:''}`;
   }else if(tipo==='plazo'){
     main=`Las partes acuerdan modificar la vigencia del contrato a plazo fijo, estableciendo como nueva fecha de término el día ${termino}, sin perjuicio de las normas legales aplicables sobre renovación, continuidad de servicios o término de contrato.`;
+  }else if(tipo==='anexo_libre'){
+    main=`A contar del día ${vig}, las partes acuerdan suscribir el presente ${esc(libreTitulo)}, manteniéndose vigentes todas las demás estipulaciones del contrato individual de trabajo que no sean modificadas expresamente por este instrumento.`;
+    const puntos=(librePuntos||'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
+    specific=puntos.length
+      ? puntos.map((p,i)=>`<p><strong>${i+1}.</strong> ${esc(p)}</p>`).join('')
+      : '<p><strong>Detalle del anexo libre:</strong> ________________________________.</p>';
   }else{
     main=`A contar del día ${vig}, las partes acuerdan modificar o complementar el contrato individual de trabajo en los términos indicados en este anexo, manteniéndose vigentes todas las demás estipulaciones no modificadas expresamente.`;
   }
