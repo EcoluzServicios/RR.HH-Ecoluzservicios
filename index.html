@@ -825,6 +825,38 @@ details.form-section summary{
   line-height:1.25;
   font-size:.88em;
 }
+.liq-classic .adjustment-table{
+  margin-top:5px;
+  font-size:10.8px;
+  background:#fff;
+}
+.liq-classic .adjustment-table th{
+  background:#edf4f8;
+  color:#244d6e;
+  font-weight:700;
+}
+.liq-classic .adjustment-table th:nth-child(2),
+.liq-classic .adjustment-table td:nth-child(2){
+  text-align:center;
+  white-space:nowrap;
+  width:22%;
+}
+.liq-classic .adjustment-table th:last-child,
+.liq-classic .adjustment-table td:last-child{
+  text-align:right;
+  white-space:nowrap;
+  width:24%;
+}
+.liq-classic .adjustment-table .adjustment-total{
+  background:#edf3f5;
+  font-weight:800;
+}
+.liq-classic .compact-note{
+  color:#526675;
+  line-height:1.25;
+  font-size:.82em;
+  margin-top:5px;
+}
 .liq-classic .obs-box{
   margin-top:8px;
   border:1px solid #ddd;
@@ -2533,6 +2565,49 @@ body.auth-locked .password-modal{
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style id="payroll-redesign-styles">
+/* Rediseño del ingreso de liquidaciones */
+#view-liquidaciones .payroll-layout{grid-template-columns:minmax(560px,700px) minmax(0,1fr);gap:18px}
+#view-liquidaciones .payroll-panel{padding:18px;scrollbar-gutter:stable}
+.payroll-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+.payroll-title-row h2{margin:3px 0 5px;color:var(--brand-dark);font-size:21px}
+.payroll-title-row p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.payroll-eyebrow{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#6d9427}
+.payroll-state{flex:0 0 auto;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:900}
+.payroll-state.draft{background:#fff4dd;color:#9a5b00}.payroll-state.ready{background:#eaf7d4;color:#486315}
+.payroll-step-card{border:1px solid #dfe6d2;border-radius:17px;background:#fff;padding:15px;margin-bottom:13px;box-shadow:0 6px 18px rgba(16,24,40,.035)}
+.payroll-step-card:focus-within{border-color:#9dbc45;box-shadow:0 0 0 3px rgba(133,175,40,.10)}
+.payroll-step-head{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;margin-bottom:13px}
+.payroll-step-number{width:32px;height:32px;border-radius:10px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900}
+.payroll-step-head strong{display:block;color:#344054;font-size:15px}.payroll-step-head small{display:block;color:var(--muted);font-size:11px;margin-top:2px;line-height:1.35}
+.step-status{padding:5px 8px;border-radius:999px;font-size:10px;font-weight:900;white-space:nowrap}.step-status.pending{background:#f1f5f9;color:#64748b}.step-status.ready{background:#eaf7d4;color:#486315}.step-status.warning{background:#fff4dd;color:#9a5b00}.step-status.error{background:#fee2e2;color:#991b1b}
+.payroll-main-grid{grid-template-columns:1fr 1fr 1fr}.payroll-main-grid .full{grid-column:1/-1}
+.payroll-worker-summary{margin-top:11px;border:1px solid #dbecc0;background:#f8fff0;border-radius:13px;padding:11px 12px;display:flex;flex-direction:column;gap:3px}
+.payroll-worker-summary strong{color:#365314;font-size:14px}.payroll-worker-summary span{font-size:12px;color:#58712f;line-height:1.4}.payroll-worker-summary.empty{background:#f8fafc;border-color:#e2e8f0}.payroll-worker-summary.empty strong,.payroll-worker-summary.empty span{color:#64748b}
+.payroll-details{margin-top:12px;border:1px solid #e2e8f0;border-radius:12px;background:#fbfcfd;overflow:hidden}.payroll-details summary{cursor:pointer;padding:10px 12px;font-size:12px;font-weight:900;color:#475467;list-style:none}.payroll-details summary::-webkit-details-marker{display:none}.payroll-details summary:after{content:'＋';float:right}.payroll-details[open] summary:after{content:'−'}.payroll-details-body{border-top:1px solid #e2e8f0;padding:12px}
+.payroll-subtitle{margin:13px 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:900;color:#486315}
+.payroll-incidence-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.incidence-box{border-radius:12px;padding:9px 10px;border:1px solid #e2e8f0;background:#f8fafc}.incidence-box span{display:block;font-size:10px;color:#64748b;font-weight:800}.incidence-box strong{display:block;margin-top:3px;font-size:13px;color:#334155}.incidence-box.danger{background:#fff6f5;border-color:#fecaca}.incidence-box.purple{background:#faf5ff;border-color:#e9d5ff}.incidence-box.green{background:#f4fbea;border-color:#dbecc0}.incidence-box.amber{background:#fffbeb;border-color:#fde68a}
+.payroll-primary-action{margin:10px 0 4px}.payroll-inline-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.payroll-value-group{border:1px solid #e2e8f0;border-radius:13px;padding:11px;margin-bottom:10px;background:#fbfcfd}.value-group-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}.value-group-head strong{font-size:12px;color:#344054}.value-group-head span{font-size:10px;color:#64748b;text-align:right}
+.payroll-retro-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #fedf89;background:#fffaeb;border-radius:13px;padding:11px 12px}.payroll-retro-toggle strong{display:block;color:#93370d;font-size:12px}.payroll-retro-toggle span{display:block;color:#a15c18;font-size:10px;margin-top:2px}.payroll-retro-toggle select{width:100px;flex:0 0 auto}.payroll-retro-fields{margin-top:10px;border:1px solid #fedf89;border-radius:13px;padding:12px;background:#fffdf8}
+.payroll-previred-card{display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:13px;padding:11px 12px;border:1px solid #e2e8f0;background:#f8fafc}.payroll-previred-card span{display:block;font-size:10px;color:#64748b;font-weight:800}.payroll-previred-card strong{display:block;margin-top:3px;font-size:12px;color:#334155}.payroll-previred-card.ok{background:#f4fbea;border-color:#dbecc0}.payroll-previred-card.ok strong{color:#486315}.payroll-previred-card.warning{background:#fffaeb;border-color:#fedf89}.payroll-previred-card.warning strong{color:#93370d}.payroll-hidden-control{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+.payroll-live-summary{border:1px solid #cddcae;background:linear-gradient(180deg,#fbfff5,#f4fbea);border-radius:16px;padding:13px 14px;margin:14px 0}.live-summary-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding-bottom:8px;border-bottom:1px solid #dbe9c4}.live-summary-head strong{color:#365314}.live-summary-head span{font-size:10px;font-weight:900;background:#fff4dd;color:#9a5b00;padding:4px 8px;border-radius:999px}.live-summary-head span.ok{background:#dcfce7;color:#166534}.live-summary-head span.error{background:#fee2e2;color:#991b1b}.live-summary-row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px dashed #dbe9c4;font-size:12px}.live-summary-row:last-child{border-bottom:0}.live-summary-row span{color:#58712f}.live-summary-row strong{color:#344054}.live-summary-row.total{margin-top:4px;padding-top:10px;font-size:15px}.live-summary-row.total strong{color:#365314;font-size:19px}
+.payroll-actions-sticky{position:sticky;bottom:-18px;z-index:3;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);margin:0 -18px -18px;padding:12px 18px 16px;border-top:1px solid #e2e8f0;display:flex;gap:8px;flex-wrap:wrap}.btn.ghost{background:#fff;border:1px solid #d0d7de;color:#344054}
+.payroll-preview-card{min-width:0}.payroll-preview-head{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #e2e8f0;padding-bottom:12px;margin-bottom:14px}.payroll-preview-head span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;font-weight:900}.payroll-preview-head strong{display:block;margin-top:3px;color:#344054}.payroll-history-block{margin-top:18px;border-top:1px solid #e5e7eb;padding-top:14px}.payroll-history-block h3{margin:0 0 5px;color:var(--brand-dark)}
+#view-liquidaciones input[readonly],#view-liquidaciones .auto-readonly{background:#f1f5f9;color:#475467}
+@media(max-width:1250px){#view-liquidaciones .payroll-layout{grid-template-columns:minmax(520px,610px) minmax(0,1fr)}.payroll-incidence-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:1100px){#view-liquidaciones .payroll-layout{grid-template-columns:1fr}.payroll-panel{position:static;max-height:none}.payroll-main-grid{grid-template-columns:1fr 1fr}.payroll-actions-sticky{bottom:0}.payroll-preview-card{margin-top:0}}
+@media(max-width:650px){.payroll-title-row{flex-direction:column}.payroll-step-head{grid-template-columns:34px minmax(0,1fr)}.payroll-step-head .step-status{grid-column:2;justify-self:start}.payroll-main-grid,.payroll-incidence-grid,#view-liquidaciones .grid{grid-template-columns:1fr}.payroll-inline-pair{grid-template-columns:1fr 1fr}.value-group-head{align-items:flex-start;flex-direction:column}.payroll-retro-toggle,.payroll-previred-card{align-items:flex-start;flex-direction:column}.payroll-retro-toggle select{width:100%}.payroll-actions-sticky .btn{flex:1 1 45%}}
+/* En liquidaciones el formulario permanece visible aunque esté activo el modo Panel auto. */
+body.auto-panels #view-liquidaciones.active > .payroll-layout{grid-template-columns:minmax(560px,700px) minmax(0,1fr)!important}
+body.auto-panels #view-liquidaciones.active > .payroll-layout > .payroll-panel{display:block!important;width:auto!important;min-width:0!important;max-width:none!important;padding:18px!important;overflow:auto!important;max-height:calc(100vh - 104px)!important;min-height:0!important;cursor:auto!important;position:sticky!important;top:88px!important;box-shadow:0 8px 22px rgba(16,24,40,.06)!important}
+body.auto-panels #view-liquidaciones.active > .payroll-layout > .payroll-panel > *{opacity:1!important;pointer-events:auto!important}
+body.auto-panels #view-liquidaciones.active > .payroll-layout > .payroll-panel::before{display:none!important}
+@media(max-width:1100px){body.auto-panels #view-liquidaciones.active > .payroll-layout{grid-template-columns:1fr!important}body.auto-panels #view-liquidaciones.active > .payroll-layout > .payroll-panel{position:static!important;max-height:none!important}}
+@media print{.payroll-preview-head,.payroll-history-block{display:none!important}}
+</style>
+
 </head>
 <body class="auth-locked">
 <div id="authScreen" class="auth-screen">
@@ -2694,145 +2769,234 @@ body.auth-locked .password-modal{
   </section>
 
   <section id="view-liquidaciones" class="view">
-    <div class="layout">
-      <aside class="panel no-print">
-        <div class="note"><strong>Retroactivo:</strong> la liquidación trae un bloque especial para sueldo base retroactivo. Por defecto calcula mayo 2026: $553.553 - $539.000 = $14.553.</div>
+    <div class="layout payroll-layout">
+      <aside class="panel no-print payroll-panel">
+        <div class="payroll-title-row">
+          <div>
+            <span class="payroll-eyebrow">Ingreso mensual</span>
+            <h2>Crear liquidación de sueldo</h2>
+            <p>Selecciona al trabajador, revisa incidencias e ingresa solo los movimientos que cambian este mes.</p>
+          </div>
+          <span id="liq_workflow_state" class="payroll-state draft">Borrador</span>
+        </div>
         <div id="msg-liq" class="status"></div>
-        <div class="form-section">
-          <h3>Trabajador y período</h3>
-          <div class="grid">
-            <div class="full"><label>Cargar trabajador</label><select id="worker_select" onchange="loadSelectedWorkerToPayroll()"><option value="">-- Seleccionar --</option></select></div>
-            <div><label>Folio</label><input id="folio" placeholder="Automático"></div>
-            <div><label>Fecha emisión</label><input id="fecha_emision" type="date"></div>
-            <div class="full"><label>Nombre completo</label><input id="nombre" placeholder="Nombre trabajador"></div>
-            <div><label>RUT trabajador</label><input id="rut" placeholder="12.345.678-9"></div>
-            <div><label>Cargo</label><input id="cargo" placeholder="Cargo"></div>
-            <div><label>Tipo contrato / vinculación</label><select id="tipo_contrato" onchange="applyContractRules();setPayrollPreviredFields(false);generateLiquidacion(false)"><option>Indefinido</option><option>Plazo fijo</option><option>Obra o faena</option></select></div>
-            <div><label>Fecha ingreso</label><input id="fecha_ingreso" type="date"></div>
-            <div><label>Mes</label><select id="mes_liquidacion"><option>ENERO</option><option>FEBRERO</option><option>MARZO</option><option>ABRIL</option><option>MAYO</option><option selected>JUNIO</option><option>JULIO</option><option>AGOSTO</option><option>SEPTIEMBRE</option><option>OCTUBRE</option><option>NOVIEMBRE</option><option>DICIEMBRE</option></select></div>
-            <div><label>Año</label><input id="anio_liquidacion" type="number" value="2026"></div>
-            <div><label>Período desde</label><input id="periodo_desde" type="date"></div>
-            <div><label>Período hasta</label><input id="periodo_hasta" type="date"></div>
+
+        <div class="payroll-step-card" data-payroll-step="1">
+          <div class="payroll-step-head">
+            <span class="payroll-step-number">1</span>
+            <div><strong>Trabajador y período</strong><small>Carga la ficha permanente y define el mes.</small></div>
+            <span id="liq_step_worker_status" class="step-status pending">Pendiente</span>
           </div>
+          <div class="grid payroll-main-grid">
+            <div class="full"><label>Trabajador</label><select id="worker_select" onchange="loadSelectedWorkerToPayroll();updatePayrollUX()"><option value="">-- Seleccionar --</option></select></div>
+            <div><label>Mes</label><select id="mes_liquidacion" onchange="updatePayrollPeriodDates();updatePayrollUX()"><option>ENERO</option><option>FEBRERO</option><option>MARZO</option><option>ABRIL</option><option>MAYO</option><option>JUNIO</option><option>JULIO</option><option>AGOSTO</option><option>SEPTIEMBRE</option><option>OCTUBRE</option><option>NOVIEMBRE</option><option>DICIEMBRE</option></select></div>
+            <div><label>Año</label><input id="anio_liquidacion" type="number" value="2026" onchange="updatePayrollPeriodDates();updatePayrollUX()"></div>
+            <div><label>Fecha de emisión</label><input id="fecha_emision" type="date"></div>
+            <div><label>Folio</label><input id="folio" placeholder="Se genera automáticamente" readonly></div>
+          </div>
+
+          <div id="liq_worker_summary" class="payroll-worker-summary empty">
+            <strong>Selecciona un trabajador</strong>
+            <span>La aplicación cargará sueldo, contrato, previsión y cuenta bancaria desde su ficha.</span>
+          </div>
+
+          <details class="payroll-details" id="liq_worker_details">
+            <summary>Ver o corregir ficha cargada</summary>
+            <div class="payroll-details-body">
+              <div class="grid">
+                <div class="full"><label>Nombre completo</label><input id="nombre" placeholder="Nombre trabajador"></div>
+                <div><label>RUT trabajador</label><input id="rut" placeholder="12.345.678-9"></div>
+                <div><label>Cargo</label><input id="cargo" placeholder="Cargo"></div>
+                <div><label>Tipo contrato</label><select id="tipo_contrato" onchange="applyContractRules();setPayrollPreviredFields(false);generateLiquidacion(false);updatePayrollUX()"><option>Indefinido</option><option>Plazo fijo</option><option>Obra o faena</option></select></div>
+                <div><label>Fecha ingreso</label><input id="fecha_ingreso" type="date"></div>
+                <div><label>Período desde</label><input id="periodo_desde" type="date"></div>
+                <div><label>Período hasta</label><input id="periodo_hasta" type="date"></div>
+              </div>
+              <div class="payroll-subtitle">Datos LRE</div>
+              <div class="grid">
+                <div><label>Región</label><select id="region_code"><option value="1" selected>1 · Tarapacá</option><option value="2">2 · Antofagasta</option><option value="4">4 · Coquimbo</option><option value="13">13 · Metropolitana</option></select></div>
+                <div><label>Comuna</label><select id="comuna_code"><option value="1101" selected>1101 · Iquique</option><option value="2101">2101 · Antofagasta</option><option value="4101">4101 · La Serena</option><option value="4102">4102 · Coquimbo</option><option value="13101">13101 · Santiago</option></select></div>
+                <div><label>Tipo jornada LRE</label><select id="jornada_code"><option value="101" selected>101 · Ordinaria</option><option value="201">201 · Parcial</option><option value="301">301 · Extraordinaria</option></select></div>
+                <div><label>Caja compensación</label><select id="caja_comp"><option>Los Andes</option><option>La Araucana</option><option>18 de Septiembre</option><option>Ninguna</option></select></div>
+              </div>
+              <div class="actions"><button class="btn soft" type="button" onclick="saveWorkerFromPayroll();updatePayrollUX()">Guardar cambios en ficha</button></div>
+            </div>
+          </details>
         </div>
-        <div class="form-section">
-          <h3>Datos LRE básicos</h3>
-          <div class="grid">
-            <div><label>Región prestación servicios</label><select id="region_code"><option value="1" selected>1 · Tarapacá</option><option value="2">2 · Antofagasta</option><option value="4">4 · Coquimbo</option><option value="13">13 · Metropolitana</option></select></div>
-            <div><label>Comuna prestación servicios</label><select id="comuna_code"><option value="1101" selected>1101 · Iquique</option><option value="2101">2101 · Antofagasta</option><option value="4101">4101 · La Serena</option><option value="4102">4102 · Coquimbo</option><option value="13101">13101 · Santiago</option></select></div>
-            <div><label>Tipo jornada LRE</label><select id="jornada_code"><option value="101" selected>101 · Ordinaria</option><option value="201">201 · Parcial</option><option value="301">301 · Extraordinaria</option></select></div>
-            <div><label>Caja compensación</label><select id="caja_comp"><option>Los Andes</option><option>La Araucana</option><option>18 de Septiembre</option><option>Ninguna</option></select></div>
+
+        <div class="payroll-step-card" data-payroll-step="2">
+          <div class="payroll-step-head">
+            <span class="payroll-step-number">2</span>
+            <div><strong>Incidencias del mes</strong><small>Faltas, licencias, vacaciones y atrasos se revisan por separado.</small></div>
+            <span id="liq_step_att_status" class="step-status pending">Sin aplicar</span>
           </div>
+
+          <div class="payroll-incidence-grid">
+            <div class="incidence-box danger"><span>Inasistencias</span><strong id="liq_stat_faltas">0 días</strong></div>
+            <div class="incidence-box purple"><span>Licencia médica</span><strong id="liq_stat_licencias">0 días</strong></div>
+            <div class="incidence-box green"><span>Vacaciones</span><strong id="liq_stat_vacaciones">0 días</strong></div>
+            <div class="incidence-box amber"><span>Atrasos</span><strong id="liq_stat_atrasos">0 h 0 min</strong></div>
+          </div>
+
+          <div class="actions payroll-primary-action">
+            <button class="btn blue" type="button" onclick="applyAttendanceToPayroll();updatePayrollUX()">Actualizar desde asistencia</button>
+          </div>
+
+          <div class="payroll-subtitle">Ajustes que afectan el sueldo base</div>
+          <div class="grid">
+            <div><label>Días de inasistencia sin goce</label><input id="dias_falta_completos" type="number" value="0" min="0" step="1" oninput="syncDiasFaltaEquivalentesManual();updatePayrollUX();generateLiquidacion(false)"><div class="helper">Solo faltas o permisos sin goce. No incluyas licencias aquí.</div></div>
+            <div><label>Días de licencia médica</label><input id="liq_licencia_dias" type="number" value="0" min="0" step="1" oninput="updatePayrollUX();generateLiquidacion(false)"><div class="helper">Se registra separado de las inasistencias.</div></div>
+            <div><label>Horas parciales sin goce</label><input id="horas_falta_parcial" type="number" value="0" min="0" step="0.25" oninput="syncDiasFaltaEquivalentesManual();updatePayrollUX();generateLiquidacion(false)"></div>
+            <div class="payroll-inline-pair"><div><label>Atraso horas</label><input id="atraso_hrs" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div><div><label>Minutos</label><input id="atraso_min" type="number" value="0" min="0" max="59" oninput="updatePayrollUX();generateLiquidacion(false)"></div></div>
+          </div>
+
+          <details class="payroll-details">
+            <summary>Ver resumen y parámetros de asistencia</summary>
+            <div class="payroll-details-body">
+              <div class="grid">
+                <div><label>Hora contractual llegada</label><input id="liq_hora_entrada_ref" type="time" value="09:00"></div>
+                <div><label>Minutos tolerancia</label><input id="liq_tolerancia_min" type="number" value="15" min="0"></div>
+                <div><label>Días base cálculo</label><input id="liq_dias_base_mes" type="number" value="30" min="1" max="31"></div>
+                <div><label>Días trabajados efectivos</label><input id="liq_dias_trabajados_efectivos" type="number" value="0" min="0" readonly></div>
+                <div><label>Días remunerados sueldo base</label><input id="liq_dias_remunerados" type="number" value="30" min="0" readonly></div>
+                <div><label>Días faltados equivalentes</label><input id="dias_falta" class="auto-readonly" type="number" value="0" min="0" step="0.01" readonly></div>
+                <div><label>Horas faltadas informativas</label><input id="horas_falta" class="auto-readonly" type="number" value="0" min="0" step="0.25" readonly></div>
+                <div><label>Horas semanales pactadas</label><input id="horas_semana" type="number" value="42" min="1" step="0.5"></div>
+                <div class="full"><label>Resumen aplicado</label><textarea id="liq_asistencia_resumen" readonly placeholder="Presiona Actualizar desde asistencia."></textarea></div>
+              </div>
+            </div>
+          </details>
         </div>
-        <div class="form-section">
-          <h3>Previsión</h3>
-          <div class="grid">
-            <div><label>AFP</label><select id="afp_select" onchange="setPayrollPreviredFields(false);generateLiquidacion(false)"><option value="HABITAT">Hábitat</option><option value="PROVIDA">ProVida</option><option value="CAPITAL">Capital</option><option value="CUPRUM">Cuprum</option><option value="PLANVITAL">PlanVital</option><option value="MODELO">Modelo</option><option value="UNO">Uno</option><option value="NINGUNA">No cotiza AFP</option><option value="OTRA">Otra</option></select></div>
-            <div><label>% AFP</label><input id="afp_pct" type="number" step="0.01" value="10.58"></div>
-            <div><label>Salud</label><select id="salud_select" onchange="setPayrollPreviredFields(false);generateLiquidacion(false)"><option>Fonasa</option><option>Banmédica</option><option>Consalud</option><option>Colmena</option><option>Cruz Blanca</option><option>Nueva Masvida</option><option>Vida Tres</option><option>Otra</option></select></div>
-            <div><label>Modalidad salud</label><select id="salud_modalidad"><option value="porcentaje">Porcentaje imponible</option><option value="monto">Monto pactado</option></select></div>
-            <div><label>% o monto salud</label><input id="salud_valor" type="number" step="0.01" value="7"></div>
-            <div><label>% AFC trabajador</label><input id="afc_pct" type="number" step="0.01" value="0.60"><div class="helper" id="afc_help">Indefinido: normalmente 0,6% trabajador.</div></div>
+
+        <div class="payroll-step-card" data-payroll-step="3">
+          <div class="payroll-step-head">
+            <span class="payroll-step-number">3</span>
+            <div><strong>Movimientos variables</strong><small>Completa solamente los conceptos que cambian este mes.</small></div>
+            <span id="liq_step_values_status" class="step-status ready">Revisar</span>
           </div>
-          <div class="actions"><button class="btn soft" type="button" onclick="applyPreviredToPayroll()">Aplicar indicadores PreviRed guardados</button></div>
-        </div>
-        <div class="form-section">
-          <h3>PreviRed asociado a la liquidación</h3>
-          <div class="note"><strong>Automático:</strong> se toman los porcentajes guardados en PreviRed según el mes y año de esta liquidación. Si el trabajador está en Fonasa se aplica salud legal. Si está en AFP Modelo se aplica el porcentaje Modelo guardado para el mes.</div>
-          <div class="grid">
-            <div class="full"><label>Indicadores PreviRed del período</label><input id="liq_previred_info" readonly placeholder="No hay porcentajes PreviRed guardados para este mes/año."></div>
+
+          <div class="payroll-value-group">
+            <div class="value-group-head"><strong>Haberes imponibles</strong><span>Afectos a cotizaciones</span></div>
+            <div class="grid">
+              <div><label>Sueldo base mensual</label><input id="sueldo_base" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+              <div><label>Gratificación legal</label><select id="aplica_grat" onchange="updatePayrollUX();generateLiquidacion(false)"><option value="si">Sí</option><option value="no">No</option></select></div>
+              <div><label>Horas extraordinarias ($)</label><input id="horas_extra_monto" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+              <div><label>Bonos imponibles</label><input id="bonos" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+              <div class="full"><label>Otros imponibles</label><input id="otros_imp" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+            </div>
           </div>
-          <div class="actions">
-            <button class="btn blue" type="button" onclick="applyPreviredToPayroll()">Aplicar porcentajes del período</button>
+
+          <div class="payroll-value-group">
+            <div class="value-group-head"><strong>Haberes no imponibles</strong><span>No afectan cotizaciones</span></div>
+            <div class="grid">
+              <div><label>Colación</label><input id="colacion" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+              <div><label>Movilización</label><input id="movilizacion" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+              <div><label>Viáticos</label><input id="viaticos" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+              <div><label>Otros no imponibles</label><input id="otros_noimp" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+            </div>
+          </div>
+
+          <div class="payroll-value-group">
+            <div class="value-group-head"><strong>Cargas y otros descuentos</strong><span>Anticipos, quincena y descuentos autorizados</span></div>
+            <div class="grid">
+              <div><label>Cargas familiares</label><input id="cargas" type="number" value="0" min="0" oninput="updateFamilyAllowancePreview();updatePayrollUX();generateLiquidacion(false)"></div>
+              <div><label>Monto por carga automático</label><input id="monto_carga" class="auto-readonly" type="number" value="0" min="0" readonly></div>
+              <div class="full"><label>Tramo asignación familiar</label><input id="asig_tramo_info" class="auto-readonly" readonly placeholder="Se calcula al generar"></div>
+              <div><label>Anticipo de remuneración</label><input id="anticipo" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+              <div><label>Otros descuentos</label><input id="otros_desc" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+            </div>
+          </div>
+
+          <div class="payroll-retro-toggle">
+            <div><strong>¿Agregar retroactivo?</strong><span>Permanece desactivado para evitar repetir pagos.</span></div>
+            <select id="aplica_retro" onchange="togglePayrollRetro();updatePayrollUX();generateLiquidacion(false)"><option value="no" selected>No</option><option value="si">Sí</option></select>
+          </div>
+          <div id="liq_retro_fields" class="payroll-retro-fields hidden">
+            <div class="warn"><strong>Revisión obligatoria:</strong> confirma que este retroactivo no haya sido pagado en una liquidación anterior.</div>
+            <div class="grid">
+              <div><label>Meses retroactivos</label><input id="retro_meses" type="number" value="1" min="0"></div>
+              <div><label>Sueldo anterior</label><input id="retro_sueldo_anterior" type="number" value="0"></div>
+              <div><label>Sueldo nuevo</label><input id="retro_sueldo_nuevo" type="number" value="0"></div>
+              <div><label>Retroactivo manual</label><input id="retro_manual" type="number" value="0"><div class="helper">Si queda en 0, se calcula automáticamente.</div></div>
+              <div><label>Gratificación retroactiva</label><select id="retro_grat_auto"><option value="auto">Automática 25%</option><option value="manual">Manual</option><option value="no">No aplicar</option></select></div>
+              <div><label>Gratificación manual</label><input id="retro_grat_manual" type="number" value="0"></div>
+              <div><label>Tope gratificación mensual</label><input id="grat_tope" type="number" value="219323"></div>
+              <div class="full"><label>Concepto retroactivo</label><input id="retro_concepto" placeholder="Ej.: Retroactivo sueldo base junio 2026"></div>
+            </div>
           </div>
         </div>
 
-        <div class="form-section">
-          <h3>Asistencia del mes para liquidación</h3>
-          <div class="note"><strong>Automático:</strong> toma la asistencia registrada del trabajador en el mes de la liquidación. Las inasistencias completas se descuentan por valor día (sueldo mensual / 30). Los medios días u horas específicas se descuentan por valor hora, considerando jornada real: lunes a jueves 8,5 horas y viernes 8 horas.</div>
-          <div class="grid">
-            <div><label>Hora contractual de llegada</label><input id="liq_hora_entrada_ref" type="time" value="09:00"></div>
-            <div><label>Minutos de tolerancia</label><input id="liq_tolerancia_min" type="number" value="15" min="0"></div>
-            <div><label>Días base de cálculo</label><input id="liq_dias_base_mes" type="number" value="30" min="1" max="31"></div>
-            <div><label>Días trabajados efectivos</label><input id="liq_dias_trabajados_efectivos" type="number" value="0" min="0" readonly></div>
-            <div><label>Días remunerados sueldo base</label><input id="liq_dias_remunerados" type="number" value="30" min="0" readonly><div class="helper">Se calcula como días base menos días faltados.</div></div>
-            <div class="full"><label>Resumen aplicado</label><textarea id="liq_asistencia_resumen" readonly placeholder="Aquí se mostrará el resumen de asistencia aplicado a la liquidación."></textarea></div>
+        <div class="payroll-step-card" data-payroll-step="4">
+          <div class="payroll-step-head">
+            <span class="payroll-step-number">4</span>
+            <div><strong>Previsión y pago</strong><small>Confirma indicadores PreviRed y datos de transferencia.</small></div>
+            <span id="liq_step_prev_status" class="step-status pending">Pendiente</span>
           </div>
-          <div class="actions">
-            <button class="btn blue" type="button" onclick="applyAttendanceToPayroll()">Aplicar asistencia del mes</button>
-          </div>
-        </div>
 
-        <div class="form-section">
-          <h3>Haberes y descuentos</h3>
-          <div class="grid">
-            <div><label>Sueldo base mensual</label><input id="sueldo_base" type="number" value="553553" min="0"></div>
-            <div><label>Aplicar gratificación legal</label><select id="aplica_grat"><option value="si">Sí</option><option value="no">No</option></select></div>
-            <div><label>Bonos imponibles</label><input id="bonos" type="number" value="0" min="0"></div>
-            <div><label>Otros imponibles</label><input id="otros_imp" type="number" value="0" min="0"></div>
-            <div><label>Colación</label><input id="colacion" type="number" value="0" min="0"></div>
-            <div><label>Movilización</label><input id="movilizacion" type="number" value="0" min="0"></div>
-            <div><label>Viáticos</label><input id="viaticos" type="number" value="0" min="0"></div>
-            <div><label>Otros no imponibles</label><input id="otros_noimp" type="number" value="0" min="0"></div>
-            <div><label>Días completos sin goce</label><input id="dias_falta_completos" type="number" value="0" min="0" step="1" oninput="syncDiasFaltaEquivalentesManual();generateLiquidacion(false)"><div class="helper">Se descuentan por valor día: sueldo base / 30.</div></div>
-            <div><label>Horas parciales sin goce</label><input id="horas_falta_parcial" type="number" value="0" min="0" step="0.25" oninput="syncDiasFaltaEquivalentesManual();generateLiquidacion(false)"><div class="helper">Solo medios días u horas específicas; se descuentan por valor hora.</div></div>
-            <div><label>Días faltados equivalentes</label><input id="dias_falta" class="auto-readonly" type="number" value="0" min="0" step="0.01" readonly><div class="helper">Dato informativo para días pagados.</div></div>
-            <div><label>Horas faltadas informativas</label><input id="horas_falta" class="auto-readonly" type="number" value="0" min="0" step="0.25" readonly><div class="helper">Incluye horas de jornadas completas y parciales según asistencia.</div></div>
-            <div><label>Atrasos horas</label><input id="atraso_hrs" type="number" value="0" min="0"></div>
-            <div><label>Atrasos minutos</label><input id="atraso_min" type="number" value="0" min="0" max="59"></div>
-            <div><label>Horas semanales pactadas</label><input id="horas_semana" type="number" value="42" min="1" step="0.5"><div class="helper">Para valor hora de descuentos.</div></div>
-            <div><label>Cargas familiares</label><input id="cargas" type="number" value="0" min="0"></div>
-            <div><label>Monto por carga automático</label><input id="monto_carga" class="auto-readonly" type="number" value="0" min="0" readonly><div class="helper">Se calcula por tramo PreviRed del mes.</div></div>
-            <div><label>Tramo asignación familiar</label><input id="asig_tramo_info" class="auto-readonly" readonly placeholder="Se calcula al generar"></div>
-            <div><label>Anticipo / quincena</label><input id="anticipo" type="number" value="0" min="0"></div>
-            <div><label>Otros descuentos</label><input id="otros_desc" type="number" value="0" min="0"></div>
+          <div id="liq_previred_card" class="payroll-previred-card warning">
+            <div><span>PreviRed del período</span><strong id="liq_previred_status_text">Sin verificar</strong></div>
+            <button class="btn soft small" type="button" onclick="applyPreviredToPayroll();updatePayrollUX()">Aplicar porcentajes</button>
           </div>
-        </div>
-        <div class="form-section">
-          <h3>Retroactivo sueldo base</h3>
+          <input id="liq_previred_info" class="payroll-hidden-control" readonly placeholder="No hay porcentajes PreviRed guardados para este mes/año.">
+
+          <details class="payroll-details">
+            <summary>Ver porcentajes previsionales</summary>
+            <div class="payroll-details-body">
+              <div class="grid">
+                <div><label>AFP</label><select id="afp_select" onchange="setPayrollPreviredFields(false);generateLiquidacion(false);updatePayrollUX()"><option value="HABITAT">Hábitat</option><option value="PROVIDA">ProVida</option><option value="CAPITAL">Capital</option><option value="CUPRUM">Cuprum</option><option value="PLANVITAL">PlanVital</option><option value="MODELO">Modelo</option><option value="UNO">Uno</option><option value="NINGUNA">No cotiza AFP</option><option value="OTRA">Otra</option></select></div>
+                <div><label>% AFP</label><input id="afp_pct" type="number" step="0.01" value="10.58"></div>
+                <div><label>Salud</label><select id="salud_select" onchange="setPayrollPreviredFields(false);generateLiquidacion(false);updatePayrollUX()"><option>Fonasa</option><option>Banmédica</option><option>Consalud</option><option>Colmena</option><option>Cruz Blanca</option><option>Nueva Masvida</option><option>Vida Tres</option><option>Otra</option></select></div>
+                <div><label>Modalidad salud</label><select id="salud_modalidad"><option value="porcentaje">Porcentaje imponible</option><option value="monto">Monto pactado</option></select></div>
+                <div><label>% o monto salud</label><input id="salud_valor" type="number" step="0.01" value="7"></div>
+                <div><label>% AFC trabajador</label><input id="afc_pct" type="number" step="0.01" value="0.60"><div class="helper" id="afc_help">Indefinido: normalmente 0,6% trabajador.</div></div>
+              </div>
+            </div>
+          </details>
+
+          <div class="payroll-subtitle">Datos de pago</div>
           <div class="grid">
-            <div><label>Aplicar retroactivo</label><select id="aplica_retro"><option value="si">Sí</option><option value="no">No</option></select></div>
-            <div><label>Meses retroactivos</label><input id="retro_meses" type="number" value="1" min="0"></div>
-            <div><label>Sueldo anterior</label><input id="retro_sueldo_anterior" type="number" value="539000"></div>
-            <div><label>Sueldo nuevo</label><input id="retro_sueldo_nuevo" type="number" value="553553"></div>
-            <div><label>Retroactivo manual</label><input id="retro_manual" type="number" value="0"><div class="helper">Si lo dejas en 0, se calcula automático.</div></div>
-            <div><label>Gratificación retroactiva</label><select id="retro_grat_auto"><option value="auto">Automática 25%</option><option value="manual">Manual</option><option value="no">No aplicar</option></select></div>
-            <div><label>Monto gratificación retroactiva manual</label><input id="retro_grat_manual" type="number" value="0"></div>
-            <div><label>Tope gratificación mensual</label><input id="grat_tope" type="number" value="219323"></div>
-            <div class="full"><label>Concepto retroactivo</label><input id="retro_concepto" value="Retroactivo sueldo base MAYO 2026 por reajuste IMM"></div>
-          </div>
-        </div>
-        <div class="form-section">
-          <h3>Cuenta de pago en liquidación</h3>
-          <div class="grid">
+            <div><label>Fecha de pago</label><input id="liq_fecha_pago" type="date"></div>
+            <div><label>Método de pago</label><select id="liq_metodo_pago" onchange="updatePayrollUX()"><option>Transferencia</option><option>Efectivo</option><option>Cheque</option><option>Vale vista</option><option>Otro</option></select></div>
             <div><label>Banco</label><input id="banco_pago" placeholder="Banco"></div>
             <div><label>Tipo cuenta</label><select id="tipo_cuenta_pago"><option value="">Seleccionar</option><option>Cuenta Corriente</option><option>Cuenta Vista</option><option>Cuenta RUT</option><option>Chequera electrónica</option><option>Otra</option></select></div>
             <div><label>N° cuenta</label><input id="numero_cuenta_pago" placeholder="Número de cuenta"></div>
             <div><label>Titular</label><input id="titular_cuenta_pago" placeholder="Titular"></div>
-            <div><label>Fecha de pago liquidación</label><input id="liq_fecha_pago" type="date"></div>
-            <div><label>Método de pago liquidación</label><select id="liq_metodo_pago"><option>Transferencia</option><option>Efectivo</option><option>Cheque</option><option>Vale vista</option><option>Otro</option></select></div>
-            <div class="full"><label>Observaciones</label><textarea id="observaciones" placeholder="Ej.: pago retroactivo de mayo incluido en liquidación de junio"></textarea></div>
+            <div class="full"><label>Observaciones</label><textarea id="observaciones" placeholder="Solo agrega información relevante para esta liquidación."></textarea></div>
           </div>
         </div>
-        <div class="actions">
-          <button class="btn primary" onclick="generateLiquidacion(true)">Calcular</button>
-          <button class="btn blue" onclick="saveLiquidacionToBook()">Guardar liquidación</button>
-          <button class="btn dark" onclick="printLiquidacion()">Imprimir / PDF</button>
-          <button class="btn soft" onclick="saveWorkerFromPayroll()">Guardar trabajador</button>
-          <button class="btn soft" onclick="clearPayrollForm()">Limpiar</button>
+
+        <div class="payroll-live-summary">
+          <div class="live-summary-head"><strong>Resumen antes de guardar</strong><span id="liq_validation_badge">Revisar datos</span></div>
+          <div class="live-summary-row"><span>Sueldo base pagado</span><strong id="liq_live_base">$0</strong></div>
+          <div class="live-summary-row"><span>Total imponible</span><strong id="liq_live_imponible">$0</strong></div>
+          <div class="live-summary-row"><span>Total haberes</span><strong id="liq_live_haberes">$0</strong></div>
+          <div class="live-summary-row"><span>Total descuentos</span><strong id="liq_live_descuentos">$0</strong></div>
+          <div class="live-summary-row total"><span>Líquido a pagar</span><strong id="liq_live_liquido">$0</strong></div>
+        </div>
+
+        <div class="payroll-actions-sticky">
+          <button class="btn soft" type="button" onclick="generateLiquidacion(true)">Recalcular</button>
+          <button class="btn blue" type="button" onclick="saveLiquidacionToBook()">Guardar liquidación</button>
+          <button class="btn dark" type="button" onclick="printLiquidacion()">Imprimir / PDF</button>
+          <button class="btn ghost" type="button" onclick="clearPayrollForm()">Nueva liquidación</button>
         </div>
       </aside>
-      <div class="card">
+
+      <div class="card payroll-preview-card">
+        <div class="payroll-preview-head no-print">
+          <div><span>Vista previa</span><strong id="liq_preview_title">Selecciona un trabajador para comenzar</strong></div>
+          <button class="btn soft small" type="button" onclick="generateLiquidacion(true)">Actualizar vista previa</button>
+        </div>
         <div id="print_host"></div>
-        <div class="no-print" style="margin-top:18px;border-top:1px solid #e5e7eb;padding-top:14px">
-          <h3 style="margin:0 0 6px;color:var(--brand-dark)">Liquidaciones guardadas del trabajador</h3>
-          <p class="small" style="margin-top:0">Selecciona un trabajador para ver sus liquidaciones guardadas y volver a cargarlas cuando las necesites.</p>
+        <div class="no-print payroll-history-block">
+          <h3>Liquidaciones guardadas del trabajador</h3>
+          <p class="small">Puedes volver a cargar, imprimir o eliminar una liquidación guardada.</p>
           <div class="table-wrap"><table class="data-table" id="liq_saved_table"></table></div>
         </div>
-        <div class="no-print" style="margin-top:18px;border-top:1px solid #e5e7eb;padding-top:14px">
-          <h3 style="margin:0 0 6px;color:var(--brand-dark)">Cuadro general de pagos</h3>
-          <p class="small" style="margin-top:0">Muestra todas las liquidaciones y pagos a honorarios guardados del mes seleccionado, sin depender del trabajador cargado arriba, con fecha, monto, método, respaldo y espacio de firma.</p>
-          <div class="actions" style="margin-top:8px"><button class="btn primary" type="button" onclick="printLiquidacionesPagosPDF()">Imprimir cuadro / PDF</button></div>
+        <div class="no-print payroll-history-block">
+          <h3>Cuadro general de pagos</h3>
+          <p class="small">Muestra las liquidaciones y pagos a honorarios del período seleccionado.</p>
+          <div class="actions"><button class="btn primary" type="button" onclick="printLiquidacionesPagosPDF()">Imprimir cuadro / PDF</button></div>
           <div class="quin-sign-card" id="liq_payment_card"><div id="liq_payment_preview"></div></div>
         </div>
       </div>
@@ -5343,6 +5507,7 @@ function updateFamilyAllowancePreview(){
 function calculate(){
 setPayrollPreviredFields(false);
 const diasMes=Math.max(num('liq_dias_base_mes')||30,1), base=num('sueldo_base');
+const licenciaDias=Math.max(num('liq_licencia_dias'),0);
 let diasFalta=Math.max(num('dias_falta'),0), atrasoH=num('atraso_hrs')+(num('atraso_min')/60);
 const horasSemana=Math.max(num('horas_semana')||42,1);
 let horasFalta=Math.max(num('horas_falta'),0);
@@ -5364,7 +5529,7 @@ if(!horasFalta && (diasFaltaCompletos || horasFaltaParcial)){
   horasFalta=horasFaltaParcial;
   if(byId('horas_falta'))byId('horas_falta').value=String(Number(horasFalta.toFixed(2)));
 }
-const diasRemunerados=Math.max(diasMes-diasFalta,0);
+const diasRemunerados=Math.max(diasMes-diasFalta-licenciaDias,0);
 let diasTrabajadosEfectivos=num('liq_dias_trabajados_efectivos');
 if(!diasTrabajadosEfectivos) diasTrabajadosEfectivos=diasRemunerados;
 if(byId('liq_dias_remunerados'))byId('liq_dias_remunerados').value=String(Number(diasRemunerados.toFixed(2)));
@@ -5374,7 +5539,8 @@ const valorHora=((base/30)*28)/(horasSemana*4);
 const descFaltasDias=valorDia*diasFaltaCompletos;
 const descFaltasHoras=valorHora*horasFaltaParcial;
 const descFaltas=descFaltasDias+descFaltasHoras, descAtrasos=valorHora*atrasoH;
-const basePagado=Math.max(base-descFaltas-descAtrasos,0);
+const descLicencia=valorDia*licenciaDias;
+const basePagado=Math.max(base-descFaltas-descLicencia-descAtrasos,0);
 const aplicaGrat=val('aplica_grat')==='si';
 const grat=aplicaGrat?Math.min(basePagado*0.25,num('grat_tope')):0;
 const retroActivo=val('aplica_retro')==='si';
@@ -5382,8 +5548,9 @@ let retroBase=0;
 if(retroActivo){retroBase=num('retro_manual')>0?num('retro_manual'):Math.max(num('retro_sueldo_nuevo')-num('retro_sueldo_anterior'),0)*Math.max(num('retro_meses'),0)}
 let retroGrat=0;
 if(retroActivo&&aplicaGrat){if(val('retro_grat_auto')==='auto')retroGrat=retroBase*0.25;else if(val('retro_grat_auto')==='manual')retroGrat=num('retro_grat_manual')}
+const horasExtraMonto=num('horas_extra_monto');
 const bonos=num('bonos'), otrosImp=num('otros_imp');
-const totalImp=basePagado+grat+retroBase+retroGrat+bonos+otrosImp;
+const totalImp=basePagado+grat+retroBase+retroGrat+horasExtraMonto+bonos+otrosImp;
 const col=num('colacion'), mov=num('movilizacion'), via=num('viaticos'), otrosNo=num('otros_noimp');
 const familyAuto=familyAllowanceFromPrevired(totalImp,num('cargas'));
 const asig=familyAuto.total;
@@ -5397,7 +5564,7 @@ const anticipo=num('anticipo'), otrosDesc=num('otros_desc');
 const totalHab=totalImp+totalNo;
 const totalDesc=afp+salud+afc+anticipo+otrosDesc;
 const liq=totalHab-totalDesc;
-return attachPreviredPDFToLiquidacionData({id:Date.now(),folio:val('folio')||'',fecha_emision:val('fecha_emision'),nombre:val('nombre'),rut:val('rut'),cargo:val('cargo'),tipo_contrato:val('tipo_contrato'),fecha_ingreso:val('fecha_ingreso'),mes:val('mes_liquidacion'),anio:val('anio_liquidacion'),periodo_desde:val('periodo_desde'),periodo_hasta:val('periodo_hasta'),region_code:val('region_code'),comuna_code:val('comuna_code'),jornada_code:val('jornada_code'),caja_comp:val('caja_comp'),afp_code:val('afp_select'),afp_name:AFP_LABELS[val('afp_select')]||val('afp_select'),afp_pct:num('afp_pct'),salud_name:val('salud_select'),salud_valor:num('salud_valor'),salud_modalidad:val('salud_modalidad'),afc_pct:num('afc_pct'),base_pactado:base,base_pagado:basePagado,valor_dia_descuento:valorDia,descuento_faltas:descFaltas,descuento_faltas_dias:descFaltasDias,descuento_faltas_horas:descFaltasHoras,descuento_atrasos:descAtrasos,dias_base_mes:diasMes,dias_trabajados_efectivos:diasTrabajadosEfectivos,dias_remunerados:diasRemunerados,dias_falta:diasFalta,dias_falta_completos:diasFaltaCompletos,horas_falta:horasFalta,horas_falta_parcial:horasFaltaParcial,horas_semana:horasSemana,valor_hora_descuento:valorHora,atraso_horas:atrasoH,gratificacion:grat,bonos,otros_imp:otrosImp,retro_base:retroBase,retro_grat:retroGrat,retro_concepto:val('retro_concepto'),colacion:col,movilizacion:mov,viaticos:via,otros_noimp:otrosNo,asig_familiar:asig,cargas:num('cargas'),asig_tramo:familyAuto.tramo,asig_monto_carga:familyAuto.montoPorCarga,asig_base_calculo:familyAuto.baseRenta,asig_detalle:familyAuto.detalle,afp,salud,afc,anticipo,otros_desc:otrosDesc,total_imponible:totalImp,total_noimp:totalNo,total_haberes:totalHab,total_descuentos:totalDesc,liquido:liq,banco_pago:val('banco_pago'),tipo_cuenta_pago:val('tipo_cuenta_pago'),numero_cuenta_pago:val('numero_cuenta_pago'),titular_cuenta_pago:val('titular_cuenta_pago'),fecha_pago:val('liq_fecha_pago')||val('fecha_emision'),metodo_pago:val('liq_metodo_pago')||'Transferencia',observaciones:val('observaciones')})}
+return attachPreviredPDFToLiquidacionData({id:Date.now(),folio:val('folio')||'',fecha_emision:val('fecha_emision'),nombre:val('nombre'),rut:val('rut'),cargo:val('cargo'),tipo_contrato:val('tipo_contrato'),fecha_ingreso:val('fecha_ingreso'),mes:val('mes_liquidacion'),anio:val('anio_liquidacion'),periodo_desde:val('periodo_desde'),periodo_hasta:val('periodo_hasta'),region_code:val('region_code'),comuna_code:val('comuna_code'),jornada_code:val('jornada_code'),caja_comp:val('caja_comp'),afp_code:val('afp_select'),afp_name:AFP_LABELS[val('afp_select')]||val('afp_select'),afp_pct:num('afp_pct'),salud_name:val('salud_select'),salud_valor:num('salud_valor'),salud_modalidad:val('salud_modalidad'),afc_pct:num('afc_pct'),base_pactado:base,base_pagado:basePagado,valor_dia_descuento:valorDia,descuento_faltas:descFaltas,descuento_faltas_dias:descFaltasDias,descuento_faltas_horas:descFaltasHoras,descuento_licencia:descLicencia,licencia_dias:licenciaDias,descuento_atrasos:descAtrasos,dias_base_mes:diasMes,dias_trabajados_efectivos:diasTrabajadosEfectivos,dias_remunerados:diasRemunerados,dias_falta:diasFalta,dias_falta_completos:diasFaltaCompletos,horas_falta:horasFalta,horas_falta_parcial:horasFaltaParcial,horas_semana:horasSemana,valor_hora_descuento:valorHora,atraso_horas:atrasoH,gratificacion:grat,horas_extra_monto:horasExtraMonto,bonos,otros_imp:otrosImp,retro_base:retroBase,retro_grat:retroGrat,retro_concepto:val('retro_concepto'),colacion:col,movilizacion:mov,viaticos:via,otros_noimp:otrosNo,asig_familiar:asig,cargas:num('cargas'),asig_tramo:familyAuto.tramo,asig_monto_carga:familyAuto.montoPorCarga,asig_base_calculo:familyAuto.baseRenta,asig_detalle:familyAuto.detalle,afp,salud,afc,anticipo,otros_desc:otrosDesc,total_imponible:totalImp,total_noimp:totalNo,total_haberes:totalHab,total_descuentos:totalDesc,liquido:liq,banco_pago:val('banco_pago'),tipo_cuenta_pago:val('tipo_cuenta_pago'),numero_cuenta_pago:val('numero_cuenta_pago'),titular_cuenta_pago:val('titular_cuenta_pago'),fecha_pago:val('liq_fecha_pago')||val('fecha_emision'),metodo_pago:val('liq_metodo_pago')||'Transferencia',observaciones:val('observaciones')})}
 
 
 
@@ -5563,8 +5730,10 @@ function applyAttendanceToPayroll(){
   const horasFalta=Number((s.faltasHoras||0).toFixed(2));
   const diasFaltaCompletos=Number(s.faltasCompletas||0);
   const horasFaltaParcial=Number((s.faltasParcialesHoras||0).toFixed(2));
-  const diasRemunerados=Math.max(diasBase-diasFaltaEq,0);
+  const diasLicencia=Number(s.licencias||0);
+  const diasRemunerados=Math.max(diasBase-diasFaltaEq-diasLicencia,0);
   if(byId('dias_falta_completos'))byId('dias_falta_completos').value=String(diasFaltaCompletos);
+  if(byId('liq_licencia_dias'))byId('liq_licencia_dias').value=String(diasLicencia);
   if(byId('horas_falta_parcial'))byId('horas_falta_parcial').value=String(horasFaltaParcial);
   if(byId('dias_falta'))byId('dias_falta').value=String(diasFaltaEq);
   if(byId('horas_falta'))byId('horas_falta').value=String(horasFalta);
@@ -5581,7 +5750,7 @@ function applyAttendanceToPayroll(){
     `Atrasos descontables: ${atrasoHrs} hora(s) y ${atrasoMin} minuto(s)`,
     `Vacaciones: ${s.vacaciones||0}`,
     `Permisos: ${s.permisos}`,
-    `Licencias: ${s.licencias}`,
+    `Licencias médicas separadas de inasistencias: ${s.licencias}`,
     `Feriados: ${s.feriados}`,
     `Libres: ${s.libres}`,
     `Criterio atraso: llegada posterior a ${entradaRef} con ${tolerancia} min de tolerancia. Sábados y domingos no se consideran. Días completos se descuentan por sueldo/30; medios días u horas específicas se descuentan por valor hora.`
@@ -5589,11 +5758,13 @@ function applyAttendanceToPayroll(){
   if(byId('liq_asistencia_resumen'))byId('liq_asistencia_resumen').value=resumen;
   if(byId('observaciones')){
     const actual=val('observaciones');
-    const nota=`Asistencia aplicada: ${s.asistencias} día(s) trabajados efectivos, ${diasRemunerados} día(s) remunerados para sueldo base, ${diasFaltaCompletos} día(s) completo(s) sin goce, ${horasFaltaParcial} hora(s) parcial(es) sin goce y ${atrasoHrs} hora(s) ${atrasoMin} minuto(s) de atraso según registros de asistencia del mes.`;
+    const nota=`Asistencia aplicada: ${s.asistencias} día(s) trabajados efectivos, ${diasRemunerados} día(s) remunerados por el empleador para sueldo base, ${diasFaltaCompletos} día(s) de inasistencia sin goce, ${diasLicencia} día(s) de licencia médica, ${horasFaltaParcial} hora(s) parcial(es) sin goce y ${atrasoHrs} hora(s) ${atrasoMin} minuto(s) de atraso.`;
     byId('observaciones').value=actual ? actual+'\n'+nota : nota;
   }
   generateLiquidacion(false);
-  showMsg('msg-liq','Asistencia del mes aplicada a la liquidación.','ok');
+  if(typeof updatePayrollIncidenceCards==='function')updatePayrollIncidenceCards(s);
+  if(typeof updatePayrollUX==='function')updatePayrollUX();
+  showMsg('msg-liq','Asistencia aplicada: faltas y licencias quedaron separadas.','ok');
 }
 
 
@@ -5613,6 +5784,8 @@ function generateLiquidacion(show=true){
   const d=calculate();
   d.folio=getFolio();
   renderLiquidacion(d);
+  if(typeof updatePayrollLiveSummary==='function')updatePayrollLiveSummary(d);
+  if(typeof updatePayrollUX==='function')updatePayrollUX(d);
   saveDraft();
   if(show)showMsg('msg-liq','Liquidación calculada correctamente.');
   return d;
@@ -5623,19 +5796,24 @@ function renderLiquidacion(d){
   const pct=(v)=>Number(v||0).toFixed(2).replace('.',',');
   const mrow=(label,value,extra='')=>showMoney(value)?`<tr><td>${label}${extra}</td><td class="right">${clp(value)}</td></tr>`:'';
   const drow=(label,value,extra='')=>showMoney(value)?`<tr><td>${label}${extra}</td><td class="right">${clp(value)}</td></tr>`:'';
-  const huboAjusteBase=showMoney(d.descuento_faltas)||showMoney(d.descuento_atrasos);
+  const huboAjusteBase=showMoney(d.descuento_faltas)||showMoney(d.descuento_licencia)||showMoney(d.descuento_atrasos);
   const atrasoHoras=Math.floor(Number(d.atraso_horas||0));
   const atrasoMin=Math.round((Number(d.atraso_horas||0)-atrasoHoras)*60);
-  const resumenAjuste=[];
-  if(showMoney(d.descuento_faltas_dias))resumenAjuste.push(`Sueldo base pactado ${clp(d.base_pactado)}; ${Number(d.dias_falta_completos||0).toFixed(0)} día(s) completo(s) sin goce se descuentan por valor día ${clp(d.valor_dia_descuento||0)}: ${clp(d.descuento_faltas_dias)}.`);
-  if(showMoney(d.descuento_faltas_horas))resumenAjuste.push(`${Number(d.horas_falta_parcial||0).toFixed(2)} hora(s) parcial(es) sin goce se descuentan por valor hora ${clp(d.valor_hora_descuento||0)}: ${clp(d.descuento_faltas_horas)}.`);
-  if(showMoney(d.descuento_faltas) && !showMoney(d.descuento_faltas_dias) && !showMoney(d.descuento_faltas_horas))resumenAjuste.push(`Rebaja por inasistencias sin goce: ${clp(d.descuento_faltas)}.`);
-  if(showMoney(d.descuento_atrasos))resumenAjuste.push(`Atrasos registrados: ${atrasoHoras} h ${atrasoMin} min, rebaja aplicada ${clp(d.descuento_atrasos)}.`);
-  if(huboAjusteBase)resumenAjuste.push('La rebaja ya está aplicada en el sueldo base pagado y no se descuenta nuevamente en la sección descuentos.');
+  const moneyMinus=(v)=>`−${clp(Math.abs(Number(v||0)))}`;
+  const quantityText=(value,unit)=>`${Number(value||0).toLocaleString('es-CL',{maximumFractionDigits:2})} ${unit}`;
+  const ajusteRows=[];
+  ajusteRows.push(`<tr><td>Sueldo base pactado</td><td>${quantityText(d.dias_base_mes||30,'días')}</td><td>${clp(d.base_pactado)}</td></tr>`);
+  if(showMoney(d.descuento_faltas_dias))ajusteRows.push(`<tr><td>Inasistencias sin goce</td><td>${quantityText(d.dias_falta_completos,'días')}</td><td>${moneyMinus(d.descuento_faltas_dias)}</td></tr>`);
+  if(showMoney(d.descuento_faltas_horas))ajusteRows.push(`<tr><td>Ausencias parciales sin goce</td><td>${quantityText(d.horas_falta_parcial,'horas')}</td><td>${moneyMinus(d.descuento_faltas_horas)}</td></tr>`);
+  if(showMoney(d.descuento_faltas) && !showMoney(d.descuento_faltas_dias) && !showMoney(d.descuento_faltas_horas))ajusteRows.push(`<tr><td>Inasistencias sin goce</td><td>${quantityText(d.dias_falta,'días eq.')}</td><td>${moneyMinus(d.descuento_faltas)}</td></tr>`);
+  if(showMoney(d.descuento_licencia))ajusteRows.push(`<tr><td>Licencia médica</td><td>${quantityText(d.licencia_dias,'días')}</td><td>${moneyMinus(d.descuento_licencia)}</td></tr>`);
+  if(showMoney(d.descuento_atrasos))ajusteRows.push(`<tr><td>Atrasos</td><td>${atrasoHoras} h ${atrasoMin} min</td><td>${moneyMinus(d.descuento_atrasos)}</td></tr>`);
+  ajusteRows.push(`<tr class="adjustment-total"><td>Sueldo base pagado</td><td>${quantityText(d.dias_remunerados||0,'días')}</td><td>${clp(d.base_pagado)}</td></tr>`);
 
   const haberesImp=[
     mrow('Sueldo base pagado',d.base_pagado),
     mrow('Gratificación legal',d.gratificacion),
+    mrow('Horas extraordinarias',d.horas_extra_monto),
     mrow(esc(d.retro_concepto||'Retroactivo sueldo base'),d.retro_base),
     mrow('Gratificación retroactiva',d.retro_grat),
     mrow('Bonos imponibles',d.bonos),
@@ -5654,11 +5832,11 @@ function renderLiquidacion(d){
     drow('AFP',d.afp,` <span class="mini-muted">(${pct(d.afp_pct)}%)</span>`),
     drow('Salud',d.salud,` <span class="mini-muted">${d.salud_modalidad==='monto'?'(monto pactado)':`(${pct(d.salud_valor)}%)`}</span>`),
     drow('Seguro cesantía trabajador',d.afc,` <span class="mini-muted">(${pct(d.afc_pct)}%)</span>`),
-    drow('Anticipo / quincena',d.anticipo),
+    drow('Anticipo de remuneración',d.anticipo),
     drow('Otros descuentos',d.otros_desc)
   ].join('');
 
-  const ajuste=huboAjusteBase?`<div class="compact-box"><div class="compact-title">NOTA SOBRE SUELDO BASE PAGADO</div><div class="compact-detail">${esc(resumenAjuste.join(' '))}</div></div>`:'';
+  const ajuste=huboAjusteBase?`<div class="compact-box"><div class="compact-title">AJUSTE DEL SUELDO BASE</div><table class="liq-table adjustment-table"><thead><tr><th>Concepto</th><th>Días / horas</th><th>Monto</th></tr></thead><tbody>${ajusteRows.join('')}</tbody></table><div class="compact-note">Las rebajas ya están incorporadas en el sueldo base pagado y no se descuentan nuevamente.</div></div>`:'';
   const pago=(d.fecha_pago||d.metodo_pago||d.banco_pago||d.numero_cuenta_pago||d.titular_cuenta_pago)?`<table class="liq-table pago-table"><tr class="section-title"><td colspan="2">DATOS DE PAGO</td></tr>${d.fecha_pago?`<tr><td>Fecha de pago</td><td>${fmtDate(d.fecha_pago)}</td></tr>`:''}${d.metodo_pago?`<tr><td>Método de pago</td><td>${esc(d.metodo_pago)}</td></tr>`:''}${d.banco_pago||d.tipo_cuenta_pago?`<tr><td>Banco / tipo de cuenta</td><td>${esc(d.banco_pago||'—')} · ${esc(d.tipo_cuenta_pago||'—')}</td></tr>`:''}${d.numero_cuenta_pago?`<tr><td>Número de cuenta</td><td>${esc(d.numero_cuenta_pago)}</td></tr>`:''}<tr><td>Titular</td><td>${esc(d.titular_cuenta_pago||d.nombre)}</td></tr></table>`:'';
   const obs=[d.observaciones,(Number(d.asig_familiar||0)>0?d.asig_detalle:''),(d.previred_guardado==='No'?'No hay indicadores PreviRed guardados para este período.':'')].filter(Boolean).join(' ');
   const obsBox=obs?`<div class="obs-box"><strong>Observaciones:</strong> ${esc(obs)}</div>`:'';
@@ -5683,7 +5861,7 @@ function renderLiquidacion(d){
       <tr><td colspan="2"><strong>Trabajador:</strong> ${esc(d.nombre)}</td><td colspan="2"><strong>RUT:</strong> ${esc(d.rut)}</td></tr>
       <tr><td><strong>Cargo:</strong> ${esc(d.cargo)}</td><td><strong>Contrato:</strong> ${esc(d.tipo_contrato)}</td><td><strong>Fecha ingreso:</strong> ${fmtDate(d.fecha_ingreso)}</td><td><strong>Caja:</strong> ${esc(d.caja_comp)}</td></tr>
       <tr><td><strong>Desde:</strong> ${fmtDate(d.periodo_desde)}</td><td><strong>Hasta:</strong> ${fmtDate(d.periodo_hasta)}</td><td><strong>AFP:</strong> ${esc(d.afp_name)}${Number(d.afp_pct||0)>0?` (${pct(d.afp_pct)}%)`:''}</td><td><strong>Salud:</strong> ${esc(d.salud_name)}</td></tr>
-      <tr><td><strong>Días pagados:</strong> ${esc(d.dias_remunerados||d.dias_base_mes||30)}</td><td><strong>AFC trabajador:</strong> ${Number(d.afc_pct||0)>0?`${pct(d.afc_pct)}%`:'No aplica'}</td><td colspan="2"><strong>Folio / Emisión:</strong> ${esc(d.folio||'—')} / ${fmtDate(d.fecha_emision)}</td></tr>
+      <tr><td colspan="2"><strong>Días pagados:</strong> ${esc(d.dias_remunerados||d.dias_base_mes||30)}</td><td colspan="2"><strong>AFC trabajador:</strong> ${Number(d.afc_pct||0)>0?`${pct(d.afc_pct)}%`:'No aplica'}</td></tr>
     </table>
 
     <div class="liq-two-col">
@@ -5705,7 +5883,7 @@ function renderLiquidacion(d){
     ${ajuste}
 
     <table class="liq-table liquid-table">
-      <tr class="alcance-row"><td width="70%">ALCANCE LÍQUIDO</td><td class="right">${clp(d.liquido)}</td></tr>
+      <tr class="alcance-row"><td width="70%">LÍQUIDO A PAGAR</td><td class="right">${clp(d.liquido)}</td></tr>
     </table>
 
     ${pago}
@@ -5724,7 +5902,40 @@ function renderLiquidacion(d){
 
   byId('print_host').innerHTML=`<div class="classic-print-page">${doc('ORIGINAL')}</div><div class="classic-print-page">${doc('COPIA')}</div>`;
 }
-function printLiquidacion(){if(!byId('print_host').innerHTML.trim()){if(!generateLiquidacion())return}window.print()} function clearPayrollForm(){localStorage.removeItem(KEY_DRAFT);payrollIds().forEach(id=>{const el=byId(id);if(!el)return;if(el.tagName==='SELECT')el.selectedIndex=0;else if(el.type==='number')el.value='0';else el.value=''});byId('sueldo_base').value='553553';byId('retro_sueldo_anterior').value='539000';byId('retro_sueldo_nuevo').value='553553';byId('retro_meses').value='1';byId('aplica_retro').value='si';byId('retro_grat_auto').value='auto';byId('aplica_grat').value='si';byId('grat_tope').value='219323';byId('monto_carga').value='0';if(byId('dias_falta_completos'))byId('dias_falta_completos').value='0';if(byId('horas_falta_parcial'))byId('horas_falta_parcial').value='0';if(byId('dias_falta'))byId('dias_falta').value='0';if(byId('horas_falta'))byId('horas_falta').value='0';if(byId('horas_semana'))byId('horas_semana').value='42';byId('afp_pct').value='10.58';byId('salud_valor').value='7';byId('afc_pct').value='0.60';byId('retro_concepto').value='Retroactivo sueldo base MAYO 2026 por reajuste IMM';byId('mes_liquidacion').value='JUNIO';byId('anio_liquidacion').value='2026';setDefaultDates();applyContractRules();byId('print_host').innerHTML='';showMsg('msg-liq','Formulario limpio.');}
+function printLiquidacion(){if(!byId('print_host').innerHTML.trim()){if(!generateLiquidacion())return}window.print()} function clearPayrollForm(){
+  localStorage.removeItem(KEY_DRAFT);
+  payrollIds().forEach(id=>{
+    const el=byId(id);if(!el)return;
+    if(el.tagName==='SELECT')el.selectedIndex=0;
+    else if(el.type==='number')el.value='0';
+    else el.value='';
+  });
+  const now=new Date();
+  const months=Object.keys(MONTH_INDEX);
+  if(byId('mes_liquidacion'))byId('mes_liquidacion').value=months[now.getMonth()]||'ENERO';
+  if(byId('anio_liquidacion'))byId('anio_liquidacion').value=String(now.getFullYear());
+  if(byId('aplica_grat'))byId('aplica_grat').value='si';
+  if(byId('aplica_retro'))byId('aplica_retro').value='no';
+  if(byId('retro_grat_auto'))byId('retro_grat_auto').value='auto';
+  if(byId('retro_meses'))byId('retro_meses').value='1';
+  if(byId('grat_tope'))byId('grat_tope').value='219323';
+  if(byId('horas_semana'))byId('horas_semana').value='42';
+  if(byId('liq_dias_base_mes'))byId('liq_dias_base_mes').value='30';
+  if(byId('liq_hora_entrada_ref'))byId('liq_hora_entrada_ref').value='09:00';
+  if(byId('liq_tolerancia_min'))byId('liq_tolerancia_min').value='15';
+  if(byId('afp_pct'))byId('afp_pct').value='10.58';
+  if(byId('salud_valor'))byId('salud_valor').value='7';
+  if(byId('afc_pct'))byId('afc_pct').value='0.60';
+  setDefaultDates();
+  updatePayrollPeriodDates();
+  applyContractRules();
+  togglePayrollRetro();
+  if(byId('print_host'))byId('print_host').innerHTML='';
+  updatePayrollLiveSummary(null);
+  updatePayrollIncidenceCards(null);
+  updatePayrollUX();
+  showMsg('msg-liq','Formulario preparado para una nueva liquidación.');
+}
 function book(){return getJSON(KEY_BOOK,[])}
 function setBook(b){setJSON(KEY_BOOK,b)}
 function savedLiquidacionWorkerKey(x){
@@ -5758,7 +5969,7 @@ function renderSavedLiquidacionesForWorker(){
 }
 function savedLiquidacionFallbackForm(x){
   const atraso=Number(x.atraso_horas||0);
-  return {folio:x.folio||'',fecha_emision:x.fecha_emision||'',nombre:x.nombre||'',rut:x.rut||'',cargo:x.cargo||'',tipo_contrato:x.tipo_contrato||'',fecha_ingreso:x.fecha_ingreso||'',mes_liquidacion:x.mes||'',anio_liquidacion:x.anio||'',periodo_desde:x.periodo_desde||'',periodo_hasta:x.periodo_hasta||'',region_code:x.region_code||'',comuna_code:x.comuna_code||'',jornada_code:x.jornada_code||'',caja_comp:x.caja_comp||'',afp_select:x.afp_code||'',afp_pct:x.afp_pct||'',salud_select:x.salud_name||'',salud_valor:x.salud_valor||'',salud_modalidad:x.salud_modalidad||'porcentaje',afc_pct:x.afc_pct||'',sueldo_base:x.base_pactado||'',liq_dias_base_mes:x.dias_base_mes||30,liq_dias_trabajados_efectivos:x.dias_trabajados_efectivos||'',dias_falta_completos:x.dias_falta_completos||0,horas_falta_parcial:x.horas_falta_parcial||0,dias_falta:x.dias_falta||0,horas_falta:x.horas_falta||0,horas_semana:x.horas_semana||42,atraso_hrs:Math.floor(atraso),atraso_min:Math.round((atraso-Math.floor(atraso))*60),aplica_grat:Number(x.gratificacion||0)>0?'si':'no',bonos:x.bonos||0,otros_imp:x.otros_imp||0,aplica_retro:Number(x.retro_base||0)>0||Number(x.retro_grat||0)>0?'si':'no',retro_manual:x.retro_base||0,retro_grat_auto:'manual',retro_grat_manual:x.retro_grat||0,retro_concepto:x.retro_concepto||'',colacion:x.colacion||0,movilizacion:x.movilizacion||0,viaticos:x.viaticos||0,otros_noimp:x.otros_noimp||0,cargas:x.cargas||0,monto_carga:x.asig_monto_carga||0,anticipo:x.anticipo||0,otros_desc:x.otros_desc||0,banco_pago:x.banco_pago||'',tipo_cuenta_pago:x.tipo_cuenta_pago||'',numero_cuenta_pago:x.numero_cuenta_pago||'',titular_cuenta_pago:x.titular_cuenta_pago||'',liq_fecha_pago:x.fecha_pago||x.form_data?.liq_fecha_pago||x.fecha_emision||'',liq_metodo_pago:x.metodo_pago||x.form_data?.liq_metodo_pago||'Transferencia',observaciones:x.observaciones||''};
+  return {folio:x.folio||'',fecha_emision:x.fecha_emision||'',nombre:x.nombre||'',rut:x.rut||'',cargo:x.cargo||'',tipo_contrato:x.tipo_contrato||'',fecha_ingreso:x.fecha_ingreso||'',mes_liquidacion:x.mes||'',anio_liquidacion:x.anio||'',periodo_desde:x.periodo_desde||'',periodo_hasta:x.periodo_hasta||'',region_code:x.region_code||'',comuna_code:x.comuna_code||'',jornada_code:x.jornada_code||'',caja_comp:x.caja_comp||'',afp_select:x.afp_code||'',afp_pct:x.afp_pct||'',salud_select:x.salud_name||'',salud_valor:x.salud_valor||'',salud_modalidad:x.salud_modalidad||'porcentaje',afc_pct:x.afc_pct||'',sueldo_base:x.base_pactado||'',horas_extra_monto:x.horas_extra_monto||0,liq_dias_base_mes:x.dias_base_mes||30,liq_dias_trabajados_efectivos:x.dias_trabajados_efectivos||'',liq_licencia_dias:x.licencia_dias||0,dias_falta_completos:x.dias_falta_completos||0,horas_falta_parcial:x.horas_falta_parcial||0,dias_falta:x.dias_falta||0,horas_falta:x.horas_falta||0,horas_semana:x.horas_semana||42,atraso_hrs:Math.floor(atraso),atraso_min:Math.round((atraso-Math.floor(atraso))*60),aplica_grat:Number(x.gratificacion||0)>0?'si':'no',bonos:x.bonos||0,otros_imp:x.otros_imp||0,aplica_retro:Number(x.retro_base||0)>0||Number(x.retro_grat||0)>0?'si':'no',retro_manual:x.retro_base||0,retro_grat_auto:'manual',retro_grat_manual:x.retro_grat||0,retro_concepto:x.retro_concepto||'',colacion:x.colacion||0,movilizacion:x.movilizacion||0,viaticos:x.viaticos||0,otros_noimp:x.otros_noimp||0,cargas:x.cargas||0,monto_carga:x.asig_monto_carga||0,anticipo:x.anticipo||0,otros_desc:x.otros_desc||0,banco_pago:x.banco_pago||'',tipo_cuenta_pago:x.tipo_cuenta_pago||'',numero_cuenta_pago:x.numero_cuenta_pago||'',titular_cuenta_pago:x.titular_cuenta_pago||'',liq_fecha_pago:x.fecha_pago||x.form_data?.liq_fecha_pago||x.fecha_emision||'',liq_metodo_pago:x.metodo_pago||x.form_data?.liq_metodo_pago||'Transferencia',observaciones:x.observaciones||''};
 }
 function loadLiquidacionFromBook(id){
   const x=book().find(r=>String(r.id)===String(id));
@@ -7802,7 +8013,102 @@ document.addEventListener('change',function(e){
   }
 });
 
-window.addEventListener('load',()=>{restoreSecondPanelState();initAutoPanels();setTabs();setDefaultDates();clearWorkerForm();updateWorkerHonorariosUI();refreshAllWorkerSelects();restoreDraft();setDefaultDates();applyContractRules();attachAutosave();clearPermForm();clearPracticanteForm();clearPracticanteAttendanceForm();renderWorkers();renderHonorariosPagosTable();renderPrevired();renderAttendance();renderPermisos();renderPracticantes();renderQuincenas();renderSavedLiquidacionesForWorker();if(typeof renderLiquidacionesPaymentPreview==='function')renderLiquidacionesPaymentPreview();generateLiquidacion(false);if(typeof updateHorasTrabajadas==='function')updateHorasTrabajadas();if(typeof applyAsistioState==='function')applyAsistioState(false);updateSecondPanelButton();restoreSupabaseConfig();if(SUPA_READY)refreshSupabaseSession(true);else applyAuthGate();});
+
+function payrollMoneyText(v){return typeof clp==='function'?clp(Number(v||0)):'$'+Math.round(Number(v||0)).toLocaleString('es-CL')}
+function updatePayrollPeriodDates(){
+  const mes=val('mes_liquidacion');
+  const anio=Number(val('anio_liquidacion'))||new Date().getFullYear();
+  const idx=MONTH_INDEX[String(mes||'').toUpperCase()];
+  if(idx===undefined)return;
+  const mm=String(idx+1).padStart(2,'0');
+  const last=String(new Date(anio,idx+1,0).getDate()).padStart(2,'0');
+  if(byId('periodo_desde'))byId('periodo_desde').value=`${anio}-${mm}-01`;
+  if(byId('periodo_hasta'))byId('periodo_hasta').value=`${anio}-${mm}-${last}`;
+  updatePayrollPreviredInfo();
+}
+function togglePayrollRetro(){
+  const active=val('aplica_retro')==='si';
+  const box=byId('liq_retro_fields');
+  if(box)box.classList.toggle('hidden',!active);
+  if(!active){
+    ['retro_manual','retro_grat_manual'].forEach(id=>{if(byId(id))byId(id).value='0'});
+  }
+}
+function updatePayrollIncidenceCards(summary){
+  const faltas=summary?Number(summary.faltasCompletas||0):Math.max(num('dias_falta_completos'),0);
+  const licencias=summary?Number(summary.licencias||0):Math.max(num('liq_licencia_dias'),0);
+  const vacaciones=summary?Number(summary.vacaciones||0):0;
+  const atrasoMin=summary?Number(summary.atrasosMin||0):(Math.max(num('atraso_hrs'),0)*60+Math.max(num('atraso_min'),0));
+  const ah=Math.floor(atrasoMin/60), am=Math.round(atrasoMin%60);
+  if(byId('liq_stat_faltas'))byId('liq_stat_faltas').textContent=`${faltas} día${faltas===1?'':'s'}`;
+  if(byId('liq_stat_licencias'))byId('liq_stat_licencias').textContent=`${licencias} día${licencias===1?'':'s'}`;
+  if(byId('liq_stat_vacaciones'))byId('liq_stat_vacaciones').textContent=`${vacaciones} día${vacaciones===1?'':'s'}`;
+  if(byId('liq_stat_atrasos'))byId('liq_stat_atrasos').textContent=`${ah} h ${am} min`;
+}
+function updatePayrollLiveSummary(d){
+  const values=d||null;
+  const set=(id,v)=>{if(byId(id))byId(id).textContent=payrollMoneyText(v||0)};
+  set('liq_live_base',values&&values.base_pagado);
+  set('liq_live_imponible',values&&values.total_imponible);
+  set('liq_live_haberes',values&&values.total_haberes);
+  set('liq_live_descuentos',values&&values.total_descuentos);
+  set('liq_live_liquido',values&&values.liquido);
+}
+function payrollValidationState(){
+  const issues=[];
+  if(!val('worker_select')&&!val('rut'))issues.push('trabajador');
+  if(!val('nombre')||!val('rut'))issues.push('ficha');
+  if(!(num('sueldo_base')>0))issues.push('sueldo');
+  if(!hasPreviredForPayrollPeriod())issues.push('PreviRed');
+  if(val('liq_metodo_pago')==='Transferencia'&&(!val('banco_pago')||!val('numero_cuenta_pago')))issues.push('cuenta bancaria');
+  const totalAus=Math.max(num('dias_falta_completos'),0)+Math.max(num('liq_licencia_dias'),0);
+  if(totalAus>Math.max(num('liq_dias_base_mes')||30,1))issues.push('días informados');
+  return issues;
+}
+function updatePayrollUX(d){
+  const nombre=val('nombre'), rut=val('rut'), cargo=val('cargo'), tipo=val('tipo_contrato');
+  const ws=byId('liq_worker_summary');
+  if(ws){
+    if(nombre||rut){
+      ws.classList.remove('empty');
+      ws.innerHTML=`<strong>${esc(nombre||'Trabajador sin nombre')} · ${esc(rut||'Sin RUT')}</strong><span>${esc(cargo||'Sin cargo')} · ${esc(tipo||'Sin contrato')} · Sueldo base ${payrollMoneyText(num('sueldo_base'))}</span>`;
+    }else{
+      ws.classList.add('empty');
+      ws.innerHTML='<strong>Selecciona un trabajador</strong><span>La aplicación cargará sueldo, contrato, previsión y cuenta bancaria desde su ficha.</span>';
+    }
+  }
+  const setStatus=(id,text,cls)=>{const el=byId(id);if(!el)return;el.textContent=text;el.className='step-status '+cls};
+  setStatus('liq_step_worker_status',(nombre&&rut&&num('sueldo_base')>0)?'Cargado':'Pendiente',(nombre&&rut&&num('sueldo_base')>0)?'ready':'pending');
+  const applied=Boolean(val('liq_asistencia_resumen'));
+  setStatus('liq_step_att_status',applied?'Aplicada':'Sin aplicar',applied?'ready':'pending');
+  const prevOK=hasPreviredForPayrollPeriod();
+  setStatus('liq_step_prev_status',prevOK?'Aplicado':'Falta PreviRed',prevOK?'ready':'warning');
+  const pc=byId('liq_previred_card');if(pc){pc.classList.toggle('ok',prevOK);pc.classList.toggle('warning',!prevOK)}
+  if(byId('liq_previred_status_text'))byId('liq_previred_status_text').textContent=prevOK?(val('liq_previred_info')||`${val('mes_liquidacion')} ${val('anio_liquidacion')}`):`No guardado para ${val('mes_liquidacion')} ${val('anio_liquidacion')}`;
+  if(byId('liq_preview_title'))byId('liq_preview_title').textContent=nombre?`${nombre} · ${val('mes_liquidacion')} ${val('anio_liquidacion')}`:'Selecciona un trabajador para comenzar';
+  updatePayrollIncidenceCards(null);
+  togglePayrollRetro();
+  const issues=payrollValidationState();
+  const badge=byId('liq_validation_badge');if(badge){badge.textContent=issues.length?`Pendiente: ${issues.join(', ')}`:'Lista para guardar';badge.className=issues.length?'error':'ok'}
+  const state=byId('liq_workflow_state');if(state){state.textContent=issues.length?'Borrador':'Lista';state.className='payroll-state '+(issues.length?'draft':'ready')}
+  if(d)updatePayrollLiveSummary(d);
+}
+function initPayrollRedesign(){
+  if(!byId('view-liquidaciones'))return;
+  const now=new Date();
+  if(!val('mes_liquidacion'))byId('mes_liquidacion').value=Object.keys(MONTH_INDEX)[now.getMonth()]||'ENERO';
+  if(!val('anio_liquidacion'))byId('anio_liquidacion').value=String(now.getFullYear());
+  if(val('aplica_retro')!=='si')byId('aplica_retro').value='no';
+  togglePayrollRetro();
+  updatePayrollPeriodDates();
+  updatePayrollUX();
+  document.querySelectorAll('#view-liquidaciones input,#view-liquidaciones select,#view-liquidaciones textarea').forEach(el=>{
+    el.addEventListener('input',()=>updatePayrollUX());
+    el.addEventListener('change',()=>updatePayrollUX());
+  });
+}
+
+window.addEventListener('load',()=>{restoreSecondPanelState();initAutoPanels();setTabs();setDefaultDates();clearWorkerForm();updateWorkerHonorariosUI();refreshAllWorkerSelects();restoreDraft();setDefaultDates();applyContractRules();initPayrollRedesign();attachAutosave();clearPermForm();clearPracticanteForm();clearPracticanteAttendanceForm();renderWorkers();renderHonorariosPagosTable();renderPrevired();renderAttendance();renderPermisos();renderPracticantes();renderQuincenas();renderSavedLiquidacionesForWorker();if(typeof renderLiquidacionesPaymentPreview==='function')renderLiquidacionesPaymentPreview();generateLiquidacion(false);if(typeof updateHorasTrabajadas==='function')updateHorasTrabajadas();if(typeof applyAsistioState==='function')applyAsistioState(false);updateSecondPanelButton();restoreSupabaseConfig();if(SUPA_READY)refreshSupabaseSession(true);else applyAuthGate();});
 
 document.addEventListener('input',function(e){
   if(e.target && e.target.id && (e.target.id.startsWith('prev_manual_')||e.target.id==='mes_liquidacion'||e.target.id==='anio_liquidacion'||e.target.id==='cargas')){
