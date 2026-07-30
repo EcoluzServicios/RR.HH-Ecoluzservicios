@@ -2608,6 +2608,35 @@ body.auto-panels #view-liquidaciones.active > .payroll-layout > .payroll-panel::
 @media print{.payroll-preview-head,.payroll-history-block{display:none!important}}
 </style>
 
+
+<style id="attendance-overtime-v3-styles">
+.att-live-calculation{border:1px solid #dbe7ef;background:#f8fbfd;border-radius:14px;padding:12px;margin-top:8px}
+.att-live-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.att-live-item{border:1px solid #d9e1e8;background:#fff;border-radius:10px;padding:10px}
+.att-live-item span{display:block;font-size:11px;font-weight:800;color:#667085;text-transform:uppercase;letter-spacing:.04em}
+.att-live-item strong{display:block;margin-top:4px;font-size:17px;color:#1f2937}
+.att-live-item.extra{border-color:#f5c26b;background:#fffaf0}
+.att-live-item.extra strong{color:#9a5b00}
+.att-he-state{margin-top:10px;border-radius:10px;padding:9px 11px;background:#eef7dd;color:#486315;font-size:12px;font-weight:800}
+.att-he-state.pending{background:#fff4df;color:#9a5b00;border:1px solid #f5c26b}
+.att-he-state.approved{background:#ecfdf3;color:#067647;border:1px solid #abefc6}
+.att-he-state.rejected{background:#fef3f2;color:#b42318;border:1px solid #fecdca}
+.payroll-he-review{border:1px solid #d9e1e8;border-radius:14px;padding:13px;background:#fbfcfd;margin-bottom:14px}
+.payroll-he-review.hidden{display:none!important}
+.payroll-he-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:10px 0}
+.payroll-he-kpi{border:1px solid #e2e8f0;border-radius:10px;background:#fff;padding:9px}
+.payroll-he-kpi span{display:block;color:#667085;font-size:11px;font-weight:800}
+.payroll-he-kpi strong{display:block;margin-top:3px;font-size:16px}
+.payroll-he-table{width:100%;border-collapse:collapse;font-size:12px}
+.payroll-he-table th,.payroll-he-table td{border:1px solid #d9e1e8;padding:7px;vertical-align:middle}
+.payroll-he-table th{background:#eef4f7;text-align:left}
+.payroll-he-table select{min-width:155px;padding:7px}
+.payroll-he-help{font-size:12px;color:#667085;line-height:1.4;margin-top:8px}
+.auto-decimal-copy{font-weight:900!important;color:#1f5c24!important;background:#f1f8e9!important}
+@media(max-width:700px){.att-live-grid,.payroll-he-kpis{grid-template-columns:1fr}.payroll-he-table{font-size:11px}}
+@media print{.payroll-he-review{break-inside:avoid}.payroll-he-table th,.payroll-he-table td{font-size:10px;padding:5px}}
+</style>
+
 </head>
 <body class="auth-locked">
 <div id="authScreen" class="auth-screen">
@@ -2875,12 +2904,31 @@ body.auto-panels #view-liquidaciones.active > .payroll-layout > .payroll-panel::
             <span id="liq_step_values_status" class="step-status ready">Revisar</span>
           </div>
 
+          <div id="liq_he_review_group" class="payroll-he-review hidden">
+            <div class="value-group-head"><strong>Revisión de horas extra detectadas</strong><span>Autoriza o rechaza cada día antes de guardar.</span></div>
+            <div class="payroll-he-kpis">
+              <div class="payroll-he-kpi"><span>Detectadas</span><strong id="liq_he_detectadas_label">0 h 00 min · 0,00</strong></div>
+              <div class="payroll-he-kpi"><span>Autorizadas</span><strong id="liq_he_autorizadas_label">0 h 00 min · 0,00</strong></div>
+              <div class="payroll-he-kpi"><span>Pendientes</span><strong id="liq_he_pendientes_label">0 días</strong></div>
+            </div>
+            <input id="liq_he_detectadas_decimal" type="hidden" value="0">
+            <input id="liq_he_autorizadas_decimal" type="hidden" value="0">
+            <div class="table-wrap"><table id="liq_he_review_table" class="payroll-he-table"></table></div>
+            <div class="actions">
+              <button class="btn small primary" type="button" onclick="setAllPayrollOvertimeDecisions('si')">Autorizar todas</button>
+              <button class="btn small danger" type="button" onclick="setAllPayrollOvertimeDecisions('no')">No autorizar ninguna</button>
+            </div>
+            <div class="payroll-he-help">Las horas detectadas se calculan automáticamente desde asistencia. Solo las autorizadas se consideran para ingresar el monto pagado en esta liquidación.</div>
+          </div>
+
           <div class="payroll-value-group">
             <div class="value-group-head"><strong>Haberes imponibles</strong><span>Afectos a cotizaciones</span></div>
             <div class="grid">
               <div><label>Sueldo base mensual</label><input id="sueldo_base" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
               <div><label>Gratificación legal</label><select id="aplica_grat" onchange="updatePayrollUX();generateLiquidacion(false)"><option value="si">Sí</option><option value="no">No</option></select></div>
-              <div><label>Horas extraordinarias ($)</label><input id="horas_extra_monto" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
+              <div><label>Recargo hora extra (%)</label><input id="he_recargo_pct" type="number" value="50" min="50" step="1" oninput="syncPayrollOvertimeAmount();updatePayrollUX();generateLiquidacion(false)"><div class="helper">Se aplica sobre el valor de la hora ordinaria.</div></div>
+              <div><label>Valor de una hora extra ($)</label><input id="he_valor_hora" class="auto-readonly" type="number" value="0" min="0" readonly><div class="helper" id="liq_he_valor_helper">Se calcula desde sueldo base y jornada semanal.</div></div>
+              <div><label>Monto horas extra autorizadas ($)</label><input id="horas_extra_monto" class="auto-readonly" type="number" value="0" min="0" readonly><div class="helper" id="liq_he_monto_helper">Primero revisa las horas detectadas arriba.</div></div>
               <div><label>Bonos imponibles</label><input id="bonos" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
               <div class="full"><label>Otros imponibles</label><input id="otros_imp" type="number" value="0" min="0" oninput="updatePayrollUX();generateLiquidacion(false)"></div>
             </div>
@@ -3006,7 +3054,7 @@ body.auto-panels #view-liquidaciones.active > .payroll-layout > .payroll-panel::
   <section id="view-asistencia" class="view">
     <div class="layout">
       <aside class="panel no-print">
-        <div class="warn"><strong>Asistencia por marcaciones:</strong> primero selecciona trabajador y fecha. Luego marca si asistió o no. Si asistió, puedes registrar por separado la llegada, colación y salida, como un libro de asistencia por hora.</div>
+        <div class="note"><strong>Registro administrativo:</strong> transcribe las horas del libro físico. La aplicación calculará automáticamente las horas trabajadas y todo tiempo que supere 8 h 30 min diarios quedará como hora extra detectada, pendiente de autorización al preparar la liquidación.</div>
         <div id="msg-att" class="status"></div>
 
         <div class="form-section">
@@ -3039,23 +3087,33 @@ body.auto-panels #view-liquidaciones.active > .payroll-layout > .payroll-panel::
               <div><label>Almuerzo otorgado por empleador</label><select id="att_almuerzo_empleador"><option value="si" selected>Sí</option><option value="no">No</option><option value="no_aplica">No aplica</option></select></div>
               <div><label>Inicio colación</label><input id="att_colacion_ini" type="time"></div>
               <div><label>Fin colación</label><input id="att_colacion_fin" type="time"></div>
-              <div><label>Minutos colación</label><input id="att_colacion_min" type="number" min="0" step="5" value="90"></div>
+              <div><label>Minutos colación (automático)</label><input id="att_colacion_min" type="number" min="0" step="5" value="90"></div>
               <div><label>&nbsp;</label><div class="actions" style="margin-top:0"><button class="btn blue" type="button" onclick="markLunchStart()">Registrar inicio</button><button class="btn blue" type="button" onclick="markLunchEnd()">Registrar fin</button></div></div>
               <div class="full"><label>Observación colación</label><textarea id="att_colacion_obs" placeholder="Ej.: colación reducida a 30 minutos por continuidad del trabajo; almuerzo entregado por el empleador."></textarea></div>
             </div>
           </div>
 
           <div class="att-step-card">
-            <div class="att-step-head"><strong>4. Salida y horas extra</strong><span id="att_state_salida" class="mini-pill">Pendiente</span></div>
+            <div class="att-step-head"><strong>4. Salida y cálculo automático</strong><span id="att_state_salida" class="mini-pill">Pendiente</span></div>
             <div class="grid">
-              <div><label>Hora de salida</label><input id="att_salida" type="time"></div>
-              <div><label>Horas trabajadas</label><input id="att_horas_trabajadas" type="number" step="0.01" value="0" readonly></div>
-              <div><label>Horas extra</label><input id="att_horas_extra" type="number" step="0.25" value="0"></div>
-              <div><label>Horas extra autorizadas</label><select id="att_he_autorizadas"><option value="no" selected>No</option><option value="si">Sí</option></select></div>
-              <div><label>Autorizadas por</label><input id="att_he_autorizadas_por" placeholder="Nombre supervisor / jefatura"></div>
-              <div><label>Motivo horas extra</label><input id="att_he_motivo" placeholder="Ej.: término de trabajo en terreno"></div>
+              <div><label>Hora de salida</label><input id="att_salida" type="time" oninput="updateHorasTrabajadas()"></div>
+              <div class="full">
+                <div class="att-live-calculation">
+                  <div class="att-live-grid">
+                    <div class="att-live-item"><span>Horas trabajadas</span><strong id="att_horas_trabajadas_hhmm">0 h 00 min</strong></div>
+                    <div class="att-live-item"><span>Decimal para libro físico</span><strong id="att_horas_trabajadas" class="auto-decimal-copy">0,00</strong></div>
+                    <div class="att-live-item extra"><span>Hora extra detectada</span><strong id="att_horas_extra_hhmm">0 h 00 min</strong></div>
+                    <div class="att-live-item extra"><span>Hora extra decimal</span><strong id="att_horas_extra" class="auto-decimal-copy">0,00</strong></div>
+                  </div>
+                  <div id="att_he_estado_display" class="att-he-state">Sin horas extra detectadas.</div>
+                </div>
+              </div>
+              <input id="att_he_autorizadas" type="hidden" value="pendiente">
+              <input id="att_he_autorizadas_por" type="hidden" value="">
+              <input id="att_he_motivo" type="hidden" value="">
               <div class="full"><label>Observación general</label><textarea id="att_obs" placeholder="Ej.: atraso, trabajo en terreno, permiso, etc."></textarea></div>
             </div>
+            <div class="helper">El cálculo descuenta la colación registrada. Sobre 8 h 30 min diarios, la diferencia queda pendiente para decidir en la liquidación.</div>
             <div class="actions"><button class="btn primary" type="button" onclick="markExit()">Registrar salida / cerrar jornada</button><button class="btn soft" type="button" onclick="saveAttendance()">Guardar cambios</button><button class="btn soft" type="button" onclick="clearAttendanceForm()">Limpiar</button><button class="btn blue" type="button" onclick="exportAttendanceCSV()">Exportar CSV</button></div>
           </div>
         </div>
@@ -5813,7 +5871,7 @@ function renderLiquidacion(d){
   const haberesImp=[
     mrow('Sueldo base pagado',d.base_pagado),
     mrow('Gratificación legal',d.gratificacion),
-    mrow('Horas extraordinarias',d.horas_extra_monto),
+    mrow(`Horas extraordinarias${Number(d.horas_extra_autorizadas_decimal||0)>0?` (${Number(d.horas_extra_autorizadas_decimal).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2})} h autorizadas)`:''}`,d.horas_extra_monto),
     mrow(esc(d.retro_concepto||'Retroactivo sueldo base'),d.retro_base),
     mrow('Gratificación retroactiva',d.retro_grat),
     mrow('Bonos imponibles',d.bonos),
@@ -8107,6 +8165,355 @@ function initPayrollRedesign(){
     el.addEventListener('change',()=>updatePayrollUX());
   });
 }
+
+
+/* === ACTUALIZACIÓN V3: ASISTENCIA, DECIMALES Y AUTORIZACIÓN DE HORAS EXTRA === */
+const ATT_DAILY_STANDARD_MINUTES=8*60+30;
+const __currentColacionMinutesV2=currentColacionMinutes;
+currentColacionMinutes=function(){
+  if(val('att_colacion_tipo')==='sin')return 0;
+  const ini=minutes(val('att_colacion_ini'));
+  const fin=minutes(val('att_colacion_fin'));
+  if(ini!==null&&fin!==null&&fin>=ini)return fin-ini;
+  return Math.max(Math.round(num('att_colacion_min')||0),0);
+};
+function attMinutesToHHMM(total){
+  const m=Math.max(Math.round(Number(total)||0),0);
+  return `${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')} min`;
+}
+function attMinutesToDecimal(total,dot=false){
+  const value=(Math.max(Number(total)||0,0)/60).toFixed(2);
+  return dot?value:value.replace('.',',');
+}
+function attendanceComputedValues(r){
+  if(!r||r.asistio==='no'||String(r.estado||'')!=='Trabajado')return {workedMin:0,extraMin:0};
+  const ini=minutes(r.entrada), fin=minutes(r.salida);
+  if(ini===null||fin===null||fin<ini)return {workedMin:0,extraMin:0};
+  const col=Math.max(Math.round(Number(r.colacion_min)||0),0);
+  const workedMin=Math.max(fin-ini-col,0);
+  return {workedMin,extraMin:Math.max(workedMin-ATT_DAILY_STANDARD_MINUTES,0)};
+}
+function attendanceComputedFromForm(){
+  return attendanceComputedValues({
+    asistio:val('att_asistio')||'si',estado:val('att_estado'),entrada:val('att_entrada'),salida:val('att_salida'),colacion_min:currentColacionMinutes()
+  });
+}
+function recordWorkedMinutes(r){
+  if(Number.isFinite(Number(r&&r.horas_min)))return Math.max(Math.round(Number(r.horas_min)),0);
+  const c=attendanceComputedValues(r);
+  if(c.workedMin)return c.workedMin;
+  return Math.max(Math.round((Number(r&&r.horas)||0)*60),0);
+}
+function recordExtraMinutes(r){
+  if(Number.isFinite(Number(r&&r.horas_extra_min)))return Math.max(Math.round(Number(r.horas_extra_min)),0);
+  const c=attendanceComputedValues(r);
+  if(c.extraMin)return c.extraMin;
+  return Math.max(Math.round((Number(r&&r.horas_extra)||0)*60),0);
+}
+function normalizedOvertimeDecision(r){
+  const extra=recordExtraMinutes(r);
+  if(extra<=0)return 'no_aplica';
+  if(r&&r.he_revision_origen==='liquidacion'&&['si','no','pendiente'].includes(r.he_autorizadas))return r.he_autorizadas;
+  if(r&&r.he_autorizadas==='si')return 'si';
+  return 'pendiente';
+}
+horasExtraAutLabel=function(v){if(v==='si')return 'Autorizada';if(v==='no')return 'No autorizada';if(v==='no_aplica')return 'No aplica';return 'Pendiente';};
+
+const __attendancePayloadV2=attendancePayload;
+attendancePayload=function(extra={}){
+  const old=getAttendanceDraft()||{};
+  const rec=__attendancePayloadV2(extra);
+  const c=attendanceComputedValues(rec);
+  const oldExtra=recordExtraMinutes(old);
+  let decision=normalizedOvertimeDecision(old);
+  if(c.extraMin<=0)decision='no_aplica';
+  else if(oldExtra!==c.extraMin)decision='pendiente';
+  if(extra&&Object.prototype.hasOwnProperty.call(extra,'he_autorizadas'))decision=extra.he_autorizadas;
+  rec.horas_min=c.workedMin;
+  rec.horas=Number(attMinutesToDecimal(c.workedMin,true));
+  rec.horas_hhmm=attMinutesToHHMM(c.workedMin);
+  rec.horas_extra_min=c.extraMin;
+  rec.horas_extra=Number(attMinutesToDecimal(c.extraMin,true));
+  rec.horas_extra_hhmm=attMinutesToHHMM(c.extraMin);
+  rec.he_autorizadas=decision;
+  if(decision==='pendiente'){
+    rec.he_autorizadas_por='';
+    rec.he_revision_fecha='';
+    rec.he_revision_origen='';
+  }
+  return rec;
+};
+
+updateHorasTrabajadas=function(){
+  const lunchMinutes=currentColacionMinutes();
+  const lunchField=byId('att_colacion_min');
+  if(lunchField&&val('att_colacion_tipo')!=='sin'&&val('att_colacion_ini')&&val('att_colacion_fin'))lunchField.value=String(lunchMinutes);
+  const c=attendanceComputedFromForm();
+  const hh=byId('att_horas_trabajadas_hhmm'), dec=byId('att_horas_trabajadas');
+  const hehh=byId('att_horas_extra_hhmm'), hedec=byId('att_horas_extra'), state=byId('att_he_estado_display');
+  if(hh)hh.textContent=attMinutesToHHMM(c.workedMin);
+  if(dec)dec.textContent=attMinutesToDecimal(c.workedMin);
+  if(hehh)hehh.textContent=attMinutesToHHMM(c.extraMin);
+  if(hedec)hedec.textContent=attMinutesToDecimal(c.extraMin);
+  const old=getAttendanceDraft();
+  const same=old&&recordExtraMinutes(old)===c.extraMin;
+  const decision=same?normalizedOvertimeDecision(old):(c.extraMin>0?'pendiente':'no_aplica');
+  if(byId('att_he_autorizadas'))byId('att_he_autorizadas').value=decision;
+  if(state){
+    state.className='att-he-state';
+    if(c.extraMin<=0){state.textContent='Sin horas extra detectadas.';}
+    else if(decision==='si'){state.textContent='Hora extra autorizada en liquidación.';state.classList.add('approved');}
+    else if(decision==='no'){state.textContent='Hora extra no autorizada en liquidación.';state.classList.add('rejected');}
+    else{state.textContent='Pendiente de autorización al preparar la liquidación.';state.classList.add('pending');}
+  }
+};
+
+function payrollOvertimeRecords(workerKey,monthName,year){
+  return attendanceForPayrollMonth(workerKey,monthName,year)
+    .filter(r=>recordExtraMinutes(r)>0)
+    .sort((a,b)=>String(a.fecha||'').localeCompare(String(b.fecha||'')));
+}
+function payrollOvertimeSummary(workerKey=getSelectedPayrollWorkerKey(),monthName=val('mes_liquidacion'),year=Number(val('anio_liquidacion'))){
+  const records=workerKey?payrollOvertimeRecords(workerKey,monthName,year):[];
+  let detectedMin=0,authorizedMin=0,rejectedMin=0,pending=0;
+  records.forEach(r=>{
+    const m=recordExtraMinutes(r);detectedMin+=m;
+    const d=normalizedOvertimeDecision(r);
+    if(d==='si')authorizedMin+=m;else if(d==='no')rejectedMin+=m;else pending++;
+  });
+  return {records,detectedMin,authorizedMin,rejectedMin,pending};
+}
+function renderPayrollOvertimeReview(recordsInput){
+  const workerKey=getSelectedPayrollWorkerKey();
+  const records=Array.isArray(recordsInput)?recordsInput.filter(r=>recordExtraMinutes(r)>0):payrollOvertimeSummary(workerKey,val('mes_liquidacion'),Number(val('anio_liquidacion'))).records;
+  const summary=(()=>{let detectedMin=0,authorizedMin=0,rejectedMin=0,pending=0;records.forEach(r=>{const m=recordExtraMinutes(r);detectedMin+=m;const d=normalizedOvertimeDecision(r);if(d==='si')authorizedMin+=m;else if(d==='no')rejectedMin+=m;else pending++;});return {records,detectedMin,authorizedMin,rejectedMin,pending};})();
+  const group=byId('liq_he_review_group');
+  if(group)group.classList.toggle('hidden',!workerKey||records.length===0);
+  if(byId('liq_he_detectadas_label'))byId('liq_he_detectadas_label').textContent=`${attMinutesToHHMM(summary.detectedMin)} · ${attMinutesToDecimal(summary.detectedMin)}`;
+  if(byId('liq_he_autorizadas_label'))byId('liq_he_autorizadas_label').textContent=`${attMinutesToHHMM(summary.authorizedMin)} · ${attMinutesToDecimal(summary.authorizedMin)}`;
+  if(byId('liq_he_pendientes_label'))byId('liq_he_pendientes_label').textContent=`${summary.pending} día${summary.pending===1?'':'s'}`;
+  if(byId('liq_he_detectadas_decimal'))byId('liq_he_detectadas_decimal').value=attMinutesToDecimal(summary.detectedMin,true);
+  if(byId('liq_he_autorizadas_decimal'))byId('liq_he_autorizadas_decimal').value=attMinutesToDecimal(summary.authorizedMin,true);
+  const table=byId('liq_he_review_table');
+  if(table){
+    let html='<tr><th>Fecha</th><th>Trabajado</th><th>Extra detectada</th><th>Decimal</th><th>Decisión</th></tr>';
+    if(!records.length)html+='<tr><td colspan="5">No existen horas extra detectadas en este período.</td></tr>';
+    records.forEach(r=>{
+      const worked=recordWorkedMinutes(r), extra=recordExtraMinutes(r), decision=normalizedOvertimeDecision(r);
+      html+=`<tr><td>${fmtDate(r.fecha)}</td><td>${attMinutesToHHMM(worked)} · ${attMinutesToDecimal(worked)}</td><td>${attMinutesToHHMM(extra)}</td><td><strong>${attMinutesToDecimal(extra)}</strong></td><td><select onchange="setPayrollOvertimeDecision('${String(r.id)}',this.value)"><option value="pendiente" ${decision==='pendiente'?'selected':''}>Pendiente</option><option value="si" ${decision==='si'?'selected':''}>Autorizar</option><option value="no" ${decision==='no'?'selected':''}>No autorizar</option></select></td></tr>`;
+    });
+    table.innerHTML=html;
+  }
+  const amount=byId('horas_extra_monto');
+  const helper=byId('liq_he_monto_helper');
+  if(amount){
+    amount.disabled=summary.authorizedMin<=0;
+    if(summary.authorizedMin<=0&&summary.pending===0)amount.value='0';
+  }
+  if(helper){
+    if(summary.pending>0)helper.textContent=`Falta revisar ${summary.pending} día(s) con horas extra.`;
+    else if(summary.authorizedMin>0)helper.textContent=`Ingresa el monto correspondiente a ${attMinutesToHHMM(summary.authorizedMin)} (${attMinutesToDecimal(summary.authorizedMin)} h) autorizadas.`;
+    else helper.textContent=records.length?'Todas las horas detectadas fueron rechazadas. No corresponde ingresar monto.':'No hay horas extra detectadas en el período.';
+  }
+  return summary;
+}
+function setPayrollOvertimeDecision(id,decision){
+  if(!['si','no','pendiente'].includes(decision))return;
+  const arr=attendance();
+  const idx=arr.findIndex(r=>String(r.id)===String(id));
+  if(idx<0)return;
+  arr[idx].he_autorizadas=decision;
+  arr[idx].he_revision_origen=decision==='pendiente'?'':'liquidacion';
+  arr[idx].he_revision_fecha=decision==='pendiente'?'':new Date().toISOString();
+  arr[idx].he_autorizadas_por=decision==='si'?'Administración':'';
+  setAttendance(arr);
+  renderAttendance();
+  const s=renderPayrollOvertimeReview();
+  const d=generateLiquidacion(false);
+  updatePayrollUX(d||undefined);
+  showMsg('msg-liq',decision==='si'?'Hora extra autorizada.':(decision==='no'?'Hora extra no autorizada.':'Hora extra devuelta a pendiente.'),'ok');
+  return s;
+}
+function setAllPayrollOvertimeDecisions(decision){
+  const s=payrollOvertimeSummary();
+  if(!s.records.length)return;
+  const ids=new Set(s.records.map(r=>String(r.id)));
+  const now=new Date().toISOString();
+  const arr=attendance().map(r=>{
+    if(!ids.has(String(r.id)))return r;
+    return Object.assign({},r,{he_autorizadas:decision,he_revision_origen:'liquidacion',he_revision_fecha:now,he_autorizadas_por:decision==='si'?'Administración':''});
+  });
+  setAttendance(arr);
+  renderAttendance();
+  renderPayrollOvertimeReview();
+  const d=generateLiquidacion(false);updatePayrollUX(d||undefined);
+  showMsg('msg-liq',decision==='si'?'Todas las horas extra fueron autorizadas.':'Todas las horas extra fueron rechazadas.','ok');
+}
+
+const __applyAttendanceToPayrollV2=applyAttendanceToPayroll;
+applyAttendanceToPayroll=function(){
+  const result=__applyAttendanceToPayrollV2();
+  const s=renderPayrollOvertimeReview();
+  if(byId('liq_asistencia_resumen')&&s.records.length){
+    byId('liq_asistencia_resumen').value += `\nHoras extra detectadas: ${attMinutesToHHMM(s.detectedMin)} (${attMinutesToDecimal(s.detectedMin)} decimal).\nHoras extra autorizadas: ${attMinutesToHHMM(s.authorizedMin)} (${attMinutesToDecimal(s.authorizedMin)} decimal).\nDías pendientes de revisión: ${s.pending}.`;
+  }
+  return result;
+};
+
+const __calculateV2=calculate;
+calculate=function(){
+  const d=__calculateV2();
+  if(!d)return d;
+  const s=payrollOvertimeSummary();
+  d.horas_extra_detectadas_min=s.detectedMin;
+  d.horas_extra_detectadas_decimal=Number(attMinutesToDecimal(s.detectedMin,true));
+  d.horas_extra_autorizadas_min=s.authorizedMin;
+  d.horas_extra_autorizadas_decimal=Number(attMinutesToDecimal(s.authorizedMin,true));
+  d.horas_extra_pendientes=s.pending;
+  d.horas_extra_rechazadas_min=s.rejectedMin;
+  return d;
+};
+
+const __payrollValidationStateV2=payrollValidationState;
+payrollValidationState=function(){
+  const issues=__payrollValidationStateV2();
+  const s=payrollOvertimeSummary();
+  if(s.pending>0)issues.push('horas extra pendientes');
+  if(s.authorizedMin>0&&num('horas_extra_monto')<=0)issues.push('monto horas extra');
+  if(s.authorizedMin<=0&&num('horas_extra_monto')>0)issues.push('monto HE sin autorización');
+  return [...new Set(issues)];
+};
+
+const __saveLiquidacionToBookV2=saveLiquidacionToBook;
+saveLiquidacionToBook=function(){
+  const s=payrollOvertimeSummary();
+  if(s.pending>0){
+    renderPayrollOvertimeReview();
+    updatePayrollUX();
+    showMsg('msg-liq',`Debes autorizar o rechazar ${s.pending} día(s) con horas extra antes de guardar la liquidación.`,'err');
+    return;
+  }
+  if(s.authorizedMin>0&&num('horas_extra_monto')<=0){
+    showMsg('msg-liq',`Hay ${attMinutesToHHMM(s.authorizedMin)} (${attMinutesToDecimal(s.authorizedMin)} h) autorizadas. Ingresa el monto a pagar antes de guardar.`,'err');
+    return;
+  }
+  if(s.authorizedMin<=0&&num('horas_extra_monto')>0){
+    showMsg('msg-liq','Existe un monto de horas extra, pero no hay horas autorizadas. Corrige el monto o la autorización antes de guardar.','err');
+    return;
+  }
+  return __saveLiquidacionToBookV2();
+};
+
+const __updatePayrollUXV2=updatePayrollUX;
+updatePayrollUX=function(d){
+  __updatePayrollUXV2(d);
+  const s=payrollOvertimeSummary();
+  const el=byId('liq_step_values_status');
+  if(el){
+    if(s.pending>0){el.textContent=`${s.pending} HE pendiente${s.pending===1?'':'s'}`;el.className='step-status warning';}
+    else if(s.authorizedMin>0){el.textContent=`${attMinutesToDecimal(s.authorizedMin)} h autorizadas`;el.className='step-status ready';}
+    else{el.textContent='Revisar';el.className='step-status ready';}
+  }
+};
+
+renderAttendance=function(){
+  refreshAllWorkerSelects();ensureAttendanceMonthControls();renderAttendanceMonthly();
+  const a=filteredAttendance();
+  const workedMin=a.reduce((s,x)=>s+recordWorkedMinutes(x),0);
+  const extraMin=a.reduce((s,x)=>s+recordExtraMinutes(x),0);
+  const pending=a.filter(x=>recordExtraMinutes(x)>0&&normalizedOvertimeDecision(x)==='pendiente').length;
+  const approved=a.reduce((s,x)=>s+(normalizedOvertimeDecision(x)==='si'?recordExtraMinutes(x):0),0);
+  byId('att_summary').innerHTML=`<div class="kpi"><span>Registros</span><strong>${a.length}</strong></div><div class="kpi"><span>Horas trabajadas</span><strong>${attMinutesToDecimal(workedMin)} h</strong></div><div class="kpi"><span>Extra detectada</span><strong>${attMinutesToDecimal(extraMin)} h</strong></div><div class="kpi"><span>Extra autorizada</span><strong>${attMinutesToDecimal(approved)} h</strong></div><div class="kpi"><span>Pendientes HE</span><strong>${pending}</strong></div>`;
+  let rows='<tr><th>Fecha</th><th>Trabajador</th><th>Estado</th><th>Entrada</th><th>Inicio colación</th><th>Fin colación</th><th>Salida</th><th>Trabajado hh:mm</th><th>Trabajado decimal</th><th>Extra hh:mm</th><th>Extra decimal</th><th>Estado HE</th><th>Obs</th><th class="no-print">Acción</th></tr>';
+  if(!a.length)rows='<tr><th>Selecciona un trabajador para ver sus registros.</th></tr>';
+  a.forEach(x=>{
+    const wm=recordWorkedMinutes(x), em=recordExtraMinutes(x);
+    const obs=[x.obs_no||'',(!((x.asistio||'si')==='si')?('Ausencia: '+(x.ausencia_tipo||'completa')+' · '+(x.ausencia_horas||horasAusenciaRecord(x)||0)+' h'):''),x.colacion_obs||'',x.obs||'',x.he_motivo?('HE: '+x.he_motivo):''].filter(Boolean).join(' | ');
+    rows+=`<tr><td>${fmtDate(x.fecha)}</td><td>${esc(x.nombre)}</td><td>${esc(x.estado||'')}</td><td>${esc(x.entrada||'')}</td><td>${esc(x.colacion_ini||'')}</td><td>${esc(x.colacion_fin||'')}</td><td>${esc(x.salida||'')}</td><td>${attMinutesToHHMM(wm)}</td><td><strong>${attMinutesToDecimal(wm)}</strong></td><td>${attMinutesToHHMM(em)}</td><td><strong>${attMinutesToDecimal(em)}</strong></td><td>${esc(horasExtraAutLabel(normalizedOvertimeDecision(x)))}</td><td>${esc(obs)}</td><td class="no-print"><button class="btn small blue" onclick="editAttendance('${x.worker_key}','${x.fecha}')">Editar</button> <button class="btn small danger" onclick="deleteAttendance(${x.id})">Eliminar</button></td></tr>`;
+  });
+  byId('attendance_table').innerHTML=rows;
+};
+
+exportAttendanceCSV=function(){
+  const headers=['fecha','trabajador','rut','asistio','estado','hora_llegada','inicio_colacion','fin_colacion','hora_salida','horas_trabajadas_hhmm','horas_trabajadas_decimal','horas_extra_hhmm','horas_extra_decimal','estado_horas_extra','tipo_colacion','minutos_colacion','observacion_general'];
+  const rows=filteredAttendance().map(x=>{const wm=recordWorkedMinutes(x),em=recordExtraMinutes(x);return [x.fecha,x.nombre,x.rut,asistenciaLabel(x.asistio||'si'),x.estado,x.entrada,x.colacion_ini,x.colacion_fin,x.salida,attMinutesToHHMM(wm),attMinutesToDecimal(wm),attMinutesToHHMM(em),attMinutesToDecimal(em),horasExtraAutLabel(normalizedOvertimeDecision(x)),colacionLabel(x.colacion_tipo||'normal'),x.colacion_min!==undefined?x.colacion_min:0,[x.obs_no||'',x.colacion_obs||'',x.obs||''].filter(Boolean).join(' | ')];});
+  downloadText('asistencia_marcaciones_ecoluz.csv','\ufeff'+line(headers)+'\n'+rows.map(line).join('\n'));
+};
+
+document.addEventListener('input',function(e){
+  if(e.target&&['att_entrada','att_salida','att_colacion_ini','att_colacion_fin','att_colacion_min'].includes(e.target.id))updateHorasTrabajadas();
+});
+document.addEventListener('change',function(e){
+  if(e.target&&['worker_select','mes_liquidacion','anio_liquidacion'].includes(e.target.id)){
+    renderPayrollOvertimeReview();updatePayrollUX();
+  }
+});
+window.addEventListener('load',function(){updateHorasTrabajadas();renderPayrollOvertimeReview();updatePayrollUX();});
+
+
+/* === ACTUALIZACIÓN V4: CÁLCULO AUTOMÁTICO DEL PAGO DE HORAS EXTRA === */
+function payrollOvertimeRateData(summaryInput){
+  const summary=summaryInput||payrollOvertimeSummary();
+  const base=Math.max(num('sueldo_base')||0,0);
+  const weeklyHours=Math.max(num('horas_semana')||42,1);
+  const surcharge=Math.max(num('he_recargo_pct')||50,50);
+  // Sueldo mensual / 30 x 28 / (horas semanales x 4) = valor hora ordinaria.
+  const ordinaryRate=((base/30)*28)/(weeklyHours*4);
+  const overtimeRate=ordinaryRate*(1+(surcharge/100));
+  const authorizedHours=Math.max(Number(summary.authorizedMin||0)/60,0);
+  const amount=Math.round(overtimeRate*authorizedHours);
+  return {base,weeklyHours,surcharge,ordinaryRate,overtimeRate,authorizedHours,amount,summary};
+}
+function syncPayrollOvertimeAmount(summaryInput){
+  const data=payrollOvertimeRateData(summaryInput);
+  const rateEl=byId('he_valor_hora');
+  const amountEl=byId('horas_extra_monto');
+  const rateHelper=byId('liq_he_valor_helper');
+  const amountHelper=byId('liq_he_monto_helper');
+  if(rateEl)rateEl.value=String(data.base>0?Math.round(data.overtimeRate):0);
+  if(amountEl)amountEl.value=String(data.summary.authorizedMin>0&&data.base>0?data.amount:0);
+  if(rateHelper){
+    rateHelper.textContent=data.base>0
+      ? `Hora ordinaria ${clp(data.ordinaryRate)} + ${data.surcharge.toLocaleString('es-CL')}% = ${clp(data.overtimeRate)} por hora extra.`
+      : 'Falta el sueldo base para calcular el valor de la hora extra.';
+  }
+  if(amountHelper){
+    if(data.summary.pending>0)amountHelper.textContent=`Falta revisar ${data.summary.pending} día(s) con horas extra.`;
+    else if(data.summary.authorizedMin>0&&data.base>0)amountHelper.textContent=`Cálculo automático: ${attMinutesToHHMM(data.summary.authorizedMin)} (${attMinutesToDecimal(data.summary.authorizedMin)} h) × ${clp(data.overtimeRate)} = ${clp(data.amount)}.`;
+    else if(data.summary.authorizedMin>0)amountHelper.textContent='Horas autorizadas, pero falta ingresar el sueldo base.';
+    else amountHelper.textContent=data.summary.records.length?'Las horas detectadas fueron rechazadas o aún no están autorizadas.':'No hay horas extra detectadas en el período.';
+  }
+  return data;
+}
+
+const __renderPayrollOvertimeReviewV3=renderPayrollOvertimeReview;
+renderPayrollOvertimeReview=function(recordsInput){
+  const summary=__renderPayrollOvertimeReviewV3(recordsInput);
+  syncPayrollOvertimeAmount(summary);
+  return summary;
+};
+
+const __calculateV3=calculate;
+calculate=function(){
+  const he=syncPayrollOvertimeAmount();
+  const d=__calculateV3();
+  if(!d)return d;
+  d.horas_extra_valor_hora_ordinaria=he.ordinaryRate;
+  d.horas_extra_valor_hora=he.overtimeRate;
+  d.horas_extra_recargo_pct=he.surcharge;
+  d.horas_extra_monto=he.amount;
+  return d;
+};
+
+document.addEventListener('input',function(e){
+  if(e.target&&['sueldo_base','horas_semana','he_recargo_pct'].includes(e.target.id)){
+    syncPayrollOvertimeAmount();
+  }
+});
+window.addEventListener('load',function(){syncPayrollOvertimeAmount();});
+/* === FIN ACTUALIZACIÓN V4 === */
+
+/* === FIN ACTUALIZACIÓN V3 === */
 
 window.addEventListener('load',()=>{restoreSecondPanelState();initAutoPanels();setTabs();setDefaultDates();clearWorkerForm();updateWorkerHonorariosUI();refreshAllWorkerSelects();restoreDraft();setDefaultDates();applyContractRules();initPayrollRedesign();attachAutosave();clearPermForm();clearPracticanteForm();clearPracticanteAttendanceForm();renderWorkers();renderHonorariosPagosTable();renderPrevired();renderAttendance();renderPermisos();renderPracticantes();renderQuincenas();renderSavedLiquidacionesForWorker();if(typeof renderLiquidacionesPaymentPreview==='function')renderLiquidacionesPaymentPreview();generateLiquidacion(false);if(typeof updateHorasTrabajadas==='function')updateHorasTrabajadas();if(typeof applyAsistioState==='function')applyAsistioState(false);updateSecondPanelButton();restoreSupabaseConfig();if(SUPA_READY)refreshSupabaseSession(true);else applyAuthGate();});
 
