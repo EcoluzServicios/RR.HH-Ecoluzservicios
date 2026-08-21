@@ -4115,50 +4115,6 @@ function saveSupabaseConfigFromLogin(){
   initSupabaseClient(true);
   setAuthMsg('Conexión guardada. Ahora ingresa con correo y clave.');
 }
-/* === SSO CRM V11 · RR.HH conserva su propio Supabase y recibe un token de acceso de un puente seguro === */
-function hasCrmSsoCallback(){
-  try{
-    const p=new URLSearchParams(window.location.search||'');
-    return p.get('crm_sso')==='1' && !!p.get('token_hash');
-  }catch(e){return false}
-}
-function clearCrmSsoCallbackFromUrl(){
-  try{
-    const clean=window.location.pathname+(window.location.hash||'');
-    window.history.replaceState({},document.title,clean);
-  }catch(e){}
-}
-async function completeCrmSsoLoginIfPresent(){
-  if(!hasCrmSsoCallback())return false;
-  const p=new URLSearchParams(window.location.search||'');
-  const tokenHash=(p.get('token_hash')||'').trim();
-  if(!tokenHash)return false;
-  if(!SUPA_CLIENT && !initSupabaseClient(false)){
-    setAuthMsg('No fue posible iniciar la conexión de RR.HH.','err');
-    clearCrmSsoCallbackFromUrl();
-    return false;
-  }
-  setAuthMsg('Validando acceso desde ECOLUZ CRM...');
-  try{
-    const {data,error}=await SUPA_CLIENT.auth.verifyOtp({token_hash:tokenHash,type:'email'});
-    if(error)throw error;
-    SUPA_SESSION=data?.session||null;
-    if(!SUPA_SESSION?.user)throw new Error('Supabase no devolvió una sesión válida.');
-    clearCrmSsoCallbackFromUrl();
-    applyAuthGate();
-    setAuthMsg('Acceso validado desde ECOLUZ CRM.');
-    await pullAllFromSupabase(false);
-    return true;
-  }catch(e){
-    SUPA_SESSION=null;
-    clearCrmSsoCallbackFromUrl();
-    applyAuthGate();
-    setAuthMsg('No fue posible validar el acceso desde el CRM. Vuelve al CRM e intenta abrir RR.HH nuevamente.','err');
-    console.error('RR.HH SSO CRM:',e);
-    return false;
-  }
-}
-
 function initSupabaseClient(show=false){
   const c=supaConfig();
   SUPA_READY=false;
@@ -4180,7 +4136,7 @@ function initSupabaseClient(show=false){
       });
     }
     if(show)setSupaStatus('<span class="supa-online">● Conexión guardada</span>');
-    if(!hasCrmSsoCallback())refreshSupabaseSession(false);
+    refreshSupabaseSession(false);
     return true;
   }catch(e){
     setSupaStatus('No se pudo iniciar Supabase: '+esc(e.message||e),'err');
@@ -8652,7 +8608,7 @@ window.addEventListener('load',function(){syncPayrollOvertimeAmount();});
 
 /* === FIN ACTUALIZACIÓN V3 === */
 
-window.addEventListener('load',()=>{restoreSecondPanelState();initAutoPanels();setTabs();setDefaultDates();clearWorkerForm();updateWorkerHonorariosUI();refreshAllWorkerSelects();restoreDraft();setDefaultDates();applyContractRules();initPayrollRedesign();attachAutosave();clearPermForm();clearPracticanteForm();clearPracticanteAttendanceForm();renderWorkers();renderHonorariosPagosTable();renderPrevired();renderAttendance();renderPermisos();renderPracticantes();renderQuincenas();renderSavedLiquidacionesForWorker();if(typeof renderLiquidacionesPaymentPreview==='function')renderLiquidacionesPaymentPreview();generateLiquidacion(false);if(typeof updateHorasTrabajadas==='function')updateHorasTrabajadas();if(typeof applyAsistioState==='function')applyAsistioState(false);updateSecondPanelButton();restoreSupabaseConfig();if(SUPA_READY){completeCrmSsoLoginIfPresent().then(done=>{if(!done)refreshSupabaseSession(true);});}else applyAuthGate();});
+window.addEventListener('load',()=>{restoreSecondPanelState();initAutoPanels();setTabs();setDefaultDates();clearWorkerForm();updateWorkerHonorariosUI();refreshAllWorkerSelects();restoreDraft();setDefaultDates();applyContractRules();initPayrollRedesign();attachAutosave();clearPermForm();clearPracticanteForm();clearPracticanteAttendanceForm();renderWorkers();renderHonorariosPagosTable();renderPrevired();renderAttendance();renderPermisos();renderPracticantes();renderQuincenas();renderSavedLiquidacionesForWorker();if(typeof renderLiquidacionesPaymentPreview==='function')renderLiquidacionesPaymentPreview();generateLiquidacion(false);if(typeof updateHorasTrabajadas==='function')updateHorasTrabajadas();if(typeof applyAsistioState==='function')applyAsistioState(false);updateSecondPanelButton();restoreSupabaseConfig();if(SUPA_READY)refreshSupabaseSession(true);else applyAuthGate();});
 
 document.addEventListener('input',function(e){
   if(e.target && e.target.id && (e.target.id.startsWith('prev_manual_')||e.target.id==='mes_liquidacion'||e.target.id==='anio_liquidacion'||e.target.id==='cargas')){
