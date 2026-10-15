@@ -11346,4 +11346,262 @@ else setTimeout(refresh32,250);
 })();
 </script>
 
+
+<style id="v33-actas-inasistencia-style">
+.v33-acta-btn{white-space:nowrap}
+#v33_actas_panel{margin-top:16px}
+#v33_actas_panel .v33-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+#v33_actas_panel .v33-head h3{margin:0;color:#36500f}
+#v33_actas_panel table{width:100%;border-collapse:collapse}
+#v33_actas_panel th,#v33_actas_panel td{border-bottom:1px solid #e5e7eb;padding:8px;text-align:left;vertical-align:middle}
+#v33_actas_panel th{background:#f8fbf5;color:#36500f}
+</style>
+
+<script id="rrhh-v33-actas-inasistencia">
+(function(){
+'use strict';
+
+const KEY_ACTAS_INAS_V33='ecoluz_rrhh_actas_inasistencia_v33';
+const by33=id=>document.getElementById(id);
+
+function esc33(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function actas33(){
+  try{return JSON.parse(localStorage.getItem(KEY_ACTAS_INAS_V33)||'[]')}catch(e){return []}
+}
+function setActas33(a){
+  localStorage.setItem(KEY_ACTAS_INAS_V33,JSON.stringify(a||[]));
+}
+function attendanceRecord33(workerKey,fecha){
+  return (window.attendance?.()||[]).find(x=>String(x.worker_key)===String(workerKey)&&String(x.fecha)===String(fecha));
+}
+function worker33(workerKey,rec){
+  const w=(window.workers?.()||{})[workerKey]||{};
+  return {...w,nombre:w.nombre||rec?.nombre||'',rut:w.rut||rec?.rut||'',cargo:w.cargo||rec?.cargo||''};
+}
+function jornadaTexto33(rec){
+  const tipo=String(rec?.ausencia_tipo||'completa').toLowerCase();
+  const horas=Number(rec?.ausencia_horas||window.horasAusenciaRecord?.(rec)||0);
+  if(tipo.includes('media'))return `Media jornada${horas?` (${horas} horas aprox.)`:''}`;
+  return `Jornada completa${horas?` (${horas} horas aprox.)`:''}`;
+}
+function actaId33(workerKey,fecha){return `${workerKey}__${fecha}`}
+
+function ensureActasPanel33(){
+  const view=by33('view-asistencia');
+  if(!view||by33('v33_actas_panel'))return;
+  const panel=document.createElement('div');
+  panel.id='v33_actas_panel';
+  panel.className='card';
+  panel.innerHTML=`
+    <div class="v33-head">
+      <div>
+        <h3>Actas de inasistencia</h3>
+        <div class="small">Respaldo de ausencias sin justificativo generado desde la asistencia diaria.</div>
+      </div>
+    </div>
+    <div class="table-wrap"><table class="data-table" id="v33_actas_table"></table></div>`;
+  view.appendChild(panel);
+}
+
+function renderActas33(){
+  ensureActasPanel33();
+  const t=by33('v33_actas_table'); if(!t)return;
+  const a=actas33().slice().sort((x,y)=>String(y.fecha||'').localeCompare(String(x.fecha||'')));
+  let rows='<tr><th>Fecha ausencia</th><th>Trabajador</th><th>RUT</th><th>Cargo</th><th>Tipo</th><th>Emitida</th><th class="no-print">Acciones</th></tr>';
+  if(!a.length){
+    t.innerHTML='<tr><th>No hay actas de inasistencia generadas.</th></tr>';
+    return;
+  }
+  a.forEach(x=>{
+    rows+=`<tr>
+      <td>${window.fmtDate?.(x.fecha)||esc33(x.fecha)}</td>
+      <td><strong>${esc33(x.nombre)}</strong></td>
+      <td>${esc33(x.rut)}</td>
+      <td>${esc33(x.cargo||'')}</td>
+      <td>${esc33(x.tipo_jornada||'')}</td>
+      <td>${window.fmtDate?.(String(x.fecha_emision||'').slice(0,10))||esc33(x.fecha_emision||'')}</td>
+      <td class="no-print"><button class="btn small blue" type="button" onclick="imprimirActaInasistenciaV33('${esc33(x.id)}')">Imprimir</button> <button class="btn small danger" type="button" onclick="eliminarActaInasistenciaV33('${esc33(x.id)}')">Eliminar</button></td>
+    </tr>`;
+  });
+  t.innerHTML=rows;
+}
+
+function buildActa33(acta){
+  const empresa=window.empresa||{};
+  const fechaAus=window.fmtDate?.(acta.fecha)||acta.fecha||'';
+  const fechaEmision=window.fmtDate?.(String(acta.fecha_emision||'').slice(0,10))||String(acta.fecha_emision||'').slice(0,10);
+  const obs=acta.observacion?`
+    <div class="obs"><strong>Observación registrada en asistencia:</strong><br>${esc33(acta.observacion)}</div>`:'';
+  return `
+    <div class="acta">
+      <div class="cabecera">
+        <div><strong>${esc33(empresa.nombre||'ECOLUZ SERVICIOS LIMITADA')}</strong><br>RUT: ${esc33(empresa.rut||'76.295.478-8')}<br>${esc33(empresa.direccion||'21 de Mayo #1223, Iquique')}</div>
+        <div class="folio">ACTA N° ${esc33(acta.folio||'')}</div>
+      </div>
+
+      <h1>ACTA DE INASISTENCIA SIN JUSTIFICATIVO</h1>
+
+      <p>En Iquique, con fecha ${esc33(fechaEmision)}, se deja constancia que el trabajador <strong>${esc33(acta.nombre)}</strong>, RUT <strong>${esc33(acta.rut)}</strong>${acta.cargo?`, quien se desempeña como <strong>${esc33(acta.cargo)}</strong>`:''}, registró una inasistencia correspondiente al día <strong>${esc33(fechaAus)}</strong>.</p>
+
+      <p>De acuerdo con el registro de asistencia de la empresa, la ausencia corresponde a <strong>${esc33(acta.tipo_jornada)}</strong>. Al momento de emitir esta acta, no consta la presentación de licencia médica, certificado de atención, permiso previamente autorizado u otro antecedente que justifique dicha ausencia.</p>
+
+      <p>La presente acta se emite como respaldo interno del registro de asistencia y de los antecedentes laborales asociados a la fecha indicada.</p>
+
+      ${obs}
+
+      <div class="datos">
+        <div><span>Fecha de ausencia</span><strong>${esc33(fechaAus)}</strong></div>
+        <div><span>Estado registrado</span><strong>${esc33(acta.estado||'Falta')}</strong></div>
+        <div><span>Tipo de ausencia</span><strong>${esc33(acta.tipo_jornada)}</strong></div>
+        <div><span>Horas de ausencia</span><strong>${esc33(acta.horas_ausencia||'—')}</strong></div>
+      </div>
+
+      <div class="firmas">
+        <div><span></span><strong>Encargado/a de RR.HH. / Administración</strong></div>
+        <div><span></span><strong>Jefatura / Representante empresa</strong></div>
+      </div>
+
+      <div class="pie">Documento interno generado desde el registro de asistencia de RR.HH.</div>
+    </div>`;
+}
+
+window.generarActaInasistenciaV33=function(workerKey,fecha){
+  const rec=attendanceRecord33(workerKey,fecha);
+  if(!rec){alert('No se encontró el registro de asistencia seleccionado.');return}
+  if(String(rec.asistio||'si')==='si' && String(rec.estado||'')!=='Falta'){
+    alert('El acta de inasistencia solo puede generarse para registros de ausencia.');
+    return;
+  }
+
+  const w=worker33(workerKey,rec);
+  const id=actaId33(workerKey,fecha);
+  const arr=actas33();
+  let acta=arr.find(x=>String(x.id)===String(id));
+
+  if(!acta){
+    const correlativo=String(arr.length+1).padStart(4,'0');
+    const obs=[rec.obs_no||'',rec.obs||''].filter(Boolean).join(' | ');
+    acta={
+      id,
+      folio:`INA-${String(new Date().getFullYear())}-${correlativo}`,
+      worker_key:workerKey,
+      nombre:w.nombre||'',
+      rut:w.rut||'',
+      cargo:w.cargo||'',
+      fecha:fecha,
+      fecha_emision:new Date().toISOString(),
+      estado:rec.estado||'Falta',
+      tipo_jornada:jornadaTexto33(rec),
+      horas_ausencia:Number(rec.ausencia_horas||window.horasAusenciaRecord?.(rec)||0)||'',
+      observacion:obs,
+      sin_justificativo:true
+    };
+    arr.push(acta);
+    setActas33(arr);
+  }else{
+    acta={...acta,
+      nombre:w.nombre||acta.nombre,
+      rut:w.rut||acta.rut,
+      cargo:w.cargo||acta.cargo,
+      estado:rec.estado||acta.estado,
+      tipo_jornada:jornadaTexto33(rec),
+      horas_ausencia:Number(rec.ausencia_horas||window.horasAusenciaRecord?.(rec)||0)||acta.horas_ausencia,
+      observacion:[rec.obs_no||'',rec.obs||''].filter(Boolean).join(' | ')||acta.observacion
+    };
+    const idx=arr.findIndex(x=>String(x.id)===String(id));
+    arr[idx]=acta;
+    setActas33(arr);
+  }
+
+  renderActas33();
+  window.imprimirActaInasistenciaV33(id);
+};
+
+window.imprimirActaInasistenciaV33=function(id){
+  const acta=actas33().find(x=>String(x.id)===String(id));
+  if(!acta){alert('No se encontró el acta.');return}
+  const html=buildActa33(acta);
+  const popup=window.open('','_blank','width=900,height=950');
+  if(!popup){alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes.');return}
+  const styles=`<style>
+    @page{size:Letter portrait;margin:18mm}
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;color:#222;background:#fff;font-size:12px;line-height:1.55}
+    .acta{width:100%;max-width:760px;margin:auto}
+    .cabecera{display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid #2e7d32;padding-bottom:12px;font-size:11px}
+    .folio{text-align:right;font-weight:700;color:#36500f}
+    h1{text-align:center;font-size:18px;color:#1f5c24;margin:32px 0 28px;letter-spacing:.3px}
+    p{text-align:justify;margin:0 0 18px}
+    .obs{border:1px solid #d1d5db;background:#f8fafc;padding:12px;margin:20px 0;border-radius:6px}
+    .datos{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;margin:24px 0}
+    .datos div{border-bottom:1px solid #d1d5db;padding:7px 0}
+    .datos span{display:block;color:#667085;font-size:10px}
+    .datos strong{display:block;margin-top:2px}
+    .firmas{display:grid;grid-template-columns:1fr 1fr;gap:70px;margin-top:80px;text-align:center}
+    .firmas span{display:block;border-top:1px solid #222;margin-bottom:8px}
+    .firmas strong{font-size:11px}
+    .pie{margin-top:50px;padding-top:8px;border-top:1px solid #d1d5db;text-align:center;color:#667085;font-size:9px}
+  </style>`;
+  popup.document.open();
+  popup.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Acta de inasistencia - ${esc33(acta.nombre)}</title>${styles}</head><body>${html}</body></html>`);
+  popup.document.close();
+  popup.onload=function(){popup.focus();setTimeout(()=>popup.print(),300)};
+};
+
+window.eliminarActaInasistenciaV33=function(id){
+  if(!confirm('¿Eliminar esta acta de inasistencia del historial?'))return;
+  setActas33(actas33().filter(x=>String(x.id)!==String(id)));
+  renderActas33();
+};
+
+/* Sobrescribe únicamente la tabla diaria para añadir el botón del acta. */
+const renderAttendanceAntesV33=window.renderAttendance;
+window.renderAttendance=function(){
+  if(renderAttendanceAntesV33)renderAttendanceAntesV33();
+
+  const table=by33('attendance_table');
+  if(!table)return;
+
+  const rows=table.querySelectorAll('tr');
+  if(rows.length){
+    const head=rows[0];
+    const lastTh=head.querySelector('th:last-child');
+    if(lastTh)lastTh.textContent='Acciones';
+  }
+
+  const a=window.filteredAttendance?.()||[];
+  const dataRows=[...table.querySelectorAll('tr')].slice(1);
+  dataRows.forEach((tr,i)=>{
+    const x=a[i];
+    if(!x)return;
+    const isAbsent=String(x.asistio||'si')==='no'||String(x.estado||'')==='Falta';
+    if(!isAbsent)return;
+    const td=tr.querySelector('td:last-child');
+    if(!td)return;
+    if(td.querySelector('.v33-acta-btn'))return;
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='btn small soft v33-acta-btn';
+    btn.textContent='Acta inasistencia';
+    btn.onclick=()=>window.generarActaInasistenciaV33(x.worker_key,x.fecha);
+    td.appendChild(document.createTextNode(' '));
+    td.appendChild(btn);
+  });
+
+  renderActas33();
+};
+
+function boot33(){
+  ensureActasPanel33();
+  renderActas33();
+  setTimeout(()=>window.renderAttendance?.(),250);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot33);
+else boot33();
+
+})();
+</script>
+
 </body></html>
