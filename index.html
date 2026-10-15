@@ -10860,4 +10860,490 @@ function boot(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
-</script></body></html>
+</script>
+<style id="v31-prac-schedule-style">
+#v31_prac_payment_modal{position:fixed;inset:0;background:rgba(17,24,39,.55);display:none;align-items:center;justify-content:center;z-index:99999;padding:20px}
+#v31_prac_payment_modal.open{display:flex}
+#v31_prac_payment_modal .v31-modal-card{width:min(720px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.22);border:1px solid #dfe7da}
+#v31_prac_payment_modal .v31-head{padding:18px 20px;border-bottom:1px solid #e5e7eb;background:#f8fbf5;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+#v31_prac_payment_modal .v31-head h3{margin:0;color:#36500f;font-size:19px}
+#v31_prac_payment_modal .v31-head p{margin:5px 0 0;color:#667085;font-size:12px}
+#v31_prac_payment_modal .v31-body{padding:20px}
+#v31_prac_payment_modal .v31-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#v31_prac_payment_modal .v31-grid .full{grid-column:1/-1}
+#v31_prac_payment_modal label{display:block;font-size:12px;font-weight:800;margin-bottom:5px;color:#344054}
+#v31_prac_payment_modal input,#v31_prac_payment_modal select,#v31_prac_payment_modal textarea{width:100%}
+#v31_prac_payment_modal .v31-actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #e5e7eb}
+.v31-scheduled-pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900;background:#fff4cc;color:#8a6116}
+.v31-paid-pill{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900;background:#dcfae6;color:#067647}
+@media(max-width:650px){#v31_prac_payment_modal .v31-grid{grid-template-columns:1fr}}
+</style>
+
+<script id="rrhh-v31-prac-payment-schedule">
+(function(){
+'use strict';
+
+const by31=id=>document.getElementById(id);
+const q31=(s,r=document)=>r.querySelector(s);
+
+function esc31(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function today31(){return new Date().toISOString().slice(0,10)}
+function clp31(n){try{return new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(Number(n)||0)}catch(e){return '$ '+(Number(n)||0)}}
+function period31(fecha){
+  const names=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  const d=new Date((fecha||today31())+'T00:00:00');
+  return `${names[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function closeModal31(){by31('v31_prac_payment_modal')?.classList.remove('open')}
+
+function ensureModal31(){
+  if(by31('v31_prac_payment_modal'))return;
+  const wrap=document.createElement('div');
+  wrap.id='v31_prac_payment_modal';
+  wrap.innerHTML=`
+    <div class="v31-modal-card">
+      <div class="v31-head">
+        <div><h3>Agendar pago a practicante</h3><p>El pago quedará pendiente hasta que lo marques como Pagado.</p></div>
+        <button type="button" class="btn ghost small" id="v31_prac_close">Cerrar</button>
+      </div>
+      <div class="v31-body">
+        <div class="v31-grid">
+          <div class="full"><label>Practicante</label><select id="v31_prac_key"></select></div>
+          <div><label>Fecha programada de pago</label><input id="v31_prac_fecha" type="date"></div>
+          <div><label>Período</label><input id="v31_prac_periodo"></div>
+          <div><label>Monto</label><input id="v31_prac_monto" type="number" min="0"></div>
+          <div><label>Método previsto</label><select id="v31_prac_metodo"><option>Transferencia</option><option>Efectivo</option><option>Cheque</option><option>Otro</option></select></div>
+          <div class="full"><label>Observación</label><textarea id="v31_prac_obs" rows="3"></textarea></div>
+        </div>
+      </div>
+      <div class="v31-actions">
+        <button type="button" class="btn soft" id="v31_prac_cancel">Cancelar</button>
+        <button type="button" class="btn primary" id="v31_prac_save">Agendar pago</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  by31('v31_prac_close').onclick=closeModal31;
+  by31('v31_prac_cancel').onclick=closeModal31;
+  wrap.addEventListener('click',e=>{if(e.target===wrap)closeModal31()});
+  by31('v31_prac_save').onclick=saveScheduled31;
+  by31('v31_prac_fecha').addEventListener('change',()=>{by31('v31_prac_periodo').value=period31(by31('v31_prac_fecha').value)});
+}
+
+function fillPrac31(){
+  const el=by31('v31_prac_key'); if(!el)return;
+  const all=window.practicantes?.()||{};
+  el.innerHTML='<option value="">-- Seleccionar --</option>'+
+    Object.keys(all).sort((a,b)=>(all[a].nombre||'').localeCompare(all[b].nombre||'','es'))
+      .map(k=>`<option value="${esc31(k)}">${esc31(all[k].nombre||'')} · ${esc31(all[k].rut||'')}</option>`).join('');
+}
+
+function openModal31(){
+  ensureModal31();
+  fillPrac31();
+  by31('v31_prac_fecha').value=today31();
+  by31('v31_prac_periodo').value=period31(today31());
+  by31('v31_prac_monto').value='';
+  by31('v31_prac_metodo').value='Transferencia';
+  by31('v31_prac_obs').value='';
+  by31('v31_prac_payment_modal').classList.add('open');
+}
+
+function saveScheduled31(){
+  const key=by31('v31_prac_key')?.value||'';
+  const all=window.practicantes?.()||{};
+  const p=all[key];
+  if(!p){alert('Selecciona un practicante.');return}
+  const fecha=by31('v31_prac_fecha')?.value||'';
+  const monto=Number(by31('v31_prac_monto')?.value||0);
+  if(!fecha){alert('Indica la fecha programada de pago.');return}
+  if(monto<=0){alert('Ingresa un monto mayor a 0.');return}
+
+  const arr=window.honorariosPagos?.()||[];
+  arr.push({
+    id:Date.now(),
+    worker_key:key,
+    nombre:p.nombre||'',
+    rut:p.rut||'',
+    cargo:'Practicante',
+    tipo_pago:'Practicante',
+    documento_pago:'Pago practicante agendado',
+    servicio:'Práctica profesional / asignación acordada',
+    periodo_trabajado:by31('v31_prac_periodo')?.value||period31(fecha),
+    fecha_pago:fecha,
+    mes:window.monthNameFromDateStr?.(fecha)||'',
+    anio:window.yearFromDateStr?.(fecha)||'',
+    monto,
+    metodo_pago:by31('v31_prac_metodo')?.value||'Transferencia',
+    observaciones:by31('v31_prac_obs')?.value||'',
+    estado_pago:'Agendado',
+    fecha_agendamiento:today31()
+  });
+  window.setHonorariosPagos?.(arr);
+  closeModal31();
+  window.renderPracticantePagosTable?.();
+  window.renderLiquidacionesPaymentPreview?.();
+  const msg=by31('msg-quin');
+  if(msg){msg.textContent='Pago de practicante agendado correctamente.';msg.className='status ok'}
+}
+
+window.marcarPagoPracticanteV31=function(id){
+  const arr=window.honorariosPagos?.()||[];
+  const i=arr.findIndex(x=>String(x.id)===String(id));
+  if(i<0)return;
+  if(!confirm('¿Marcar este pago de practicante como pagado?'))return;
+  arr[i]={...arr[i],estado_pago:'Pagado'};
+  window.setHonorariosPagos?.(arr);
+  window.renderPracticantePagosTable?.();
+  window.renderLiquidacionesPaymentPreview?.();
+};
+
+function installButton31(){
+  const view=by31('view-quincenas'); if(!view)return;
+  let tools=q31('.v18-quin-list-tools',view);
+  if(!tools)return;
+  if(by31('v31_schedule_prac_btn'))return;
+  const b=document.createElement('button');
+  b.id='v31_schedule_prac_btn';
+  b.type='button';
+  b.className='btn blue';
+  b.textContent='Agendar pago practicante';
+  b.addEventListener('click',openModal31);
+  tools.appendChild(b);
+}
+
+const originalRenderPrac31=window.renderPracticantePagosTable;
+window.renderPracticantePagosTable=function(){
+  const t=by31('practicantes_pagos_table');
+  if(!t){if(originalRenderPrac31)originalRenderPrac31();return}
+
+  const arr=(window.honorariosPagos?.()||[])
+    .filter(x=>String(x.tipo_pago||'').toLowerCase().includes('practic'))
+    .slice()
+    .sort((a,b)=>String(b.fecha_pago||'').localeCompare(String(a.fecha_pago||'')));
+
+  if(!arr.length){t.innerHTML='<tr><th>No hay pagos a practicantes registrados o agendados.</th></tr>';return}
+
+  let rows='<tr><th>Fecha</th><th>Practicante</th><th>RUT</th><th>Período</th><th>Monto</th><th>Estado</th><th>Método</th><th>Observación</th><th class="no-print">Acciones</th></tr>';
+  arr.forEach(x=>{
+    const estado=x.estado_pago||'Pagado';
+    const pill=estado==='Agendado'?'<span class="v31-scheduled-pill">Agendado</span>':'<span class="v31-paid-pill">Pagado</span>';
+    const mark=estado==='Agendado'?`<button class="btn small primary" type="button" onclick="marcarPagoPracticanteV31('${esc31(x.id)}')">Marcar pagado</button> `:'';
+    rows+=`<tr>
+      <td>${window.fmtDate?.(x.fecha_pago)||x.fecha_pago||''}</td>
+      <td>${esc31(x.nombre||'')}</td>
+      <td>${esc31(x.rut||'')}</td>
+      <td>${esc31(x.periodo_trabajado||'')}</td>
+      <td><strong>${clp31(x.monto||0)}</strong></td>
+      <td>${pill}</td>
+      <td>${esc31(x.metodo_pago||'')}</td>
+      <td>${esc31(x.observaciones||'')}</td>
+      <td class="no-print">${mark}<button class="btn small danger" type="button" onclick="deleteHonorariosPago('${esc31(x.id)}')">Eliminar</button></td>
+    </tr>`;
+  });
+  t.innerHTML=rows;
+};
+
+const originalPagos31=window.pagosGeneralesFiltrados;
+window.pagosGeneralesFiltrados=function(){
+  const rows=originalPagos31?originalPagos31():[];
+  return rows.filter(x=>{
+    if(x.tipo_registro!=='practicante')return true;
+    const original=(window.honorariosPagos?.()||[]).find(r=>String(r.id)===String(x.ref_id));
+    return !original || String(original.estado_pago||'Pagado')==='Pagado';
+  });
+};
+
+function boot31(){
+  ensureModal31();
+  installButton31();
+  setTimeout(installButton31,300);
+  setTimeout(installButton31,900);
+  document.addEventListener('click',e=>{
+    const tab=e.target.closest?.('.tab[data-view="quincenas"],button[data-view="quincenas"]');
+    if(tab)setTimeout(installButton31,80);
+  });
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot31);
+else boot31();
+
+})();
+</script>
+
+
+<style id="v32-quincena-cuadro-style">
+.v32-group-row td{background:#dfeeda!important;color:#1f5c24!important;font-weight:900}
+.v32-group-row div{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.v32-group-row span{font-size:11px;font-weight:700;color:#49664b}
+.v32-subtotal-row td{background:#f7faf5!important}
+.v32-role{font-size:11px;color:#667085;margin-top:2px}
+.v32-status-scheduled{display:inline-flex;padding:4px 8px;border-radius:999px;background:#fff4cc;color:#8a6116;font-weight:900;font-size:10px}
+.v32-status-paid{display:inline-flex;padding:4px 8px;border-radius:999px;background:#dcfae6;color:#067647;font-weight:900;font-size:10px}
+</style>
+
+<script id="rrhh-v32-quincena-cuadro-unificado">
+(function(){
+'use strict';
+
+const by32=id=>document.getElementById(id);
+
+function esc32(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function role32(x){
+  if(x._v32_tipo==='practicante')return 'Practicante';
+  if(x._v32_tipo==='honorario')return 'Honorarios';
+  return (window.workers?.()[x.worker_key]?.cargo)||'Trabajador con contrato';
+}
+function periodoFiltro32(){
+  const mes=(by32('quin_filter_mes')?.value || by32('quin_mes')?.value || '').toUpperCase();
+  const anio=String(by32('quin_filter_anio')?.value || by32('quin_anio')?.value || '');
+  return {mes,anio};
+}
+function estadoPrac32(x){
+  return String(x.estado_pago||'Pagado')==='Agendado'?'Agendado':'Pagado';
+}
+
+function registrosCuadroQuincenaV32(){
+  const base=(window.filteredQuincenas?.()||[]).map(x=>({
+    ...x,
+    _v32_tipo:'contrato',
+    _v32_estado:window.quincenaEstadoV18?.(x)||x.estado||'Solicitada',
+    _v32_fecha:x.fecha||'',
+    _v32_fecha_pago:x.fecha_pago||'',
+    _v32_medio:x.medio||'',
+    _v32_obs:x.obs||''
+  }));
+
+  const {mes,anio}=periodoFiltro32();
+  const especiales=(window.honorariosPagos?.()||[]).filter(x=>{
+    const tipo=String(x.tipo_pago||'').toLowerCase();
+    if(!tipo.includes('practic') && !tipo.includes('honor'))return false;
+    const xm=String(x.mes||window.monthNameFromDateStr?.(x.fecha_pago)||'').toUpperCase();
+    const xa=String(x.anio||window.yearFromDateStr?.(x.fecha_pago)||'');
+    if(mes && xm!==mes)return false;
+    if(anio && xa!==anio)return false;
+    return true;
+  }).map(x=>{
+    const esPracticante=String(x.tipo_pago||'').toLowerCase().includes('practic');
+    return {
+      id:x.id,
+      worker_key:x.worker_key||'',
+      nombre:x.nombre||'',
+      rut:x.rut||'',
+      fecha:x.fecha_agendamiento||x.fecha_pago||'',
+      fecha_pago:x.fecha_pago||'',
+      mes:x.mes||'',
+      anio:x.anio||'',
+      monto:Number(x.monto)||0,
+      estado:esPracticante?estadoPrac32(x):'Pagado',
+      medio:x.metodo_pago||'',
+      obs:x.observaciones||x.servicio||'',
+      _v32_tipo:esPracticante?'practicante':'honorario',
+      _v32_estado:esPracticante?estadoPrac32(x):'Pagado',
+      _v32_fecha:x.fecha_agendamiento||x.fecha_pago||'',
+      _v32_fecha_pago:x.fecha_pago||'',
+      _v32_medio:x.metodo_pago||'',
+      _v32_obs:x.observaciones||x.servicio||''
+    };
+  });
+
+  return base.concat(especiales);
+}
+
+function order32(tipo){
+  return tipo==='contrato'?1:tipo==='practicante'?2:tipo==='honorario'?3:9;
+}
+function groupTitle32(tipo){
+  return tipo==='contrato'?'TRABAJADORES CON CONTRATO':tipo==='practicante'?'PRACTICANTES':'HONORARIOS';
+}
+function groupLabel32(tipo){
+  return tipo==='contrato'?'Contratos':tipo==='practicante'?'Practicantes':'Honorarios';
+}
+
+function statusHtml32(x){
+  const e=x._v32_estado||x.estado||'';
+  if(e==='Pagada'||e==='Pagado')return '<span class="v32-status-paid">Pagado</span>';
+  if(e==='Agendado')return '<span class="v32-status-scheduled">Agendado</span>';
+  return '<span class="v18-status-pill requested"><span class="v18-status-dot"></span>Solicitada</span>';
+}
+function paymentText32(x){
+  const e=x._v32_estado||x.estado||'';
+  if(e==='Pagada'||e==='Pagado'){
+    return [window.fmtDate?.(x._v32_fecha_pago||x.fecha_pago||x.fecha)||'',esc32(x._v32_medio||x.medio||'')].filter(Boolean).join(' · ');
+  }
+  if(e==='Agendado')return 'Programado: '+(window.fmtDate?.(x.fecha_pago)||x.fecha_pago||'');
+  return 'Pendiente';
+}
+
+window.renderQuincenas=function(){
+  window.refreshAllWorkerSelects?.();
+  const all=registrosCuadroQuincenaV32().sort((a,b)=>{
+    const od=order32(a._v32_tipo)-order32(b._v32_tipo);
+    if(od)return od;
+    return String(a.nombre||'').localeCompare(String(b.nombre||''),'es',{sensitivity:'base'});
+  });
+
+  const total=all.reduce((s,x)=>s+(Number(x.monto)||0),0);
+  const pagado=all.filter(x=>['Pagada','Pagado'].includes(x._v32_estado||x.estado)).reduce((s,x)=>s+(Number(x.monto)||0),0);
+  const pendientes=all.filter(x=>!['Pagada','Pagado'].includes(x._v32_estado||x.estado)).length;
+  const practicantes=all.filter(x=>x._v32_tipo==='practicante').length;
+
+  if(by32('quin_summary')){
+    by32('quin_summary').innerHTML=
+      `<div class="kpi"><span>Registros</span><strong>${all.length}</strong></div>`+
+      `<div class="kpi"><span>Total cuadro</span><strong>${window.clp?.(total)||total}</strong></div>`+
+      `<div class="kpi"><span>Total pagado</span><strong>${window.clp?.(pagado)||pagado}</strong></div>`+
+      `<div class="kpi"><span>Pendientes / practicantes</span><strong>${pendientes} · ${practicantes}</strong></div>`;
+  }
+
+  let rows='<tr><th>Fecha</th><th>Período</th><th>Persona</th><th>Cargo / categoría</th><th>Monto</th><th>Estado</th><th>Pago</th><th>Observación</th><th class="no-print">Acciones</th></tr>';
+
+  const groups=['contrato','practicante','honorario'].map(tipo=>({tipo,rows:all.filter(x=>x._v32_tipo===tipo)})).filter(g=>g.rows.length);
+  if(!groups.length){
+    rows='<tr><th colspan="9">No hay pagos o solicitudes para los filtros seleccionados.</th></tr>';
+  }else{
+    groups.forEach(group=>{
+      const subtotal=group.rows.reduce((s,x)=>s+(Number(x.monto)||0),0);
+      rows+=`<tr class="v32-group-row"><td colspan="9"><div><strong>${groupTitle32(group.tipo)}</strong><span>${group.rows.length} registro${group.rows.length===1?'':'s'} · ${window.clp?.(subtotal)||subtotal}</span></div></td></tr>`;
+      group.rows.forEach(x=>{
+        let acciones='';
+        if(group.tipo==='contrato'){
+          acciones=`<button class="btn small blue v18-edit-quin" type="button" onclick="editQuincenaV18(${x.id})">Editar</button> <button class="btn small danger" type="button" onclick="deleteQuincena(${x.id})">Eliminar</button>`;
+        }else if(group.tipo==='practicante'){
+          if((x._v32_estado||'')==='Agendado'){
+            acciones=`<button class="btn small primary" type="button" onclick="marcarPagoPracticanteV31('${esc32(x.id)}')">Marcar pagado</button> `;
+          }
+          acciones+=`<button class="btn small danger" type="button" onclick="deleteHonorariosPago('${esc32(x.id)}')">Eliminar</button>`;
+        }else{
+          acciones=`<button class="btn small danger" type="button" onclick="deleteHonorariosPago('${esc32(x.id)}')">Eliminar</button>`;
+        }
+
+        rows+=`<tr>
+          <td>${window.fmtDate?.(x._v32_fecha||x.fecha)||x.fecha||''}</td>
+          <td>${esc32(x.mes||'')} ${esc32(x.anio||'')}</td>
+          <td><strong>${esc32(x.nombre||'')}</strong><br><span class="small">${esc32(x.rut||'')}</span></td>
+          <td>${esc32(role32(x))}</td>
+          <td>${window.clp?.(x.monto)||x.monto}</td>
+          <td>${statusHtml32(x)}</td>
+          <td>${paymentText32(x)}</td>
+          <td>${esc32(x._v32_obs||x.obs||'')}</td>
+          <td class="no-print">${acciones}</td>
+        </tr>`;
+      });
+      rows+=`<tr class="v32-subtotal-row"><td colspan="4" class="right"><strong>Subtotal ${groupLabel32(group.tipo)}</strong></td><td><strong>${window.clp?.(subtotal)||subtotal}</strong></td><td colspan="4"></td></tr>`;
+    });
+  }
+
+  if(by32('quincenas_table'))by32('quincenas_table').innerHTML=rows;
+  window.renderQuincenaSignaturePreview?.(all,total);
+};
+
+window.renderQuincenaSignaturePreview=function(list=null,total=null){
+  const all=(list||registrosCuadroQuincenaV32()).slice().sort((a,b)=>{
+    const od=order32(a._v32_tipo)-order32(b._v32_tipo);
+    if(od)return od;
+    return String(a.nombre||'').localeCompare(String(b.nombre||''),'es',{sensitivity:'base'});
+  });
+  total=total===null?all.reduce((s,x)=>s+(Number(x.monto)||0),0):total;
+  const periodo=window.quincenaPeriodoTexto?.()||'';
+  const fechaReporte=window.fmtDate?.(new Date().toISOString().slice(0,10))||'';
+  const groups=['contrato','practicante','honorario'].map(tipo=>({tipo,rows:all.filter(x=>x._v32_tipo===tipo)})).filter(g=>g.rows.length);
+
+  let rows='';
+  let n=1;
+  if(!groups.length){
+    rows='<tr><td colspan="8" class="quin-empty">No hay pagos o solicitudes para los filtros seleccionados.</td></tr>';
+  }else{
+    groups.forEach(group=>{
+      const subtotal=group.rows.reduce((s,x)=>s+(Number(x.monto)||0),0);
+      rows+=`<tr class="v32-group-row"><td colspan="8"><div><strong>${groupTitle32(group.tipo)}</strong><span>${group.rows.length} registro${group.rows.length===1?'':'s'}</span></div></td></tr>`;
+      group.rows.forEach(x=>{
+        rows+=`<tr>
+          <td class="center">${n++}</td>
+          <td>${window.fmtDate?.(x._v32_fecha||x.fecha)||x.fecha||''}</td>
+          <td>${esc32(x.nombre||'')}</td>
+          <td>${esc32(x.rut||'')}</td>
+          <td>${esc32(role32(x))}</td>
+          <td class="right">${window.clp?.(x.monto)||x.monto}</td>
+          <td>${esc32(x._v32_estado||x.estado||'')}</td>
+          <td>${esc32(x._v32_obs||x.obs||'')}</td>
+        </tr>`;
+      });
+      rows+=`<tr class="v32-subtotal-row"><td colspan="5" class="right"><strong>Subtotal ${groupLabel32(group.tipo)}</strong></td><td class="right"><strong>${window.clp?.(subtotal)||subtotal}</strong></td><td colspan="2"></td></tr>`;
+    });
+  }
+
+  const html=`<div class="quin-print-doc">
+    <div class="quin-doc-head">
+      <div>
+        <strong>${window.empresa?.nombre||'ECOLUZ SERVICIOS LIMITADA'}</strong><br>
+        <span>RUT: ${window.empresa?.rut||''}</span><br>
+        <span>Dirección: ${window.empresa?.direccion||''}</span>
+      </div>
+      <div class="quin-doc-title">
+        <h3>CUADRO DE PAGOS DE QUINCENA</h3>
+        <div>Período: <strong>${esc32(periodo)}</strong></div>
+      </div>
+      <div class="quin-doc-meta">
+        <strong>Fecha:</strong> ${fechaReporte}<br>
+        <strong>Total:</strong> ${window.clp?.(total)||total}<br>
+        <strong>Registros:</strong> ${all.length}
+      </div>
+    </div>
+    <table class="quin-sign-table quin-list-table">
+      <thead><tr><th>N°</th><th>Fecha</th><th>Persona</th><th>RUT</th><th>Cargo / categoría</th><th>Monto</th><th>Estado</th><th>Observación</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td colspan="5" class="right"><strong>TOTAL CUADRO</strong></td><td class="right"><strong>${window.clp?.(total)||total}</strong></td><td colspan="2"></td></tr></tfoot>
+    </table>
+    <div class="quin-approval">
+      <div><strong>Revisado por RR.HH.</strong><span></span></div>
+      <div><strong>Autorización jefatura</strong><span></span></div>
+    </div>
+  </div>`;
+
+  if(by32('quincenas_firma_preview'))by32('quincenas_firma_preview').innerHTML=html;
+  return html;
+};
+
+window.printQuincenasPDF=function(){
+  const html=window.renderQuincenaSignaturePreview?.()||'';
+  const popup=window.open('','_blank','width=1300,height=850');
+  if(!popup){window.showMsg?.('msg-quin','El navegador bloqueó la ventana de impresión. Permite ventanas emergentes.','err');return}
+  const styles=`<style>
+    @page{size:11in 8.5in;margin:8mm}
+    *{box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;background:#fff;color:#263238}
+    .quin-print-doc{width:100%;padding:0}
+    .quin-doc-head{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:14px;align-items:start;border-bottom:2px solid #2e7d32;padding-bottom:10px;margin-bottom:12px;font-size:12px}
+    .quin-doc-title{text-align:center}.quin-doc-title h3{margin:0 0 8px;color:#1f5c24;font-size:16px}.quin-doc-meta{text-align:right}
+    .quin-sign-table{width:100%;border-collapse:collapse;font-size:9.5px;table-layout:fixed}
+    .quin-sign-table th,.quin-sign-table td{border:1px solid #9ca3af;padding:5px 4px;vertical-align:middle;overflow-wrap:anywhere}
+    .quin-sign-table th{background:#edf7e8;color:#1f5c24;text-align:left}
+    .v32-group-row td{background:#dfeeda!important;color:#1f5c24!important;font-weight:900}
+    .v32-group-row div{display:flex;justify-content:space-between;gap:12px}.v32-group-row span{font-size:8px;color:#49664b}
+    .v32-subtotal-row td{background:#f7faf5!important}
+    .right{text-align:right}.center{text-align:center}.quin-empty{text-align:center;color:#6b7280;padding:18px}
+    .quin-approval{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:42px;font-size:12px}
+    .quin-approval div{text-align:center}.quin-approval span{display:block;border-top:1px solid #111;margin-top:42px;padding-top:6px}
+  </style>`;
+  popup.document.open();
+  popup.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Cuadro pagos quincena</title>${styles}</head><body>${html}</body></html>`);
+  popup.document.close();
+  popup.onload=function(){popup.focus();setTimeout(()=>popup.print(),300)};
+  window.showMsg?.('msg-quin','Se abrió el cuadro de pagos de quincena con separación por categoría.');
+};
+
+function refresh32(){
+  try{window.renderQuincenas?.()}catch(e){console.error('V32 renderQuincenas',e)}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh32,250));
+else setTimeout(refresh32,250);
+
+})();
+</script>
+
+</body></html>
