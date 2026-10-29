@@ -13234,7 +13234,7 @@ function addNonImpRow(item={nombre:'',monto:0}){const row=document.createElement
 window.v54RenderNonImp=function(){renderNonImpFromStored()};
 function renderNonImpFromStored(){const rows=by('v54-nonimp-rows');if(!rows)return;let arr=[];try{arr=JSON.parse(by('bonos_noimp_detalle_json')?.value||'[]')}catch(e){}if(!Array.isArray(arr))arr=[];rows.replaceChildren();arr.forEach(addNonImpRow);collectNonImp();}
 function installWrappers(){if(typeof window.renderPracticantes==='function'){const old=window.renderPracticantes;window.renderPracticantes=function(...args){const ret=old.apply(this,args);pracBoard();return ret;}}if(typeof window.renderPermisos==='function'){const old=window.renderPermisos;window.renderPermisos=function(...args){const ret=old.apply(this,args);vacationBoard();return ret;}}if(typeof window.renderQuincenas==='function'){const old=window.renderQuincenas;window.renderQuincenas=function(...args){const ret=old.apply(this,args);quinBoard();return ret;}}}
-function init(){workerControls();installWrappers();pracBoard();vacationBoard();quinBoard();attendanceMonth();attachAttDetail();contractsCompact();setupNonImposable();document.querySelector('#rrhhShell .side-nav')?.addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;setTimeout(()=>{if(b.dataset.view==='asistencia'){attendanceMonth();attachAttDetail();}if(b.dataset.view==='contratos')contractsCompact();if(b.dataset.view==='practicantes')pracBoard();if(b.dataset.view==='permisos')vacationBoard();if(b.dataset.view==='quincenas')quinBoard();},70)});
+function init(){workerControls();installWrappers();pracBoard();vacationBoard();quinBoard();attendanceMonth();contractsCompact();setupNonImposable();document.querySelector('#rrhhShell .side-nav')?.addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;setTimeout(()=>{if(b.dataset.view==='asistencia'){attendanceMonth();}if(b.dataset.view==='contratos')contractsCompact();if(b.dataset.view==='practicantes')pracBoard();if(b.dataset.view==='permisos')vacationBoard();if(b.dataset.view==='quincenas')quinBoard();},70)});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0));else setTimeout(init,0);
 })();
@@ -14027,7 +14027,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    '<span><i style="background:#bbd6ff"></i>F · Feriado</span>'+
    '<span><i style="background:#ddd3f2"></i>P · Permiso / vacaciones</span>'+
    '<span><i style="background:#dce5ec"></i>Fin de semana · Bloqueado</span></div>'+
-   '<span class="v62-instruction">Selecciona una casilla para registrar asistencia</span>';
+   '<span class="v62-instruction">Haz clic en un día laborable para editar la marcación, completar la salida y la colación.</span>';
   wrap.parentNode.insertBefore(guide,wrap);
   const old=$('v54-att-legend');if(old)old.style.display='none';
  }
@@ -14125,12 +14125,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    open(w.key,w,date,rec);
   },true);
  }
- function init(){putGuide();initModal();bind()}
+ function init(){putGuide() /* V75: restaurado clic directo al formulario V13 con horarios y cierre de jornada. */}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
 
 
+<!-- V75 · Clic directo V13 restaurado, conservando el estilo V63. -->
 <!-- V63 · Primera opción elegida: celeste oscuro y gris, sin alterar registros ni cálculos -->
 <style id="v63-attendance-blue-professional">
 @media screen {
